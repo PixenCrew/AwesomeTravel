@@ -35,24 +35,25 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.springframework.boot:spring-boot-test'
-	testImplementation 'com.h2database:h2'
+	// testImplementation 'com.h2database:h2'
 
-	// DTO <-> Entity 매핑
-    implementation group: 'org.mapstruct', name: 'mapstruct', version: '1.6.3'
-	annotationProcessor group: 'org.mapstruct', name:'mapstruct-processor', version: '1.6.3'
-	testAnnotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: '1.6.3'
-	
 	// lombok
-	compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
-	annotationProcessor group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0'
+	compileOnly 			group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
+	annotationProcessor 	group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
+	annotationProcessor 	group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0'
+
+	// // DTO <-> Entity 매핑
+    // implementation 			group: 'org.mapstruct', name: 'mapstruct', version: '1.6.3'
+	// annotationProcessor 	group: 'org.mapstruct', name:'mapstruct-processor', version: '1.6.3'
+	// testAnnotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: '1.6.3'
+	// -> DTO 수동 매핑 사용
 
 	// DB 연결
-	implementation group: 'com.mysql', name: 'mysql-connector-j'
-	annotationProcessor group: 'jakarta.persistence', name: 'jakarta.persistence-api'
+    implementation 			group: 'org.mariadb.jdbc',	name : 'mariadb-java-client'
+	annotationProcessor 	group: 'jakarta.persistence', name: 'jakarta.persistence-api'
 
 	// 템플릿 엔진
-	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
+	implementation 			group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf'
 
 	// // .env 변수 분리
 	// implementation group: 'me.paulschwarz', name: 'spring-dotenv', version : '4.0.0'
