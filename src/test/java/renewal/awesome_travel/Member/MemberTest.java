@@ -9,15 +9,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.TestPropertySource;
 
 import jakarta.transaction.Transactional;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
+@TestPropertySource(locations = "classpath:application.properties")
 @Transactional
 class MemberTest {
-    MemberDto memberDto = new MemberDto();
+    // MemberDto memberDto = new MemberDto();
 
     @Autowired
     private MemberRepository memberRepository;
@@ -27,11 +28,11 @@ class MemberTest {
 
     // 임시 회원 작성
     public MemberDto testMemberDto() {
-        MemberDto memberDto = new MemberDto();
-        memberDto.setEmail("test@test.com");
-        memberDto.setName("테스트");
-        memberDto.setNumber("010-1234-5678");
-        return memberDto;
+        MemberDto testMemberDto = new MemberDto();
+        testMemberDto.setEmail("test@test.com");
+        testMemberDto.setName("테스트");
+        testMemberDto.setNumber("010-1234-5678");
+        return testMemberDto;
     }
 
     @Test
@@ -40,7 +41,7 @@ class MemberTest {
         MemberDto memberDto = testMemberDto();
 
         // Mapper로 변환
-        Member member = memberMapper.MemberDtoToMember(memberDto);
+        Member member = memberMapper.memberDtoToMember(memberDto);
 
         System.out.println("save 전 : " + member.getId()); // -> null 출력
         memberRepository.save(member); // 저장 시점부터 영속성 부여 / id 할당
@@ -74,19 +75,18 @@ class MemberTest {
         MemberDto memberDto = testMemberDto();
 
         // Mapper로 변환
-        Member member1 = memberMapper.MemberDtoToMember(memberDto);
+        Member member1 = memberMapper.memberDtoToMember(memberDto);
 
         memberRepository.save(member1); // 1차 저장
 
         // email 제외 변경
         memberDto.setName("TEST2");
         memberDto.setNumber("010-9999-9999");
-        Member member2 = memberMapper.MemberDtoToMember(memberDto);
+        Member member2 = memberMapper.memberDtoToMember(memberDto);
 
-        memberRepository.save(member2); // 2차 저장 (영속성 컨텍스트에만 반영 / 실제 반영 아직 안됨)
-
-        Exception exception = assertThrows(Exception.class, () -> {
-            memberRepository.flush(); // 실제 에러 발생 지점
+        
+        Exception exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            memberRepository.save(member2); // 2차 저장 (실제 에러 발생 지점)
         });
 
         System.out.printf("\n에러 내용 :\n %s\n\n",exception);
