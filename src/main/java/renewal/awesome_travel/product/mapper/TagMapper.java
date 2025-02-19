@@ -7,7 +7,7 @@ import renewal.awesome_travel.product.entity.Tag;
 @Component
 public class TagMapper {
 
-    public Tag toTag(TagDto tagDto) {
+    public static Tag toTag(TagDto tagDto) {
         if (tagDto == null) {
             return null;
         }
@@ -15,7 +15,7 @@ public class TagMapper {
         return new Tag(tagDto.getTag());
     }
 
-    public TagDto toTagDto(Tag tag) {
+    public static TagDto toTagDto(Tag tag) {
         if (tag == null) {
             return null;
         }

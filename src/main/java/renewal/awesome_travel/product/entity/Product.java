@@ -71,7 +71,6 @@ public class Product {
 
     public void addProductList(ProductList productList) {
         this.productLists.add(productList);
-        productList.setProduct(this);
     }
 
     public void removeProductList(ProductList productList) {
