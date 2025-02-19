@@ -5,30 +5,27 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import renewal.awesome_travel.air.entity.Air;
+import renewal.awesome_travel.air.utiles.SeatClassType;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AirDto {
+public class SeatClassDto {
 
     private Long id;
 
-    private String code;
+    private Long air_id;
 
-    private String airline;
+    private SeatClassType seatClassType;
 
-    private String depart;
+    private Integer price;
 
-    private LocalDateTime depart_time;
+    private Integer maxSeats;
 
-    private String arrive;
+    private Integer availableSeats;
 
-    private LocalDateTime arrive_time;
 
-    private List<SeatClassDto> seatClasses;
 }

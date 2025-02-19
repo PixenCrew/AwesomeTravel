@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -24,9 +26,6 @@ public class Air {
     private String airline;
 
     @Column(nullable = false)
-    private Integer price;
-
-    @Column(nullable = false)
     private String depart;
 
     @Column(nullable = false)
@@ -38,33 +37,35 @@ public class Air {
     @Column(nullable = false)
     private LocalDateTime arrive_time;
 
-    @Column(nullable = false)
-    private Integer max;
+    @OneToMany(mappedBy = "air", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SeatClass> seatClasses = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Integer rest;
-
-    public Air(String code, String airline, Integer price, String depart, LocalDateTime depart_time, String arrive, LocalDateTime arrive_time, Integer max, Integer rest) {
+    public Air(String code, String airline, String depart, LocalDateTime depart_time, String arrive, LocalDateTime arrive_time) {
         this.code = code;
         this.airline = airline;
-        this.price = price;
         this.depart = depart;
         this.depart_time = depart_time;
         this.arrive = arrive;
         this.arrive_time = arrive_time;
-        this.max = max;
-        this.rest = rest;
     }
 
     public void updateAir(String code, String airline, Integer price, String depart, LocalDateTime depart_time, String arrive, LocalDateTime arrive_time, Integer max, Integer rest) {
         if (!code.equals(this.code)) this.code = code;
         if (!airline.equals(this.airline)) this.airline = airline;
-        if (!price.equals(this.price)) this.price = price;
         if (!depart.equals(this.depart)) this.depart = depart;
         if (!depart_time.equals(this.depart_time)) this.depart_time = depart_time;
         if (!arrive.equals(this.arrive)) this.arrive = arrive;
         if (!arrive_time.equals(this.arrive_time)) this.arrive_time = arrive_time;
-        if (!max.equals(this.max)) this.max = max;
-        if (!rest.equals(this.rest)) this.rest = rest;
+    }
+
+    public void addSeatClass(SeatClass seatClass) {
+        this.seatClasses.add(seatClass);
+//        seatClass.setAir(this); NM 관계에 생성자에 Air 주입시 필요없음
+        //tag와 eventProduct에 경우는 MM관계라서 적는다.
+    }
+
+    public void removeSeatClass(SeatClass seatClass) {
+        this.seatClasses.remove(seatClass);
+        seatClass.setAir(null);
     }
 }
