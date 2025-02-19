@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import renewal.awesome_travel.air.entity.Air;
+import renewal.awesome_travel.hotel.entity.Hotel;
 
 @Entity
 @Getter
@@ -21,11 +23,13 @@ public class ProductList {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(nullable = false)
-    private Integer air_id;
+    @ManyToOne
+    @JoinColumn(name = "air_id")
+    private Air air;
 
-    @Column(nullable = false)
-    private Integer hotel_id;
+    @ManyToOne
+    @JoinColumn(name = "hotel_id")
+    private Hotel hotel;
 
     private String date; //출발일
 
@@ -33,18 +37,18 @@ public class ProductList {
 
     private Integer currentReserve; //현재 예약된 인원
 
-    public ProductList(Product product, Integer air_id, Integer hotel_id, String date, Integer price, Integer currentReserve) {
+    public ProductList(Product product, Air air, Hotel hotel, String date, Integer price, Integer currentReserve) {
         this.product = product;
-        this.air_id = air_id;
-        this.hotel_id = hotel_id;
+        this.air = air;
+        this.hotel = hotel;
         this.date = date;
         this.price = price;
         this.currentReserve = currentReserve;
     }
 
-    public void updateProductList(Integer air_id, Integer hotel_id, String date, Integer price, Integer currentReserve) {
-        if (!air_id.equals(this.air_id)) this.air_id = air_id;
-        if (!hotel_id.equals(this.hotel_id)) this.hotel_id = hotel_id;
+    public void updateProductList(Air air, Hotel hotel, String date, Integer price, Integer currentReserve) {
+        if (!air.equals(this.air)) this.air = air;
+        if (!hotel.equals(this.hotel)) this.hotel = hotel;
         if (!date.equals(this.date)) this.date = date;
         if (!price.equals(this.price)) this.price = price;
         if (!currentReserve.equals(this.currentReserve)) this.currentReserve = currentReserve;

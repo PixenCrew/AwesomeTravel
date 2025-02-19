@@ -1,21 +1,19 @@
-package renewal.awesome_travel.product.dto;
+package renewal.awesome_travel.product.dto.responseDto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.product.entity.ProductList;
-import renewal.awesome_travel.product.entity.Tag;
+import renewal.awesome_travel.product.dto.TagDto;
+import renewal.awesome_travel.product.dto.requestDto.ProductListRequestDto;
 
 import java.util.List;
 
 @Getter
 @Setter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDto {
+public class ProductResponseDto {
 
     private Long id;
 
@@ -33,7 +31,7 @@ public class ProductDto {
 
     private Integer view;
 
-    private List<ProductList> productLists;
+    private List<ProductListResponseDto> productLists;
 
-    private List<Tag> Tags;
+    private List<TagDto> Tags;
 }
