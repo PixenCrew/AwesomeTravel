@@ -1,4 +1,4 @@
-package renewal.awesome_travel.Member;
+package renewal.awesome_travel.member.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
