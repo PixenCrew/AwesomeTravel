@@ -29,18 +29,18 @@ public class Air {
     private String depart;
 
     @Column(nullable = false)
-    private LocalDateTime depart_time;
+    private String depart_time;
 
     @Column(nullable = false)
     private String arrive;
 
     @Column(nullable = false)
-    private LocalDateTime arrive_time;
+    private String arrive_time;
 
     @OneToMany(mappedBy = "air", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SeatClass> seatClasses = new ArrayList<>();
 
-    public Air(String code, String airline, String depart, LocalDateTime depart_time, String arrive, LocalDateTime arrive_time) {
+    public Air(String code, String airline, String depart, String depart_time, String arrive, String arrive_time) {
         this.code = code;
         this.airline = airline;
         this.depart = depart;
@@ -49,7 +49,7 @@ public class Air {
         this.arrive_time = arrive_time;
     }
 
-    public void updateAir(String code, String airline, Integer price, String depart, LocalDateTime depart_time, String arrive, LocalDateTime arrive_time, Integer max, Integer rest) {
+    public void updateAir(String code, String airline, Integer price, String depart, String depart_time, String arrive, String arrive_time, Integer max, Integer rest) {
         if (!code.equals(this.code)) this.code = code;
         if (!airline.equals(this.airline)) this.airline = airline;
         if (!depart.equals(this.depart)) this.depart = depart;

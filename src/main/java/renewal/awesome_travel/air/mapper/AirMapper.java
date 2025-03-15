@@ -27,6 +27,6 @@ public class AirMapper {
                 .map(SeatClassMapper::toSeatClassDto)
                 .collect(Collectors.toList());
 
-        return new AirDto(air.getId(), air.getCode(), air.getAirline(), air.getDepart(), air.getDepart_time(), air.getArrive(), air.getArrive_time(), seatClassDtos);
+        return new AirDto(air.getId(), air.getCode(), air.getAirline(), air.getDepart(), air.getDepart_time(), air.getArrive(), air.getArrive_time(),seatClassDtos);
     }
 }
