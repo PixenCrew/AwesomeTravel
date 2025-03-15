@@ -2,6 +2,7 @@ package renewal.awesome_travel.purchase.mapper;
 
 import renewal.awesome_travel.air.dto.AirDto;
 import renewal.awesome_travel.air.entity.Air;
+import renewal.awesome_travel.air.mapper.SeatClassMapper;
 import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPassengerResponseDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
@@ -60,7 +61,8 @@ public class AirPurchaseMapper {
                 air.getDepart(),
                 air.getDepart_time(),
                 air.getArrive(),
-                air.getArrive_time()
+                air.getArrive_time(),
+                air.getSeatClasses().stream().map(SeatClassMapper::toSeatClassDto).collect(Collectors.toList())
         )
                 : null; // Air가 없는 경우 null 처리
 
