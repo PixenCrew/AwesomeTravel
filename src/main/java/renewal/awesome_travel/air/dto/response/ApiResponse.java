@@ -1,4 +1,4 @@
-package renewal.awesome_travel.air.dto;
+package renewal.awesome_travel.air.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;

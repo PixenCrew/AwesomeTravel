@@ -1,13 +1,15 @@
 package renewal.awesome_travel.air.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import renewal.awesome_travel.air.dto.ApiResponse;
+import renewal.awesome_travel.air.dto.response.ApiResponse;
 import renewal.awesome_travel.air.entity.Air;
+import renewal.awesome_travel.air.entity.Airline;
 import renewal.awesome_travel.air.entity.FlightItem;
 import renewal.awesome_travel.air.repository.AirRepository;
+import renewal.awesome_travel.air.repository.AirlineRepository;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -15,13 +17,16 @@ import java.net.URLEncoder;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OpenApiService {
 
-    @Autowired
+
     private RestTemplate restTemplate;
 
-    @Autowired
+
     private AirRepository airRepository;
+
+    private AirlineRepository airlineRepository;
 
     public void fetchAndSaveData() throws UnsupportedEncodingException {
 
@@ -44,10 +49,13 @@ public class OpenApiService {
             if (apiResponse != null && apiResponse.getData() != null) {
                 List<FlightItem> items = apiResponse.getData();
                 for (FlightItem item : items) {
+                    // Airline 매핑
+                    Airline airline = airlineRepository.findByNameEng(item.getAirline())
+                            .orElseThrow(() -> new IllegalArgumentException("항공사 [" + item.getAirline() + "] 는 미등록 항공사입니다."));
                     // DB 저장을 위한 엔티티 변환
                     Air air = new Air(
                             item.getFlightNumber(),
-                            item.getAirline(),
+                            airline,
                             item.getDepartureAirport(),
                             item.getDepartureTime(),
                             item.getArrivalAirport(),

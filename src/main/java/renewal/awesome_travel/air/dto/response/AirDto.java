@@ -1,10 +1,11 @@
-package renewal.awesome_travel.air.dto;
+package renewal.awesome_travel.air.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import renewal.awesome_travel.air.dto.SeatClassDto;
 
 import java.util.List;
 
