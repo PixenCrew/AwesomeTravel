@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 @MappedSuperclass
-public abstract class BasePassenger {
+public abstract class   BasePassenger {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

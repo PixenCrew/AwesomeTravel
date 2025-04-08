@@ -1,6 +1,6 @@
 package renewal.awesome_travel.purchase.mapper;
 
-import renewal.awesome_travel.air.dto.AirDto;
+import renewal.awesome_travel.air.dto.response.AirDto;
 import renewal.awesome_travel.air.entity.Air;
 import renewal.awesome_travel.air.mapper.SeatClassMapper;
 import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;

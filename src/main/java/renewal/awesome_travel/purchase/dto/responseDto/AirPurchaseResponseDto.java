@@ -1,11 +1,10 @@
 package renewal.awesome_travel.purchase.dto.responseDto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.air.dto.AirDto;
+import renewal.awesome_travel.air.dto.response.AirDto;
 import renewal.awesome_travel.purchase.utiles.Status;
 
 import java.time.LocalDateTime;
