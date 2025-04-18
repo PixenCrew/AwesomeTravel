@@ -31,6 +31,10 @@ public class ProductList {
     @JoinColumn(name = "hotel_id")
     private Hotel hotel;
 
+    // 관계 엔티티 연동
+    //    @OneToMany(mappedBy = "pack", cascade = CascadeType.ALL)
+    //    private List<PackageHotel> packageHotels = new ArrayList<>();
+
     private String date; //출발일
 
     private Integer price;
