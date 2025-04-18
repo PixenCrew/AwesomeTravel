@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import renewal.awesome_travel.air.utiles.AirStatus;
 import renewal.awesome_travel.air.utiles.FlightType;
-import renewal.awesome_travel.air.utiles.SeatClassType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,4 +51,15 @@ public class Air {
 
     @OneToMany(mappedBy = "air", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SeatClass> seatClasses = new ArrayList<>();
+
+    public Air(String code, Airline airline, String depart, String depart_time, String arrive, String arrive_time) {
+        this.code = code;
+        this.airline = airline;
+        this.depart = depart;
+        this.depart_time =depart_time;
+        this.arrive = arrive;
+        this.arrive_time = arrive_time;
+    }
+
+
 }
