@@ -4,27 +4,32 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import renewal.awesome_travel.config.AuditingFields;
-import renewal.awesome_travel.faq.utiles.CsCategory;
+import renewal.awesome_travel.faq.utils.FaqCategory;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "faq")
-public class faq extends AuditingFields {
-
+public class Faq extends AuditingFields {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
+    private String question;
+    private String answer;
+    @Enumerated(EnumType.STRING)
+    private FaqCategory category;
 
-    @Column(nullable = false)
-    private String title;
+    // 생성 메서드
+    public Faq (String question, String answer, FaqCategory category) {
+        this.question = question;
+        this.answer = answer;
+        this.category = category;
+    }
 
-    @Column(nullable = false)
-    private CsCategory category;
-
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String ask;
-
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String response;
+    // 수정 메서드
+    public void update(String question, String answer, FaqCategory category) {
+        this.question = question;
+        this.answer = answer;
+        this.category = category;
+    }
 }
+
