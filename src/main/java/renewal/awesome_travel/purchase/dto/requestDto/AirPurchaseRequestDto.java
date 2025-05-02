@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.purchase.utiles.Status;
+import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,13 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 public class AirPurchaseRequestDto {
 
-    private Long airId;
+    private Long seatClassId;
 
-    private Status status;
+    private int adultCount;   // 성인 인원수
+    private int childCount;   // 소아 인원수
+    private int infantCount;  // 유아 인원수
 
-    private Integer price;
-
-    private Long member_id;
+    private Long memberId;
 
     private String name;
 
@@ -33,5 +33,5 @@ public class AirPurchaseRequestDto {
 
     private LocalDateTime paymentDueDate;
 
-    private List<AirPassengerRequestDto> airPassengers; // 탑승자 정보
+    private List<AirPassengerRequestDto> passengers; // 탑승자 정보
 }

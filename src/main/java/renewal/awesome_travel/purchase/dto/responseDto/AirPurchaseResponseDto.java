@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.air.dto.response.AirDto;
-import renewal.awesome_travel.purchase.utiles.Status;
+import renewal.awesome_travel.air.dto.response.AirResponseDto;
+import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,9 +18,9 @@ public class AirPurchaseResponseDto {
 
     private Long id;
 
-    private AirDto airDto;
+    private AirResponseDto airDto; // 기존 AirDto → AirResponseDto 로 변경
 
-    private Status status;
+    private PurchaseStatus status;
 
     private Integer price;
 
@@ -36,5 +36,6 @@ public class AirPurchaseResponseDto {
 
     private LocalDateTime paymentDueDate;
 
-    private List<AirPassengerResponseDto> airPassengers; // 탑승자 정보
+    private List<AirPassengerResponseDto> airPassengers;
 }
+
