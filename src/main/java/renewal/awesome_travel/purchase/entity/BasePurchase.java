@@ -3,7 +3,7 @@ package renewal.awesome_travel.purchase.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.purchase.utiles.Status;
+import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
 
 import java.time.LocalDateTime;
 
@@ -15,35 +15,35 @@ public abstract class BasePurchase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_purchase_id")
-    private Long id;
+    protected Long id;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    @Column(nullable = false)
+    protected PurchaseStatus purchaseStatus;
+
 
     @Column(nullable = false)
-    private Integer price; //결제금액
+    protected Integer price; //결제금액
 
     @Column(nullable = false)
-    private Long member_id; //구매자
+    protected Long member_id; //구매자
 
     @Column(nullable = false)
-    private String name;
+    protected String name;
 
     @Column(nullable = false)
-    private String number;
+    protected String number;
 
     @Column(nullable = false)
-    private String email;
+    protected String email;
 
     @Column(nullable = false)
-    private LocalDateTime purchaseDate; //구매일
+    protected LocalDateTime purchaseDate; //구매일
 
     @Column
-    private LocalDateTime paymentDueDate; //결제기한
+    protected LocalDateTime paymentDueDate; //결제기한
 
-    public BasePurchase(Status status, Integer price, Long member_id, String name, String number, String email, LocalDateTime purchaseDate, LocalDateTime paymentDueDate) {
-        this.status = status;
+    public BasePurchase(Integer price, Long member_id, String name, String number, String email, LocalDateTime purchaseDate, LocalDateTime paymentDueDate) {
         this.price = price;
         this.member_id = member_id;
         this.name = name;
@@ -52,4 +52,5 @@ public abstract class BasePurchase {
         this.purchaseDate = purchaseDate;
         this.paymentDueDate = paymentDueDate;
     }
+
 }

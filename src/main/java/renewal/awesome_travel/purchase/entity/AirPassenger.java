@@ -3,6 +3,7 @@ package renewal.awesome_travel.purchase.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerUpdateRequestDto;
 import renewal.awesome_travel.purchase.utiles.Sex;
 
 import java.time.LocalDate;
@@ -39,4 +40,26 @@ public class AirPassenger extends BasePassenger {
             this.specialRequests.addAll(specialRequests);
         }
     }
+
+    public void updateInfo(AirPassengerUpdateRequestDto dto, Country newCountry, Set<SpecialRequest> newRequests) {
+        // BasePassenger 필드 처리
+        if (dto.getName() != null) this.name = dto.getName();
+        if (dto.getNumber() != null) this.number = dto.getNumber();
+        if (dto.getEmail() != null) this.email = dto.getEmail();
+        if (dto.getBirth() != null) this.birth = dto.getBirth();
+        if (dto.getSex() != null) this.sex = dto.getSex();
+        if (newCountry != null) this.nationality = newCountry;
+        if (dto.getPassportNum() != null) this.passport_num = dto.getPassportNum();
+        if (dto.getLastName() != null) this.lastName = dto.getLastName();
+        if (dto.getFirstName() != null) this.firstName = dto.getFirstName();
+        if (dto.getExpire() != null) this.expire = dto.getExpire();
+
+        // AirPassenger 고유 필드 처리
+        if (newRequests != null) {
+            this.specialRequests.clear();
+            this.specialRequests.addAll(newRequests);
+        }
+    }
+
+
 }

@@ -46,6 +46,18 @@ public class SeatClass {
         if (availableSeats != null) this.availableSeats = availableSeats;
     }
 
+    public void decreaseAvailableSeats(int count) {
+        if (this.availableSeats < count) {
+            throw new IllegalStateException("남은 좌석이 부족합니다.");
+        }
+        this.availableSeats -= count;
+    }
+
+    public void increaseAvailableSeats(int count) {
+        this.availableSeats += count;
+    }
+
+
     public void setAir(Air air) {
         this.air = air;
     }
