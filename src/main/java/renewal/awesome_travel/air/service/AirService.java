@@ -15,4 +15,5 @@ public class AirService {
     public Page<?> searchFlights(AirSearchRequestDto req) {
         return airRepositoryCustom.search(req);
     }
+
 }
