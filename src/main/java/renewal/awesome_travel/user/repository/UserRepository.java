@@ -1,7 +1,7 @@
-package renewal.awesome_travel.member.repository;
+package renewal.awesome_travel.user.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.member.entity.User;
+import renewal.awesome_travel.user.entity.User;
 
 import java.util.Optional;
 

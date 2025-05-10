@@ -1,7 +1,7 @@
-package renewal.awesome_travel.member.repository;
+package renewal.awesome_travel.user.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.member.entity.EmailVerificationToken;
+import renewal.awesome_travel.user.entity.EmailVerificationToken;
 
 public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, String> {
 }
