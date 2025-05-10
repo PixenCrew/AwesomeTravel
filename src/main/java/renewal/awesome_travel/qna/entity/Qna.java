@@ -3,7 +3,7 @@ package renewal.awesome_travel.qna.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.member.entity.User;
+import renewal.awesome_travel.user.entity.User;
 
 import java.time.LocalDateTime;
 

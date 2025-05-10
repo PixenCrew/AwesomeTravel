@@ -11,7 +11,7 @@ import renewal.awesome_travel.comment.dto.request.CommentRequestDto;
 import renewal.awesome_travel.comment.dto.response.CommentResponseDto;
 import renewal.awesome_travel.comment.service.CommentService;
 import renewal.awesome_travel.config.security.CustomUserDetails;
-import renewal.awesome_travel.member.entity.User;
+import renewal.awesome_travel.user.entity.User;
 
 import java.util.List;
 

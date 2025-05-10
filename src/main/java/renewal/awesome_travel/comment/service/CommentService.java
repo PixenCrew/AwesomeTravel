@@ -9,10 +9,9 @@ import renewal.awesome_travel.comment.dto.request.CommentRequestDto;
 import renewal.awesome_travel.comment.dto.response.CommentResponseDto;
 import renewal.awesome_travel.comment.entity.Comment;
 import renewal.awesome_travel.comment.repository.CommentRepository;
-import renewal.awesome_travel.member.entity.User;
-import renewal.awesome_travel.member.repository.UserRepository;
 import renewal.awesome_travel.product.entity.Product;
 import renewal.awesome_travel.product.repository.ProductRepository;
+import renewal.awesome_travel.user.entity.User;
 
 import java.util.List;
 

@@ -5,8 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import renewal.awesome_travel.member.entity.User;
-import renewal.awesome_travel.member.repository.UserRepository;
 import renewal.awesome_travel.qna.dto.request.QnaAnswerRequestDto;
 import renewal.awesome_travel.qna.dto.request.QnaAnswerUpdateRequestDto;
 import renewal.awesome_travel.qna.dto.request.QnaRequestDto;
@@ -18,6 +16,8 @@ import renewal.awesome_travel.qna.entity.Qna;
 import renewal.awesome_travel.qna.entity.QnaAnswer;
 import renewal.awesome_travel.qna.repository.QnaAnswerRepository;
 import renewal.awesome_travel.qna.repository.QnaRepository;
+import renewal.awesome_travel.user.entity.User;
+import renewal.awesome_travel.user.repository.UserRepository;
 
 import java.util.List;
 

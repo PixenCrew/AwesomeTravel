@@ -6,13 +6,10 @@ import java.time.LocalDate;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import renewal.awesome_travel.comment.entity.Comment;
-import renewal.awesome_travel.inquiry.entity.Inquiry;
-import renewal.awesome_travel.member.utils.Provider;
-import renewal.awesome_travel.member.utils.Role;
-import renewal.awesome_travel.member.utils.Status;
 import renewal.awesome_travel.purchase.entity.AirPurchase;
-import renewal.awesome_travel.qna.entity.Qna;
-import renewal.awesome_travel.wait.entity.Wait;
+import renewal.awesome_travel.user.utils.Provider;
+import renewal.awesome_travel.user.utils.Role;
+import renewal.awesome_travel.user.utils.Status;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
