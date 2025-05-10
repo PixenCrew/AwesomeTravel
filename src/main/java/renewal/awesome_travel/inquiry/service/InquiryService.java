@@ -14,15 +14,10 @@ import renewal.awesome_travel.inquiry.entity.Inquiry;
 import renewal.awesome_travel.inquiry.entity.InquiryAnswer;
 import renewal.awesome_travel.inquiry.repository.InquiryAnswerRepository;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
-<<<<<<< Updated upstream
-=======
 import renewal.awesome_travel.member.entity.User;
 import renewal.awesome_travel.member.repository.UserRepository;
->>>>>>> Stashed changes
 import renewal.awesome_travel.notification.entity.Notification;
-import renewal.awesome_travel.notification.entity.NotificationMessage;
 import renewal.awesome_travel.notification.repository.NotificationRepository;
-import renewal.awesome_travel.notification.utils.NotificationPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +26,6 @@ public class InquiryService {
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository inquiryAnswerRepository;
     private final NotificationRepository notificationRepository;
-<<<<<<< Updated upstream
-
-    // 문의 작성
-    public Long createInquiry(Long userId, InquiryRequestDto dto) {
-        Inquiry inquiry = Inquiry.create(userId, dto.getTitle(), dto.getContent());
-=======
     private final UserRepository userRepository;
 
     // 문의 작성
@@ -44,24 +33,17 @@ public class InquiryService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
         Inquiry inquiry = Inquiry.create(user, dto.getTitle(), dto.getContent());
->>>>>>> Stashed changes
         return inquiryRepository.save(inquiry).getId();
     }
 
     // 내 문의 목록 조회
     @Transactional(readOnly = true)
     public Page<InquiryResponseDto> getMyInquiries(Long userId, Pageable pageable) {
-<<<<<<< Updated upstream
-        return inquiryRepository.findByUserId(userId, pageable)
-                .map(this::toInquiryDto);
-=======
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
         return inquiryRepository.findByUser(user, pageable)
                 .map(this::toInquiryDto);
-
->>>>>>> Stashed changes
     }
 
     // 내 문의 상세 조회 (문의 + 답변)
@@ -69,11 +51,7 @@ public class InquiryService {
     public InquiryDetailResponseDto getInquiryDetail(Long inquiryId, Long requestUserId) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new IllegalArgumentException("문의가 존재하지 않습니다."));
-<<<<<<< Updated upstream
-        if (!inquiry.getUserId().equals(requestUserId)) {
-=======
         if (!inquiry.getUser().getId().equals(requestUserId)) {
->>>>>>> Stashed changes
             throw new IllegalArgumentException("본인만 조회할 수 있습니다.");
         }
 
@@ -102,22 +80,13 @@ public class InquiryService {
     //유저용 검색
     @Transactional(readOnly = true)
     public Page<InquiryResponseDto> searchMyInquiries(Long userId, String keyword, Boolean isAnswered, Pageable pageable) {
-<<<<<<< Updated upstream
-        return inquiryRepository.searchUser(userId, keyword, isAnswered, pageable)
-=======
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
         return inquiryRepository.searchUser(user, keyword, isAnswered, pageable)
->>>>>>> Stashed changes
                 .map(this::toInquiryDto);
     }
 
-
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     // 전체 문의 목록 조회 (관리자)
     @Transactional(readOnly = true)
     public Page<InquiryResponseDto> getAllInquiries(Pageable pageable) {
@@ -136,13 +105,9 @@ public class InquiryService {
 
         inquiry.markAnswered();
 
-        // 추가: 알림 저장 추후 비동기 변경
+        // 알림 저장
         notificationRepository.save(Notification.create(
-<<<<<<< Updated upstream
-                inquiry.getUserId(),
-=======
-                inquiry.getUser().getId(),  // ✅ 올바른 방식
->>>>>>> Stashed changes
+                inquiry.getUser().getId(),
                 "작성하신 문의에 답변이 등록되었습니다."
         ));
 
@@ -152,11 +117,7 @@ public class InquiryService {
     private InquiryResponseDto toInquiryDto(Inquiry inquiry) {
         return InquiryResponseDto.builder()
                 .id(inquiry.getId())
-<<<<<<< Updated upstream
-                .userId(inquiry.getUserId())
-=======
                 .userId(inquiry.getUser().getId())
->>>>>>> Stashed changes
                 .title(inquiry.getTitle())
                 .content(inquiry.getContent())
                 .isAnswered(inquiry.isAnswered())
@@ -176,4 +137,3 @@ public class InquiryService {
                 .build();
     }
 }
-
