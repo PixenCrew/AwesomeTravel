@@ -8,11 +8,11 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import renewal.awesome_travel.config.security.CustomUserDetails;
-import renewal.awesome_travel.member.utils.Provider;
-import renewal.awesome_travel.member.utils.Role;
-import renewal.awesome_travel.member.utils.Status;
 import renewal.awesome_travel.user.entity.User;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.awesome_travel.user.utils.Provider;
+import renewal.awesome_travel.user.utils.Role;
+import renewal.awesome_travel.user.utils.Status;
 
 import java.util.Map;
 
