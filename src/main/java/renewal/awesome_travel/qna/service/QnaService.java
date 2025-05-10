@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import renewal.awesome_travel.member.entity.User;
+import renewal.awesome_travel.member.repository.UserRepository;
 import renewal.awesome_travel.qna.dto.request.QnaAnswerRequestDto;
 import renewal.awesome_travel.qna.dto.request.QnaAnswerUpdateRequestDto;
 import renewal.awesome_travel.qna.dto.request.QnaRequestDto;
@@ -25,12 +27,17 @@ public class QnaService {
 
     private final QnaRepository qnaRepository;
     private final QnaAnswerRepository qnaAnswerRepository;
+    private final UserRepository userRepository;
 
     // 질문 등록
     public Long createQna(Long writerId, QnaRequestDto dto) {
-        Qna qna = Qna.create(writerId, dto.getTitle(), dto.getContent());
+        User writer = userRepository.findById(writerId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+        Qna qna = Qna.create(writer, dto.getTitle(), dto.getContent());
         return qnaRepository.save(qna).getId();
     }
+
 
     // 전체 질문 조회
     public Page<QnaResponseDto> getAllQna(Pageable pageable) {
@@ -58,7 +65,7 @@ public class QnaService {
 
         return QnaDetailResponseDto.builder()
                 .id(qna.getId())
-                .writerId(qna.getWriterId())
+                .writerId(qna.getWriter().getId())
                 .title(qna.getTitle())
                 .content(qna.getContent())
                 .isAnswered(qna.isAnswered())
@@ -72,7 +79,7 @@ public class QnaService {
     public void updateQnaPartial(Long qnaId, Long requestUserId, QnaUpdateRequestDto dto) {
         Qna qna = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new IllegalArgumentException("QnA가 존재하지 않습니다."));
-        if (!qna.getWriterId().equals(requestUserId)) {
+        if (!qna.getWriter().getId().equals(requestUserId)) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
         if (dto.getTitle() != null) qna.updateTitle(dto.getTitle());
@@ -84,7 +91,7 @@ public class QnaService {
     public void deleteQna(Long qnaId, Long requestUserId) {
         Qna qna = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new IllegalArgumentException("QnA가 존재하지 않습니다."));
-        if (!qna.getWriterId().equals(requestUserId)) {
+        if (!qna.getWriter().getId().equals(requestUserId)) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
         qnaRepository.delete(qna);
@@ -127,7 +134,7 @@ public class QnaService {
     private QnaResponseDto toQnaDto(Qna qna) {
         return QnaResponseDto.builder()
                 .id(qna.getId())
-                .writerId(qna.getWriterId())
+                .writerId(qna.getWriter().getId())
                 .title(qna.getTitle())
                 .content(qna.getContent())
                 .isAnswered(qna.isAnswered())
