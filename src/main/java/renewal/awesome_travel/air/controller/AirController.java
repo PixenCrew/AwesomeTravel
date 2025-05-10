@@ -19,4 +19,5 @@ public class AirController {
         Page<?> result = airService.searchFlights(req);
         return ResponseEntity.ok(result);
     }
+
 }
