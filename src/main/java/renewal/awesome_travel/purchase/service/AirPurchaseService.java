@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import renewal.awesome_travel.air.dto.response.AirDto;
 import renewal.awesome_travel.air.dto.response.AirResponseDto;
 import renewal.awesome_travel.air.entity.Air;
 import renewal.awesome_travel.air.entity.SeatClass;
