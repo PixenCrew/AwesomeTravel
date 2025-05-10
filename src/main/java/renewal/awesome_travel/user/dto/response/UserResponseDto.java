@@ -1,8 +1,8 @@
-package renewal.awesome_travel.member.dto.response;
+package renewal.awesome_travel.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import renewal.awesome_travel.member.entity.User;
+import renewal.awesome_travel.user.entity.User;
 
 import java.time.LocalDate;
 

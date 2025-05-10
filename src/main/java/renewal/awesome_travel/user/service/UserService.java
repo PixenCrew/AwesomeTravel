@@ -1,21 +1,21 @@
-package renewal.awesome_travel.member.service;
+package renewal.awesome_travel.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import renewal.awesome_travel.member.dto.request.PasswordChangeRequestDto;
-import renewal.awesome_travel.member.dto.request.UserRegisterRequestDto;
-import renewal.awesome_travel.member.dto.request.UserUpdateRequestDto;
-import renewal.awesome_travel.member.dto.response.EmailCheckResponseDto;
-import renewal.awesome_travel.member.dto.response.UserResponseDto;
-import renewal.awesome_travel.member.entity.EmailVerificationToken;
-import renewal.awesome_travel.member.entity.User;
-import renewal.awesome_travel.member.repository.EmailVerificationTokenRepository;
-import renewal.awesome_travel.member.repository.UserRepository;
 import renewal.awesome_travel.member.utils.Provider;
 import renewal.awesome_travel.member.utils.Role;
 import renewal.awesome_travel.member.utils.Status;
+import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
+import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
+import renewal.awesome_travel.user.dto.request.UserUpdateRequestDto;
+import renewal.awesome_travel.user.dto.response.EmailCheckResponseDto;
+import renewal.awesome_travel.user.dto.response.UserResponseDto;
+import renewal.awesome_travel.user.entity.EmailVerificationToken;
+import renewal.awesome_travel.user.entity.User;
+import renewal.awesome_travel.user.repository.EmailVerificationTokenRepository;
+import renewal.awesome_travel.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

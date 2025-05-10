@@ -1,4 +1,4 @@
-package renewal.awesome_travel.member.controller;
+package renewal.awesome_travel.user.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,12 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import renewal.awesome_travel.config.security.CustomUserDetails;
-import renewal.awesome_travel.member.dto.request.UserRegisterRequestDto;
-import renewal.awesome_travel.member.dto.request.UserUpdateRequestDto;
-import renewal.awesome_travel.member.dto.response.EmailCheckResponseDto;
-import renewal.awesome_travel.member.dto.response.UserResponseDto;
-import renewal.awesome_travel.member.service.UserService;
-import renewal.awesome_travel.member.dto.request.PasswordChangeRequestDto;
+import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
+import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
+import renewal.awesome_travel.user.dto.request.UserUpdateRequestDto;
+import renewal.awesome_travel.user.dto.response.EmailCheckResponseDto;
+import renewal.awesome_travel.user.dto.response.UserResponseDto;
+import renewal.awesome_travel.user.service.UserService;
 
 @RestController
 @RequiredArgsConstructor

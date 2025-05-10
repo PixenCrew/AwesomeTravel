@@ -1,4 +1,4 @@
-package renewal.awesome_travel.member.dto.request;
+package renewal.awesome_travel.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

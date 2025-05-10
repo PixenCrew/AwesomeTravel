@@ -1,4 +1,4 @@
-package renewal.awesome_travel.member.dto.response;
+package renewal.awesome_travel.user.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

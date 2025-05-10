@@ -1,4 +1,4 @@
-package renewal.awesome_travel.member.service;
+package renewal.awesome_travel.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

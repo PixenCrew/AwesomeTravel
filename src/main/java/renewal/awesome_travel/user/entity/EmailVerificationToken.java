@@ -1,4 +1,4 @@
-package renewal.awesome_travel.member.entity;
+package renewal.awesome_travel.user.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

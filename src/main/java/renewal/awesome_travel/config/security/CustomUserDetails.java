@@ -4,8 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import renewal.awesome_travel.member.entity.User;
-import renewal.awesome_travel.member.utils.Status;
+import renewal.awesome_travel.user.entity.User;
 
 import java.util.Collection;
 import java.util.List;
