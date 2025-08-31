@@ -10,12 +10,12 @@ import renewal.awesome_travel.user.dto.request.UserUpdateRequestDto;
 import renewal.awesome_travel.user.dto.response.EmailCheckResponseDto;
 import renewal.awesome_travel.user.dto.response.UserResponseDto;
 import renewal.awesome_travel.user.entity.EmailVerificationToken;
-import renewal.awesome_travel.user.entity.User;
 import renewal.awesome_travel.user.repository.EmailVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.utils.Provider;
 import renewal.awesome_travel.user.utils.Role;
 import renewal.awesome_travel.user.utils.Status;
+import renewal.common.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import renewal.awesome_travel.comment.dto.request.CommentReportRequestDto;
 import renewal.awesome_travel.comment.service.CommentReportService;
 import renewal.awesome_travel.config.security.CustomUserDetails;
-import renewal.awesome_travel.user.entity.User;
+import renewal.common.entity.User;
 
 @RestController
 @RequiredArgsConstructor

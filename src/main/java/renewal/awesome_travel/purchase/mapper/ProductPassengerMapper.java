@@ -6,6 +6,8 @@ import renewal.awesome_travel.purchase.dto.responseDto.ProductPurchaseResponseDt
 import renewal.awesome_travel.purchase.entity.*;
 import renewal.awesome_travel.purchase.repository.CountryRepository;
 import renewal.awesome_travel.purchase.repository.ProductPurchaseRepository;
+import renewal.common.entity.ProductPassenger;
+import renewal.common.entity.ProductPurchase;
 
 public class ProductPassengerMapper extends BasePassengerMapper {
 

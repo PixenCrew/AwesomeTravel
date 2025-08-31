@@ -1,7 +1,8 @@
 package renewal.awesome_travel.user.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.user.entity.User;
+
+import renewal.common.entity.User;
 
 import java.util.Optional;
 

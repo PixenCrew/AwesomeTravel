@@ -2,7 +2,7 @@ package renewal.awesome_travel.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import renewal.awesome_travel.user.entity.User;
+import renewal.common.entity.User;
 
 import java.time.LocalDate;
 

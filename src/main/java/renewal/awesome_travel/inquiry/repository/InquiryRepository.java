@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import renewal.awesome_travel.inquiry.entity.Inquiry;
-import renewal.awesome_travel.user.entity.User;
+import renewal.common.entity.User;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 

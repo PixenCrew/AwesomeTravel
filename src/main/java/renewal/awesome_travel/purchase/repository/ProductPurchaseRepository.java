@@ -3,7 +3,8 @@ package renewal.awesome_travel.purchase.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import renewal.awesome_travel.purchase.entity.ProductPurchase;
+
+import renewal.common.entity.ProductPurchase;
 
 import java.util.Optional;
 

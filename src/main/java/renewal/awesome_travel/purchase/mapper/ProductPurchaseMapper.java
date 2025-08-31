@@ -7,10 +7,10 @@ import renewal.awesome_travel.product.mapper.ProductMapper;
 import renewal.awesome_travel.purchase.dto.requestDto.ProductPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.responseDto.ProductPassengerResponseDto;
 import renewal.awesome_travel.purchase.dto.responseDto.ProductPurchaseResponseDto;
-import renewal.awesome_travel.purchase.entity.ProductPassenger;
-import renewal.awesome_travel.purchase.entity.ProductPurchase;
 import renewal.awesome_travel.purchase.repository.CountryRepository;
 import renewal.awesome_travel.purchase.repository.ProductPurchaseRepository;
+import renewal.common.entity.ProductPassenger;
+import renewal.common.entity.ProductPurchase;
 
 import java.util.List;
 import java.util.stream.Collectors;

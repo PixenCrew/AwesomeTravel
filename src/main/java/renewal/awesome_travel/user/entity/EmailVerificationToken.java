@@ -3,6 +3,7 @@ package renewal.awesome_travel.user.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import renewal.common.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

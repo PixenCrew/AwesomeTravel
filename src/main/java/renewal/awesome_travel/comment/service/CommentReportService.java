@@ -8,7 +8,7 @@ import renewal.awesome_travel.comment.entity.Comment;
 import renewal.awesome_travel.comment.entity.CommentReport;
 import renewal.awesome_travel.comment.repository.CommentReportRepository;
 import renewal.awesome_travel.comment.repository.CommentRepository;
-import renewal.awesome_travel.user.entity.User;
+import renewal.common.entity.User;
 
 @Service
 @RequiredArgsConstructor

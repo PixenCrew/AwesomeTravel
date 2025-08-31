@@ -15,14 +15,14 @@ import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerUpdateRequestD
 import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPassengerResponseDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
-import renewal.awesome_travel.purchase.entity.AirPassenger;
-import renewal.awesome_travel.purchase.entity.AirPurchase;
 import renewal.awesome_travel.purchase.entity.Country;
-import renewal.awesome_travel.purchase.entity.SpecialRequest;
 import renewal.awesome_travel.purchase.repository.AirPurchaseRepository;
 import renewal.awesome_travel.purchase.repository.CountryRepository;
 import renewal.awesome_travel.purchase.repository.SpecialRequestRepository;
 import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
+import renewal.common.entity.AirPassenger;
+import renewal.common.entity.AirPurchase;
+import renewal.common.entity.SpecialRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

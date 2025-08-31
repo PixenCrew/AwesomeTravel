@@ -16,8 +16,8 @@ import renewal.awesome_travel.inquiry.repository.InquiryAnswerRepository;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.notification.entity.Notification;
 import renewal.awesome_travel.notification.repository.NotificationRepository;
-import renewal.awesome_travel.user.entity.User;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.common.entity.User;
 
 @Service
 @RequiredArgsConstructor

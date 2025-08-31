@@ -11,7 +11,7 @@ import renewal.awesome_travel.comment.entity.Comment;
 import renewal.awesome_travel.comment.repository.CommentRepository;
 import renewal.awesome_travel.product.entity.Product;
 import renewal.awesome_travel.product.repository.ProductRepository;
-import renewal.awesome_travel.user.entity.User;
+import renewal.common.entity.User;
 
 import java.util.List;
 

@@ -3,8 +3,9 @@ package renewal.awesome_travel.purchase.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.purchase.entity.AirPurchase;
+
 import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
+import renewal.common.entity.AirPurchase;
 
 import java.time.LocalDateTime;
 import java.util.List;

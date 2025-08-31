@@ -2,7 +2,8 @@ package renewal.awesome_travel.qna.repository;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.qna.entity.QnaAnswer;
+
+import renewal.common.entity.QnaAnswer;
 
 import java.util.List;
 

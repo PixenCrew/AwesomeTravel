@@ -12,12 +12,12 @@ import renewal.awesome_travel.qna.dto.request.QnaUpdateRequestDto;
 import renewal.awesome_travel.qna.dto.response.QnaAnswerResponseDto;
 import renewal.awesome_travel.qna.dto.response.QnaDetailResponseDto;
 import renewal.awesome_travel.qna.dto.response.QnaResponseDto;
-import renewal.awesome_travel.qna.entity.Qna;
-import renewal.awesome_travel.qna.entity.QnaAnswer;
 import renewal.awesome_travel.qna.repository.QnaAnswerRepository;
 import renewal.awesome_travel.qna.repository.QnaRepository;
-import renewal.awesome_travel.user.entity.User;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.common.entity.Qna;
+import renewal.common.entity.QnaAnswer;
+import renewal.common.entity.User;
 
 import java.util.List;
 

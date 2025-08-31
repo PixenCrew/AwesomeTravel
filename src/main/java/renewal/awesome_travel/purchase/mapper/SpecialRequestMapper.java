@@ -1,7 +1,7 @@
 package renewal.awesome_travel.purchase.mapper;
 
 import renewal.awesome_travel.purchase.dto.SpecialRequestDto;
-import renewal.awesome_travel.purchase.entity.SpecialRequest;
+import renewal.common.entity.SpecialRequest;
 
 public class SpecialRequestMapper {
 
