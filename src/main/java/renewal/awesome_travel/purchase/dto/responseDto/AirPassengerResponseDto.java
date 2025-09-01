@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import renewal.common.entity.CountryCode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +20,7 @@ public class AirPassengerResponseDto {
     private String email;
     private LocalDate birth;
     private String sex;
-    private String nationality;  // 예: "KOR"
+    private CountryCode nationality;  // 예: "KOR"
     private String passportNum;
     private String lastName;
     private String firstName;

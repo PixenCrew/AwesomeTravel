@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.air.dto.response.AirResponseDto;
-import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
+import renewal.common.entity.BasePurchase.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +22,7 @@ public class AirPurchaseResponseDto {
 
     private PurchaseStatus status;
 
-    private Integer price;
+    private Long price;
 
     private Long member_id;
 

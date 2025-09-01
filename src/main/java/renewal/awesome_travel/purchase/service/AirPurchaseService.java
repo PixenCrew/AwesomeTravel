@@ -6,20 +6,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import renewal.awesome_travel.air.dto.response.AirResponseDto;
-import renewal.awesome_travel.air.entity.Air;
-import renewal.awesome_travel.air.entity.SeatClass;
-import renewal.awesome_travel.air.repository.AirRepository;
 import renewal.awesome_travel.air.repository.SeatClassRepository;
 import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerRequestDto;
 import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerUpdateRequestDto;
 import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPassengerResponseDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
-import renewal.awesome_travel.purchase.entity.Country;
 import renewal.awesome_travel.purchase.repository.AirPurchaseRepository;
 import renewal.awesome_travel.purchase.repository.CountryRepository;
 import renewal.awesome_travel.purchase.repository.SpecialRequestRepository;
-import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
+import renewal.common.entity.Air;
+import renewal.common.entity.SeatClass;
+import renewal.common.entity.CountryCode;
+import renewal.common.entity.BasePurchase.PurchaseStatus;
 import renewal.common.entity.AirPassenger;
 import renewal.common.entity.AirPurchase;
 import renewal.common.entity.SpecialRequest;
@@ -69,7 +68,7 @@ public class AirPurchaseService {
         airPurchase.setPurchaseStatus(PurchaseStatus.HOLDING);
 
         for (AirPassengerRequestDto p : request.getPassengers()) {
-            Country country = countryRepository.findById(p.getCountryCode())
+            CountryCode country = countryRepository.findById(p.getCountryCode())
                     .orElseThrow(() -> new IllegalArgumentException("국가 없음"));
 
             AirPassenger passenger = new AirPassenger(
@@ -137,14 +136,14 @@ public class AirPurchaseService {
 
         AirResponseDto airDto = AirResponseDto.builder()
                 .airId(air.getId())
-                .code(air.getCode())
+                // .code(air.getCode())
                 .airlineCode(air.getAirline().getCode())
                 .airlineNameKor(air.getAirline().getNameKor())
                 .airlineNameEng(air.getAirline().getNameEng())
-                .depart(air.getDepart())
-                .arrive(air.getArrive())
-                .departTime(air.getDepart_time())
-                .arriveTime(air.getArrive_time())
+                .depart(air.getDepartAirport())
+                .arrive(air.getArriveAirport())
+                .departTime(air.getDepartTime())
+                .arriveTime(air.getArriveTime())
                 .stopovers(air.getStopovers())
                 .flightType(air.getFlightType())
                 .seatClassId(seatClass.getId())
@@ -164,7 +163,7 @@ public class AirPurchaseService {
                             passenger.getEmail(),
                             passenger.getBirth(),
                             passenger.getSex().name(),
-                            passenger.getNationality().getCountryCode(),
+                            passenger.getNationality(),
                             passenger.getPassport_num(),
                             passenger.getLastName(),
                             passenger.getFirstName(),
@@ -220,7 +219,7 @@ public class AirPurchaseService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("탑승자 없음"));
 
-        Country country = null;
+        CountryCode country = null;
         if (dto.getCountryCode() != null) {
             country = countryRepository.findById(dto.getCountryCode())
                     .orElseThrow(() -> new IllegalArgumentException("국가 없음"));

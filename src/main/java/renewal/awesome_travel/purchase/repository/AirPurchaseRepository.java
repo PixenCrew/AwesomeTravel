@@ -4,11 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
+import renewal.common.entity.BasePurchase.PurchaseStatus;
 import renewal.common.entity.AirPurchase;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public interface AirPurchaseRepository extends JpaRepository<AirPurchase, Long> {
 

@@ -1,15 +1,17 @@
 package renewal.awesome_travel.air.dto.response;
 
+import java.time.LocalTime;
+
 import lombok.Builder;
 import lombok.Getter;
-import renewal.awesome_travel.air.utiles.FlightType;
-import renewal.awesome_travel.air.utiles.SeatClassType;
+import renewal.common.entity.Air.FlightType;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 @Getter
 @Builder
 public class AirResponseDto {
     private Long airId;
-    private String code;
+    // private String code;
 
     //항공사정보
     private String airlineCode;
@@ -18,15 +20,15 @@ public class AirResponseDto {
 
     private String depart;
     private String arrive;
-    private String departTime;
-    private String arriveTime;
+    private LocalTime departTime;
+    private LocalTime arriveTime;
     private int stopovers;
     private FlightType flightType;
 
     // 단일 좌석 정보
     private Long seatClassId;
     private SeatClassType seatClassType;
-    private Integer price;
-    private Integer availableSeats;
+    private Long price;
+    private Long availableSeats;
 }
 
