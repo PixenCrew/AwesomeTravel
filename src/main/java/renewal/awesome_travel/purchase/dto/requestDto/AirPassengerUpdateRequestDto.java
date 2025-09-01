@@ -2,7 +2,7 @@ package renewal.awesome_travel.purchase.dto.requestDto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.purchase.utiles.Sex;
+import renewal.common.entity.BasePassenger.Sex;
 
 import java.time.LocalDate;
 import java.util.List;
