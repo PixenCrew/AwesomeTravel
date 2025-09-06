@@ -3,7 +3,7 @@ package renewal.awesome_travel.purchase.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import renewal.awesome_travel.purchase.dto.CountryDto;
-import renewal.awesome_travel.purchase.repository.CountryRepository;
+import renewal.common.repository.CountryCodeRepository;
 
 import java.util.List;
 
@@ -11,14 +11,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CountryService {
 
-    private final CountryRepository countryRepository;
+    private final CountryCodeRepository countryCodeRepository;
 
     public List<CountryDto> getAllCountries() {
-        return countryRepository.findAll().stream()
+        return countryCodeRepository.findAll().stream()
                 .map(c -> new CountryDto(
-                        c.getCountryCode(),
-                        c.getCountryName(),
-                        c.getCountryNameLocal()
+                        c.getCode(),
+                        c.getEng(),
+                        c.getKor()
                 ))
                 .toList();
     }

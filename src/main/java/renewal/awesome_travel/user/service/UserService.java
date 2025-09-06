@@ -12,9 +12,9 @@ import renewal.awesome_travel.user.dto.response.UserResponseDto;
 import renewal.awesome_travel.user.entity.EmailVerificationToken;
 import renewal.awesome_travel.user.repository.EmailVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.awesome_travel.user.utils.Provider;
-import renewal.awesome_travel.user.utils.Role;
-import renewal.awesome_travel.user.utils.Status;
+import renewal.common.entity.User.UserProvider;
+import renewal.common.entity.User.UserStatus;
+import renewal.common.entity.User.UserRole;
 import renewal.common.entity.User;
 
 import java.time.LocalDateTime;
@@ -38,7 +38,7 @@ public class UserService {
 
         if (existing.isPresent()) {
             User user = existing.get();
-            if (user.getProvider() != Provider.LOCAL) {
+            if (user.getProvider() != UserProvider.LOCAL) {
                 // 이미 소셜 로그인으로 가입된 이메일
                 throw new IllegalArgumentException("해당 이메일은 " + user.getProvider() + " 계정으로 이미 가입되어 있습니다.");
             }
@@ -51,9 +51,9 @@ public class UserService {
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .name(dto.getName())
-                .role(Role.USER)
-                .provider(Provider.LOCAL)
-                .status(Status.ACTIVE)
+                .role(UserRole.USER)
+                .provider(UserProvider.LOCAL)
+                .status(UserStatus.ACTIVE)
                 .emailVerified(false)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -95,7 +95,7 @@ public class UserService {
                     .build();
         }
 
-        Provider provider = userOpt.get().getProvider();
+        UserProvider provider = userOpt.get().getProvider();
 
         String msg = switch (provider) {
             case LOCAL -> "이미 가입된 이메일입니다.";
@@ -162,7 +162,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        user.setStatus(Status.WITHDRAWN);
+        user.setStatus(UserStatus.WITHDRAWN);
     }
 
 

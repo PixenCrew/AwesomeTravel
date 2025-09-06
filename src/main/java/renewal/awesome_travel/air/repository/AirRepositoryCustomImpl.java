@@ -14,10 +14,10 @@ import renewal.awesome_travel.air.dto.request.SegmentRequest;
 import renewal.awesome_travel.air.dto.response.AirResponseDto;
 import renewal.awesome_travel.air.dto.response.MultiTripSearchResultDto;
 import renewal.awesome_travel.air.dto.response.RoundTripSearchResultDto;
-import renewal.awesome_travel.air.entity.Air;
-import renewal.awesome_travel.air.entity.QAir;
-import renewal.awesome_travel.air.entity.QSeatClass;
-import renewal.awesome_travel.air.mapper.AirMapper;
+import renewal.common.entity.Air;
+import renewal.common.entity.QAir;
+import renewal.common.entity.QSeatClass;
+// import renewal.awesome_travel.air.mapper.AirMapper;
 
 import java.util.ArrayList;
 import java.util.Comparator;

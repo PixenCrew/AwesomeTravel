@@ -24,7 +24,7 @@ public class AirPurchaseResponseDto {
 
     private Long price;
 
-    private Long member_id;
+    private Long userId;
 
     private String name;
 

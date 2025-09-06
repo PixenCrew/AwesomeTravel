@@ -5,9 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.CountryDto;
-import renewal.awesome_travel.purchase.dto.requestDto.ProductPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.SpecialRequestDto;
-import renewal.awesome_travel.purchase.utiles.Sex;
+import renewal.common.entity.BasePassenger.Sex;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -34,7 +33,7 @@ public class ProductPassengerResponseDto {
 
     private CountryDto nationality;
 
-    private String passport_num;
+    private String passportNum;
 
     private String lastName;
 

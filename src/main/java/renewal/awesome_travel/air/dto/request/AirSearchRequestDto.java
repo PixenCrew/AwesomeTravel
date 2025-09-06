@@ -2,7 +2,7 @@ package renewal.awesome_travel.air.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
-import renewal.awesome_travel.air.utiles.SeatClassType;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

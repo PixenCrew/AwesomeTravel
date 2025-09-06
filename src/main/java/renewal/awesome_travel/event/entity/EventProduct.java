@@ -3,7 +3,7 @@ package renewal.awesome_travel.event.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.product.entity.Product;
+import renewal.common.entity.Product;
 
 @Entity
 @Getter

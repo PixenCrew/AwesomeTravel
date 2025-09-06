@@ -2,6 +2,7 @@ package renewal.awesome_travel.purchase.dto.requestDto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import renewal.common.entity.CountryCode;
 import renewal.common.entity.BasePassenger.Sex;
 
 import java.time.LocalDate;
@@ -18,7 +19,7 @@ public class AirPassengerUpdateRequestDto {
     private LocalDate birth;
     private Sex sex;
 
-    private String countryCode;         // 국적
+    private CountryCode countryCode;         // 국적
     private String passportNum;
     private String lastName;
     private String firstName;

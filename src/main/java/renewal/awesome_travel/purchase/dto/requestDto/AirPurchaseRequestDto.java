@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.purchase.utiles.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +20,7 @@ public class AirPurchaseRequestDto {
     private int childCount;   // 소아 인원수
     private int infantCount;  // 유아 인원수
 
-    private Long memberId;
+    private Long userId;
 
     private String name;
 

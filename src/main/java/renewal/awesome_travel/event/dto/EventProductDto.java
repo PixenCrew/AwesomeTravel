@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.event.entity.Event;
-import renewal.awesome_travel.product.entity.Product;
+import renewal.common.entity.Product;
 
 @Getter
 @Setter

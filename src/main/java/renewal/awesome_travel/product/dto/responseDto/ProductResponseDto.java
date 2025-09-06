@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.product.dto.TagDto;
-import renewal.awesome_travel.product.dto.requestDto.ProductListRequestDto;
 
 import java.util.List;
 

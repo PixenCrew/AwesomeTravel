@@ -13,7 +13,6 @@ import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPassengerResponseDto;
 import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
 import renewal.awesome_travel.purchase.repository.AirPurchaseRepository;
-import renewal.awesome_travel.purchase.repository.CountryRepository;
 import renewal.awesome_travel.purchase.repository.SpecialRequestRepository;
 import renewal.common.entity.Air;
 import renewal.common.entity.SeatClass;
@@ -22,6 +21,7 @@ import renewal.common.entity.BasePurchase.PurchaseStatus;
 import renewal.common.entity.AirPassenger;
 import renewal.common.entity.AirPurchase;
 import renewal.common.entity.SpecialRequest;
+import renewal.common.repository.CountryCodeRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -34,7 +34,7 @@ public class AirPurchaseService {
 
     private final AirPurchaseRepository airPurchaseRepository;
     private final SeatClassRepository seatClassRepository;
-    private final CountryRepository countryRepository;
+    private final CountryCodeRepository countryRepository;
     private final SpecialRequestRepository specialRequestRepository;
 
     // 1. 예약 (좌석 임시 점유 + 상태 HOLDING)
@@ -63,8 +63,7 @@ public class AirPurchaseService {
                 request.getNumber(),
                 request.getEmail(),
                 request.getPurchaseDate(),
-                request.getPaymentDueDate()
-        );
+                request.getPaymentDueDate());
         airPurchase.setPurchaseStatus(PurchaseStatus.HOLDING);
 
         for (AirPassengerRequestDto p : request.getPassengers()) {
@@ -75,10 +74,10 @@ public class AirPurchaseService {
                     airPurchase,
                     p.getName(), p.getNumber(), p.getEmail(), p.getBirth(),
                     p.getSex(), country, p.getPassportNum(), p.getLastName(),
-                    p.getFirstName(), p.getExpire()
-            );
+                    p.getFirstName(), p.getExpire());
 
-            Set<SpecialRequest> requests = new HashSet<>(specialRequestRepository.findAllById(p.getSpecialRequestIds()));
+            Set<SpecialRequest> requests = new HashSet<>(
+                    specialRequestRepository.findAllById(p.getSpecialRequestIds()));
             passenger.addSpecialRequests(requests);
             airPurchase.getAirPassengers().add(passenger);
         }
@@ -110,10 +109,10 @@ public class AirPurchaseService {
                     .findByPurchaseStatusAndPaymentDueDateBefore(
                             PurchaseStatus.HOLDING,
                             LocalDateTime.now(),
-                            PageRequest.of(page, size)
-                    );
+                            PageRequest.of(page, size));
 
-            if (expiredPage.isEmpty()) break;
+            if (expiredPage.isEmpty())
+                break;
 
             for (AirPurchase p : expiredPage) {
                 p.getSeatClass().increaseAvailableSeats(p.getAirPassengers().size());
@@ -123,8 +122,6 @@ public class AirPurchaseService {
             page++;
         }
     }
-
-
 
     // 4. 상세 조회
     public AirPurchaseResponseDto getPurchase(Long id) {
@@ -164,12 +161,11 @@ public class AirPurchaseService {
                             passenger.getBirth(),
                             passenger.getSex().name(),
                             passenger.getNationality(),
-                            passenger.getPassport_num(),
+                            passenger.getPassportNum(),
                             passenger.getLastName(),
                             passenger.getFirstName(),
                             passenger.getExpire(),
-                            requestList
-                    );
+                            requestList);
                 }).toList();
 
         return new AirPurchaseResponseDto(
@@ -177,16 +173,14 @@ public class AirPurchaseService {
                 airDto,
                 purchase.getPurchaseStatus(),
                 purchase.getPrice(),
-                purchase.getMember_id(),
+                purchase.getMemberId(),
                 purchase.getName(),
                 purchase.getNumber(),
                 purchase.getEmail(),
                 purchase.getPurchaseDate(),
                 purchase.getPaymentDueDate(),
-                passengerDtos
-        );
+                passengerDtos);
     }
-
 
     // 5. 예약 취소
     @Transactional
@@ -219,9 +213,8 @@ public class AirPurchaseService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("탑승자 없음"));
 
-        CountryCode country = null;
         if (dto.getCountryCode() != null) {
-            country = countryRepository.findById(dto.getCountryCode())
+            countryRepository.findById(dto.getCountryCode().getCode())
                     .orElseThrow(() -> new IllegalArgumentException("국가 없음"));
         }
 
@@ -230,9 +223,34 @@ public class AirPurchaseService {
             requests = new HashSet<>(specialRequestRepository.findAllById(dto.getSpecialRequestIds()));
         }
 
-        passenger.updateInfo(dto, country, requests);
+        // BasePassenger 필드 처리
+        if (dto.getName() != null)
+            passenger.updateName(dto.getName());
+        if (dto.getNumber() != null)
+            passenger.updateNumber(dto.getNumber());
+        if (dto.getEmail() != null)
+            passenger.updateEmail(dto.getEmail());
+        if (dto.getBirth() != null)
+            passenger.updateBirth(dto.getBirth());
+        if (dto.getSex() != null)
+            passenger.updateSex(dto.getSex());
+        if (dto.getCountryCode() != null)
+            passenger.updateNationality(dto.getCountryCode());
+        if (dto.getPassportNum() != null)
+            passenger.updatePassportNum(dto.getPassportNum());
+        if (dto.getLastName() != null)
+            passenger.updateLastName(dto.getLastName());
+        if (dto.getFirstName() != null)
+            passenger.updateFirstName(dto.getFirstName());
+        if (dto.getExpire() != null)
+            passenger.updateExpire(dto.getExpire());
+
+        // AirPassenger 고유 필드 처리
+        if (requests != null) {
+            Set<SpecialRequest> specialRequests = passenger.getSpecialRequests();
+            specialRequests.clear();
+            specialRequests.addAll(requests);
+        }
     }
 
-
 }
-

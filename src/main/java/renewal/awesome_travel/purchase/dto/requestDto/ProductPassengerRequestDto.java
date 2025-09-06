@@ -1,12 +1,11 @@
 package renewal.awesome_travel.purchase.dto.requestDto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.SpecialRequestDto;
-import renewal.awesome_travel.purchase.utiles.Sex;
+import renewal.common.entity.BasePassenger.Sex;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -31,7 +30,7 @@ public class ProductPassengerRequestDto {
 
     private String countryName; //국적
 
-    private String passport_num;
+    private String passportNum;
 
     private String lastName;
 

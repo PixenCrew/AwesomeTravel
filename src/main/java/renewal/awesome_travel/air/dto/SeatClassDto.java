@@ -5,8 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.air.entity.Air;
-import renewal.awesome_travel.air.utiles.SeatClassType;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 @Getter
 @Setter
@@ -17,7 +16,7 @@ public class SeatClassDto {
 
     private Long id;
 
-    private Long air_id;
+    private Long airId;
 
     private SeatClassType seatClassType;
 

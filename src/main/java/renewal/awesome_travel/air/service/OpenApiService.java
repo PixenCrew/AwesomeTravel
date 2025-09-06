@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import renewal.awesome_travel.air.dto.response.ApiResponse;
-import renewal.awesome_travel.air.entity.Air;
-import renewal.awesome_travel.air.entity.Airline;
-import renewal.awesome_travel.air.entity.FlightItem;
+import renewal.common.entity.Air;
+import renewal.common.entity.Airline;
+import renewal.common.entity.FlightItem;
 import renewal.awesome_travel.air.repository.AirRepository;
 import renewal.awesome_travel.air.repository.AirlineRepository;
 
@@ -22,7 +22,6 @@ public class OpenApiService {
 
 
     private RestTemplate restTemplate;
-
 
     private AirRepository airRepository;
 
@@ -44,30 +43,30 @@ public class OpenApiService {
 
         System.out.println("최종 uri : " + uri);
 
-        try {
-            ApiResponse apiResponse = restTemplate.getForObject(uri, ApiResponse.class);
-            if (apiResponse != null && apiResponse.getData() != null) {
-                List<FlightItem> items = apiResponse.getData();
-                for (FlightItem item : items) {
-                    // Airline 매핑
-                    Airline airline = airlineRepository.findByNameEng(item.getAirline())
-                            .orElseThrow(() -> new IllegalArgumentException("항공사 [" + item.getAirline() + "] 는 미등록 항공사입니다."));
-                    // DB 저장을 위한 엔티티 변환
-                    Air air = new Air(
-                            item.getFlightNumber(),
-                            airline,
-                            item.getDepartureAirport(),
-                            item.getDepartureTime(),
-                            item.getArrivalAirport(),
-                            item.getArrivalTime()
-                    );
+        // try {
+        //     ApiResponse apiResponse = restTemplate.getForObject(uri, ApiResponse.class);
+        //     if (apiResponse != null && apiResponse.getData() != null) {
+        //         List<FlightItem> items = apiResponse.getData();
+        //         for (FlightItem item : items) {
+        //             // Airline 매핑
+        //             Airline airline = airlineRepository.findByNameEng(item.getAirline())
+        //                     .orElseThrow(() -> new IllegalArgumentException("항공사 [" + item.getAirline() + "] 는 미등록 항공사입니다."));
+        //             // DB 저장을 위한 엔티티 변환
+        //             Air air = new Air(
+        //                     item.getFlightNumber(),
+        //                     airline,
+        //                     item.getDepartureAirport(),
+        //                     item.getDepartureTime(),
+        //                     item.getArrivalAirport(),
+        //                     item.getArrivalTime()
+        //             );
 
-                    airRepository.save(air);
-                }
-            }
-        } catch (Exception e) {
-            // 예외 처리: 로그 남기기 등
-            e.printStackTrace();
-        }
+        //             airRepository.save(air);
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     // 예외 처리: 로그 남기기 등
+        //     e.printStackTrace();
+        // }
     }
 }

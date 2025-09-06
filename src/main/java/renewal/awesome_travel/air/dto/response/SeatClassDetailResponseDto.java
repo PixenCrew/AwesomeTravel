@@ -2,7 +2,7 @@ package renewal.awesome_travel.air.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import renewal.awesome_travel.air.utiles.SeatClassType;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 @Getter
 @Builder

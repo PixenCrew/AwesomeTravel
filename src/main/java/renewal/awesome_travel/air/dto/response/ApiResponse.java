@@ -2,7 +2,7 @@ package renewal.awesome_travel.air.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
-import renewal.awesome_travel.air.entity.FlightItem;
+import renewal.common.entity.FlightItem;
 
 import java.util.List;
 

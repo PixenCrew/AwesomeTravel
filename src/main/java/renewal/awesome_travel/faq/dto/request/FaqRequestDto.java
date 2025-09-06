@@ -2,7 +2,7 @@ package renewal.awesome_travel.faq.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
-import renewal.awesome_travel_backoffice.faq.utils.FaqCategory;
+import renewal.common.entity.Faq.FaqCategory;
 
 @Getter
 @Setter

@@ -3,7 +3,7 @@ package renewal.awesome_travel.notification.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import renewal.awesome_travel.notification.entity.Notification;
+import renewal.common.entity.Notification;
 import renewal.awesome_travel.notification.repository.NotificationRepository;
 
 import java.util.List;

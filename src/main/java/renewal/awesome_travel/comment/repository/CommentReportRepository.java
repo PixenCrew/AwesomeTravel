@@ -1,8 +1,8 @@
 package renewal.awesome_travel.comment.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.comment.entity.Comment;
-import renewal.awesome_travel.comment.entity.CommentReport;
+import renewal.common.entity.Comment;
+import renewal.common.entity.CommentReport;
 import renewal.common.entity.User;
 
 public interface CommentReportRepository extends JpaRepository<CommentReport, Long> {

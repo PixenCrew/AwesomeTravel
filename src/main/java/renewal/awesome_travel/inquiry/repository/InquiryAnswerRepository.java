@@ -2,7 +2,7 @@ package renewal.awesome_travel.inquiry.repository;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.inquiry.entity.InquiryAnswer;
+import renewal.common.entity.InquiryAnswer;
 
 import java.util.Optional;
 

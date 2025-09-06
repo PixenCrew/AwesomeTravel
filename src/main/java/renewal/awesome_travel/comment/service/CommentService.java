@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import renewal.awesome_travel.comment.dto.request.CommentRequestDto;
 import renewal.awesome_travel.comment.dto.response.CommentResponseDto;
-import renewal.awesome_travel.comment.entity.Comment;
+import renewal.common.entity.Comment;
 import renewal.awesome_travel.comment.repository.CommentRepository;
-import renewal.awesome_travel.product.entity.Product;
+import renewal.common.entity.Product;
 import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.common.entity.User;
 

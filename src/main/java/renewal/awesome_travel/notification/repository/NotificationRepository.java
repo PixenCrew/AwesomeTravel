@@ -1,7 +1,7 @@
 package renewal.awesome_travel.notification.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.notification.entity.Notification;
+import renewal.common.entity.Notification;
 
 import java.util.List;
 

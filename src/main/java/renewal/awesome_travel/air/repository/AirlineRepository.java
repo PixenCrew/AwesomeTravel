@@ -1,7 +1,7 @@
 package renewal.awesome_travel.air.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import renewal.awesome_travel.air.entity.Airline;
+import renewal.common.entity.Airline;
 
 import java.util.Optional;
 

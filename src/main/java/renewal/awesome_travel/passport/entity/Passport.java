@@ -3,9 +3,8 @@ package renewal.awesome_travel.passport.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.member.entity.Member;
-import renewal.awesome_travel.purchase.entity.Country;
-import renewal.awesome_travel.purchase.utiles.Sex;
+import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.CountryCode;
 
 import java.time.LocalDate;
 
@@ -30,11 +29,11 @@ public class Passport {
 
     @ManyToOne
     @JoinColumn(name = "nationality_code", referencedColumnName = "countryCode", nullable = false)
-    private Country nationality; //국적 REPUBLIC OF KOREA
+    private CountryCode nationality; //국적 REPUBLIC OF KOREA
 
     //국제선
     @Column(nullable = true)
-    private String passport_num; //여권번호
+    private String passportNum; //여권번호
 
     @Column(nullable = true)
     private String lastName; //영문 성
@@ -45,20 +44,20 @@ public class Passport {
     @Column(nullable = true)
     private LocalDate expire; //만료일
 
-    @OneToOne(mappedBy = "passport")
-    private Member member;
+    // @OneToOne(mappedBy = "passport")
+    // private User user;
 
-    public Passport(LocalDate birth, Sex sex, Country nationality, String passport_num, String lastName, String firstName, LocalDate expire) {
+    public Passport(LocalDate birth, Sex sex, CountryCode nationality, String passportNum, String lastName, String firstName, LocalDate expire) {
         this.birth = birth;
         this.sex = sex;
         this.nationality = nationality;
-        this.passport_num = passport_num;
+        this.passportNum = passportNum;
         this.lastName = lastName;
         this.firstName = firstName;
         this.expire = expire;
     }
 
-    public void setMember(Member member) {
-        this.member = member;
-    }
+    // public void setUser(User user) {
+    //     this.member = member;
+    // }
 }

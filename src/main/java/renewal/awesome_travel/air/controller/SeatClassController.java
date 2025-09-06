@@ -15,10 +15,10 @@ import renewal.awesome_travel.air.service.SeatClassService;
 @RequestMapping("/api/seat-classes")
 public class SeatClassController {
 
-    private final SeatClassService seatClassService;
+    // private final SeatClassService seatClassService;
 
-    @GetMapping("/{seatClassId}")
-    public ResponseEntity<SeatClassDetailResponseDto> getSeatClassDetail(@PathVariable Long seatClassId) {
-        return ResponseEntity.ok(seatClassService.getSeatClassDetail(seatClassId));
-    }
+    // @GetMapping("/{seatClassId}")
+    // public ResponseEntity<SeatClassDetailResponseDto> getSeatClassDetail(@PathVariable Long seatClassId) {
+    //     return ResponseEntity.ok(seatClassService.getSeatClassDetail(seatClassId));
+    // }
 }

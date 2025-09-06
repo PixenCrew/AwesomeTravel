@@ -4,9 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.product.dto.requestDto.ProductRequestDto;
 import renewal.awesome_travel.product.dto.responseDto.ProductResponseDto;
-import renewal.awesome_travel.purchase.utiles.Status;
+import renewal.common.entity.BasePurchase.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,11 +20,11 @@ public class ProductPurchaseResponseDto {
 
     private ProductResponseDto productResponseDto;
 
-    private Status status;
+    private PurchaseStatus status;
 
     private Integer price;
 
-    private Long member_id;
+    private Long userId;
 
     private String name;
 

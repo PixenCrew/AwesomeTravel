@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.CountryDto;
-import renewal.awesome_travel.purchase.utiles.Sex;
+import renewal.common.entity.BasePassenger.Sex;
 
 import java.time.LocalDate;
 
@@ -21,7 +21,7 @@ public class PassportRequestDto {
 
     private String  countryName;
 
-    private String passport_num;
+    private String passportNum;
 
     private String lastName;
 
