@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.SpecialRequestDto;
-import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.PassengerBase.Sex;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -14,7 +14,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductPassengerRequestDto {
+public class PassengerProductRequestDto {
 
     private Long product_purchase_id; //패키지구매
 

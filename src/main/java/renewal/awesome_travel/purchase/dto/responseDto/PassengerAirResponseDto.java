@@ -1,28 +1,31 @@
-package renewal.awesome_travel.purchase.dto.requestDto;
+package renewal.awesome_travel.purchase.dto.responseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.CountryCode;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AirPassengerRequestDto {
+public class PassengerAirResponseDto {
+
     private String name;
     private String number;
     private String email;
     private LocalDate birth;
-    private Sex sex;
-    private String countryCode;
+    private String sex;
+    private CountryCode nationality;  // 예: "KOR"
     private String passportNum;
     private String lastName;
     private String firstName;
     private LocalDate expire;
-    private Set<Long> specialRequestIds;
+
+    private List<String> specialRequests; // "Wheelchair", "Vegetarian" 등
 }
+

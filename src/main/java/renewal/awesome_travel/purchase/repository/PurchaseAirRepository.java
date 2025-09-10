@@ -4,14 +4,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import renewal.common.entity.BasePurchase.PurchaseStatus;
-import renewal.common.entity.AirPurchase;
+import renewal.common.entity.PurchaseBase.PurchaseStatus;
+import renewal.common.entity.PurchaseAir;
 
 import java.time.LocalDateTime;
 
-public interface AirPurchaseRepository extends JpaRepository<AirPurchase, Long> {
+public interface PurchaseAirRepository extends JpaRepository<PurchaseAir, Long> {
 
-    Page<AirPurchase> findByPurchaseStatusAndPaymentDueDateBefore(
+    Page<PurchaseAir> findByPurchaseStatusAndPaymentDueDateBefore(
             PurchaseStatus status,
             LocalDateTime time,
             Pageable pageable

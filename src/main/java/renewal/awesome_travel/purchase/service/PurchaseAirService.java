@@ -7,19 +7,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import renewal.awesome_travel.air.dto.response.AirResponseDto;
 import renewal.awesome_travel.air.repository.SeatClassRepository;
-import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerRequestDto;
-import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerUpdateRequestDto;
-import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
-import renewal.awesome_travel.purchase.dto.responseDto.AirPassengerResponseDto;
-import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
-import renewal.awesome_travel.purchase.repository.AirPurchaseRepository;
+import renewal.awesome_travel.purchase.dto.requestDto.PassengerAirRequestDto;
+import renewal.awesome_travel.purchase.dto.requestDto.PassengerAirUpdateRequestDto;
+import renewal.awesome_travel.purchase.dto.requestDto.PurchaseAirRequestDto;
+import renewal.awesome_travel.purchase.dto.responseDto.PassengerAirResponseDto;
+import renewal.awesome_travel.purchase.dto.responseDto.PurchaseAirResponseDto;
+import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
 import renewal.awesome_travel.purchase.repository.SpecialRequestRepository;
 import renewal.common.entity.Air;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.CountryCode;
-import renewal.common.entity.BasePurchase.PurchaseStatus;
-import renewal.common.entity.AirPassenger;
-import renewal.common.entity.AirPurchase;
+import renewal.common.entity.PurchaseBase.PurchaseStatus;
+import renewal.common.entity.PassengerAir;
+import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.SpecialRequest;
 import renewal.common.repository.CountryCodeRepository;
 
@@ -30,16 +30,16 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class AirPurchaseService {
+public class PurchaseAirService {
 
-    private final AirPurchaseRepository airPurchaseRepository;
+    private final PurchaseAirRepository airPurchaseRepository;
     private final SeatClassRepository seatClassRepository;
     private final CountryCodeRepository countryRepository;
     private final SpecialRequestRepository specialRequestRepository;
 
     // 1. 예약 (좌석 임시 점유 + 상태 HOLDING)
     @Transactional
-    public Long holdSeats(AirPurchaseRequestDto request) {
+    public Long holdSeats(PurchaseAirRequestDto request) {
         int adultCount = request.getAdultCount();
         int childCount = request.getChildCount();
         int infantCount = request.getInfantCount();
@@ -55,7 +55,7 @@ public class AirPurchaseService {
 
         seatClass.decreaseAvailableSeats(reserveCount);
 
-        AirPurchase airPurchase = new AirPurchase(
+        PurchaseAir airPurchase = new PurchaseAir(
                 seatClass,
                 seatClass.getPrice() * reserveCount,
                 request.getMemberId(),
@@ -66,11 +66,11 @@ public class AirPurchaseService {
                 request.getPaymentDueDate());
         airPurchase.setPurchaseStatus(PurchaseStatus.HOLDING);
 
-        for (AirPassengerRequestDto p : request.getPassengers()) {
+        for (PassengerAirRequestDto p : request.getPassengers()) {
             CountryCode country = countryRepository.findById(p.getCountryCode())
                     .orElseThrow(() -> new IllegalArgumentException("국가 없음"));
 
-            AirPassenger passenger = new AirPassenger(
+            PassengerAir passenger = new PassengerAir(
                     airPurchase,
                     p.getName(), p.getNumber(), p.getEmail(), p.getBirth(),
                     p.getSex(), country, p.getPassportNum(), p.getLastName(),
@@ -79,7 +79,7 @@ public class AirPurchaseService {
             Set<SpecialRequest> requests = new HashSet<>(
                     specialRequestRepository.findAllById(p.getSpecialRequestIds()));
             passenger.addSpecialRequests(requests);
-            airPurchase.getAirPassengers().add(passenger);
+            airPurchase.getPassengerAirs().add(passenger);
         }
 
         return airPurchaseRepository.save(airPurchase).getId();
@@ -88,7 +88,7 @@ public class AirPurchaseService {
     // 2. 결제 확정 처리
     @Transactional
     public void confirmPayment(Long purchaseId) {
-        AirPurchase purchase = airPurchaseRepository.findById(purchaseId)
+        PurchaseAir purchase = airPurchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 내역 없음"));
 
         if (purchase.getPurchaseStatus() != PurchaseStatus.HOLDING) {
@@ -105,7 +105,7 @@ public class AirPurchaseService {
         int size = 100;
 
         while (true) {
-            Page<AirPurchase> expiredPage = airPurchaseRepository
+            Page<PurchaseAir> expiredPage = airPurchaseRepository
                     .findByPurchaseStatusAndPaymentDueDateBefore(
                             PurchaseStatus.HOLDING,
                             LocalDateTime.now(),
@@ -114,8 +114,8 @@ public class AirPurchaseService {
             if (expiredPage.isEmpty())
                 break;
 
-            for (AirPurchase p : expiredPage) {
-                p.getSeatClass().increaseAvailableSeats(p.getAirPassengers().size());
+            for (PurchaseAir p : expiredPage) {
+                p.getSeatClass().increaseAvailableSeats(p.getPassengerAirs().size());
                 p.setPurchaseStatus(PurchaseStatus.CANCELLED);
             }
 
@@ -124,8 +124,8 @@ public class AirPurchaseService {
     }
 
     // 4. 상세 조회
-    public AirPurchaseResponseDto getPurchase(Long id) {
-        AirPurchase purchase = airPurchaseRepository.findById(id)
+    public PurchaseAirResponseDto getPurchase(Long id) {
+        PurchaseAir purchase = airPurchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("구매 내역 없음"));
 
         SeatClass seatClass = purchase.getSeatClass();
@@ -149,12 +149,12 @@ public class AirPurchaseService {
                 .availableSeats(seatClass.getAvailableSeats())
                 .build();
 
-        List<AirPassengerResponseDto> passengerDtos = purchase.getAirPassengers().stream()
+        List<PassengerAirResponseDto> passengerDtos = purchase.getPassengerAirs().stream()
                 .map(passenger -> {
                     List<String> requestList = passenger.getSpecialRequests().stream()
                             .map(SpecialRequest::getRequestType)
                             .toList();
-                    return new AirPassengerResponseDto(
+                    return new PassengerAirResponseDto(
                             passenger.getName(),
                             passenger.getNumber(),
                             passenger.getEmail(),
@@ -168,7 +168,7 @@ public class AirPurchaseService {
                             requestList);
                 }).toList();
 
-        return new AirPurchaseResponseDto(
+        return new PurchaseAirResponseDto(
                 purchase.getId(),
                 airDto,
                 purchase.getPurchaseStatus(),
@@ -185,7 +185,7 @@ public class AirPurchaseService {
     // 5. 예약 취소
     @Transactional
     public void cancelPurchase(Long id) {
-        AirPurchase purchase = airPurchaseRepository.findById(id)
+        PurchaseAir purchase = airPurchaseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않음"));
 
         if (purchase.getPurchaseStatus() == PurchaseStatus.PAID) {
@@ -193,22 +193,22 @@ public class AirPurchaseService {
         }
 
         SeatClass seatClass = purchase.getSeatClass();
-        seatClass.increaseAvailableSeats(purchase.getAirPassengers().size());
+        seatClass.increaseAvailableSeats(purchase.getPassengerAirs().size());
 
         purchase.setPurchaseStatus(PurchaseStatus.CANCELLED);
     }
 
     // 6. 탑승객 정보 수정
     @Transactional
-    public void updatePassenger(Long purchaseId, Long passengerId, AirPassengerUpdateRequestDto dto) {
-        AirPurchase purchase = airPurchaseRepository.findById(purchaseId)
+    public void updatePassenger(Long purchaseId, Long passengerId, PassengerAirUpdateRequestDto dto) {
+        PurchaseAir purchase = airPurchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new IllegalArgumentException("구매 내역 없음"));
 
         if (purchase.getPurchaseStatus() != PurchaseStatus.HOLDING) {
             throw new IllegalStateException("결제 완료된 예약은 수정할 수 없습니다.");
         }
 
-        AirPassenger passenger = purchase.getAirPassengers().stream()
+        PassengerAir passenger = purchase.getPassengerAirs().stream()
                 .filter(p -> p.getId().equals(passengerId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("탑승자 없음"));
@@ -223,7 +223,7 @@ public class AirPurchaseService {
             requests = new HashSet<>(specialRequestRepository.findAllById(dto.getSpecialRequestIds()));
         }
 
-        // BasePassenger 필드 처리
+        // PassengerBase 필드 처리
         if (dto.getName() != null)
             passenger.updateName(dto.getName());
         if (dto.getNumber() != null)
@@ -245,7 +245,7 @@ public class AirPurchaseService {
         if (dto.getExpire() != null)
             passenger.updateExpire(dto.getExpire());
 
-        // AirPassenger 고유 필드 처리
+        // PassengerAir 고유 필드 처리
         if (requests != null) {
             Set<SpecialRequest> specialRequests = passenger.getSpecialRequests();
             specialRequests.clear();

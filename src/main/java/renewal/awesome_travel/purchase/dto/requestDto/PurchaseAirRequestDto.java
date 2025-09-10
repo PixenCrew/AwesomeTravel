@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.common.entity.BasePurchase.PurchaseStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,13 +12,13 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductPurchaseRequestDto {
+public class PurchaseAirRequestDto {
 
-    private Long productId;
+    private Long seatClassId;
 
-    private PurchaseStatus status;
-
-    private Integer price;
+    private int adultCount;   // 성인 인원수
+    private int childCount;   // 소아 인원수
+    private int infantCount;  // 유아 인원수
 
     private Long userId;
 
@@ -33,5 +32,5 @@ public class ProductPurchaseRequestDto {
 
     private LocalDateTime paymentDueDate;
 
-    private List<ProductPassengerRequestDto> productPassengers; // 탑승자 정보
+    private List<PassengerAirRequestDto> passengers; // 탑승자 정보
 }

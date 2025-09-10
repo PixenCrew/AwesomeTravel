@@ -3,7 +3,7 @@ package renewal.awesome_travel.passport.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.PassengerBase.Sex;
 import renewal.common.entity.CountryCode;
 
 import java.time.LocalDate;

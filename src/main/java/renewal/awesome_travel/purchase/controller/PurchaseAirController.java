@@ -3,21 +3,21 @@ package renewal.awesome_travel.purchase.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import renewal.awesome_travel.purchase.dto.requestDto.AirPassengerUpdateRequestDto;
-import renewal.awesome_travel.purchase.dto.requestDto.AirPurchaseRequestDto;
-import renewal.awesome_travel.purchase.dto.responseDto.AirPurchaseResponseDto;
-import renewal.awesome_travel.purchase.service.AirPurchaseService;
+import renewal.awesome_travel.purchase.dto.requestDto.PassengerAirUpdateRequestDto;
+import renewal.awesome_travel.purchase.dto.requestDto.PurchaseAirRequestDto;
+import renewal.awesome_travel.purchase.dto.responseDto.PurchaseAirResponseDto;
+import renewal.awesome_travel.purchase.service.PurchaseAirService;
 
 @RestController
 @RequestMapping("/api/air-purchases")
 @RequiredArgsConstructor
-public class AirPurchaseController {
+public class PurchaseAirController {
 
-    private final AirPurchaseService airPurchaseService;
+    private final PurchaseAirService airPurchaseService;
 
     // 1. 좌석 홀딩 (예약만)
     @PostMapping
-    public ResponseEntity<Long> holdSeats(@RequestBody AirPurchaseRequestDto request) {
+    public ResponseEntity<Long> holdSeats(@RequestBody PurchaseAirRequestDto request) {
         Long purchaseId = airPurchaseService.holdSeats(request);
         return ResponseEntity.ok(purchaseId);
     }
@@ -31,7 +31,7 @@ public class AirPurchaseController {
 
     // 3. 구매 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<AirPurchaseResponseDto> getPurchase(@PathVariable Long id) {
+    public ResponseEntity<PurchaseAirResponseDto> getPurchase(@PathVariable Long id) {
         return ResponseEntity.ok(airPurchaseService.getPurchase(id));
     }
 
@@ -47,7 +47,7 @@ public class AirPurchaseController {
     public ResponseEntity<Void> updatePassenger(
             @PathVariable Long purchaseId,
             @PathVariable Long passengerId,
-            @RequestBody AirPassengerUpdateRequestDto dto) {
+            @RequestBody PassengerAirUpdateRequestDto dto) {
         airPurchaseService.updatePassenger(purchaseId, passengerId, dto);
         return ResponseEntity.ok().build();
     }

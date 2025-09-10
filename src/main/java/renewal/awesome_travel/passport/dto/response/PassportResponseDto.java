@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.CountryDto;
-import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.PassengerBase.Sex;
 
 import java.time.LocalDate;
 

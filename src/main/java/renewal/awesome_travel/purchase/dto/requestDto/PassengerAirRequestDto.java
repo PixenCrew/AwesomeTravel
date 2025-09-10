@@ -1,12 +1,10 @@
-package renewal.awesome_travel.purchase.dto.responseDto;
+package renewal.awesome_travel.purchase.dto.requestDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.purchase.dto.CountryDto;
-import renewal.awesome_travel.purchase.dto.SpecialRequestDto;
-import renewal.common.entity.BasePassenger.Sex;
+import renewal.common.entity.PassengerBase.Sex;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -15,31 +13,16 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductPassengerResponseDto {
-
-    private Long id;
-
-    private ProductPurchaseResponseDto productPurchase; //패키지구매
-
+public class PassengerAirRequestDto {
     private String name;
-
     private String number;
-
     private String email;
-
     private LocalDate birth;
-
     private Sex sex;
-
-    private CountryDto nationality;
-
+    private String countryCode;
     private String passportNum;
-
     private String lastName;
-
     private String firstName;
-
     private LocalDate expire;
-
-    private Set<SpecialRequestDto> specialRequests;
+    private Set<Long> specialRequestIds;
 }
