@@ -9,9 +9,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.awesome_travel.user.utils.Provider;
-import renewal.awesome_travel.user.utils.Role;
-import renewal.awesome_travel.user.utils.Status;
+import renewal.common.entity.User.UserProvider;
+import renewal.common.entity.User.UserRole;
+import renewal.common.entity.User.UserStatus;
 import renewal.common.entity.User;
 
 import java.util.Map;
@@ -64,10 +64,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private User registerUser(String email, String provider, String providerId) {
         User user = User.builder()
                 .email(email)
-                .provider(Provider.valueOf(provider.toUpperCase()))
+                .provider(UserProvider.valueOf(provider.toUpperCase()))
                 .providerId(providerId)
-                .role(Role.USER)
-                .status(Status.ACTIVE)
+                .role(UserRole.USER)
+                .status(UserStatus.ACTIVE)
                 .emailVerified(true)
                 .build();
 
