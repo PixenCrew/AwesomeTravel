@@ -38,3 +38,4 @@ out/
 certificate.p12
 src/main/resources/application-dev.properties
 src/main/generated/*
+keyMaker.sh

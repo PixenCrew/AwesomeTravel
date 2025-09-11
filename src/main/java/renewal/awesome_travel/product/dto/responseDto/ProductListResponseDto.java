@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.air.dto.response.AirResponseDto;
+// import renewal.awesome_travel.air.dto.response.AirResponseDto;
 import renewal.awesome_travel.hotel.dto.HotelDto;
 
 @Getter
@@ -17,7 +17,7 @@ public class ProductListResponseDto {
 
     private ProductResponseDto product;
 
-    private AirResponseDto air;
+    // private AirResponseDto air;
 
     private HotelDto hotel;
 

@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import renewal.awesome_travel.faq.dto.response.FaqResponseDto;
 import renewal.awesome_travel.faq.service.FaqService;
-import renewal.awesome_travel.faq.utils.FaqCategory;
+import renewal.common.entity.Faq.FaqCategory;
 
 @RestController
 @RequiredArgsConstructor

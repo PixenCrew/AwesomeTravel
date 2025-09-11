@@ -81,7 +81,7 @@ public class OpenApiServiceTest {
         airRepository.findAll().forEach(entity -> {
             System.out.println("저장된 데이터:");
             System.out.println("항공사: " + entity.getAirline());
-            System.out.println("운항편명: " + entity.getCode());
+            System.out.println("운항편명: " + entity.getFlightNumber());
             // 추가 필드도 필요에 따라 출력
         });
 

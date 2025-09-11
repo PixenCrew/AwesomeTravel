@@ -21,7 +21,6 @@ public class EventProductDto {
 
     private Product product;
 
-    private Integer price;
-
+    private Long price;
 
 }

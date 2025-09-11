@@ -3,7 +3,6 @@ package renewal.awesome_travel.event.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import renewal.awesome_travel.event.utils.EventType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -64,4 +63,11 @@ public class Event {
         }
         eventProduct.setEvent(null); // 관계 설정 추가
     }
+
+    public enum EventType {
+        PROMO,
+        EVENT,
+        TIME_DEAL
+    }
+
 }

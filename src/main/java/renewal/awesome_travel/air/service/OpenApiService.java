@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import renewal.awesome_travel.air.dto.response.ApiResponse;
+// import renewal.awesome_travel.air.dto.response.ApiResponse;
 import renewal.common.entity.Air;
 import renewal.common.entity.Airline;
 import renewal.common.entity.FlightItem;

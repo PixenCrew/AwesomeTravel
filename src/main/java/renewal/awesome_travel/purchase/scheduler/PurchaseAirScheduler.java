@@ -13,8 +13,8 @@ public class PurchaseAirScheduler {
 
     private final PurchaseAirService airPurchaseService;
 
-    @Scheduled(fixedRate = 5 * 60 * 1000)
-    public void runCancelJob() {
-        airPurchaseService.cancelExpiredHolds();
-    }
+    // @Scheduled(fixedRate = 5 * 60 * 1000)
+    // public void runCancelJob() {
+    //     airPurchaseService.cancelExpiredHolds();
+    // }
 }

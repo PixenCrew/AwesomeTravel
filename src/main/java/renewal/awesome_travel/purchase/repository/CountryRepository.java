@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface CountryRepository extends JpaRepository<CountryCode, String> {
 
     // 국가 코드(countryCode)로 조회
-    Optional<CountryCode> findByCountryCode(String countryCode);
+    Optional<CountryCode> findByCode(String countryCode);
 
     // 국가 영문명(countryName)으로 조회
-    Optional<CountryCode> findByCountryName(String countryName);
+    Optional<CountryCode> findByEng(String countryName);
 }

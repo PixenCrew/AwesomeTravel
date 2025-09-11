@@ -3,7 +3,7 @@ package renewal.awesome_travel.air.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import renewal.awesome_travel.air.dto.response.SeatClassDetailResponseDto;
+// import renewal.awesome_travel.air.dto.response.SeatClassDetailResponseDto;
 import renewal.common.entity.SeatClass;
 import renewal.awesome_travel.air.repository.SeatClassRepository;
 

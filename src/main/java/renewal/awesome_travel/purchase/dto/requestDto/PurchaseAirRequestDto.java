@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import renewal.common.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ public class PurchaseAirRequestDto {
     private int childCount;   // 소아 인원수
     private int infantCount;  // 유아 인원수
 
-    private Long userId;
+    private User user;
 
     private String name;
 

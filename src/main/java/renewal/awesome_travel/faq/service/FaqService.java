@@ -6,9 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import renewal.awesome_travel.faq.dto.request.FaqRequestDto;
 import renewal.awesome_travel.faq.dto.response.FaqResponseDto;
-import renewal.awesome_travel.faq.entity.Faq;
+import renewal.common.entity.Faq;
 import renewal.awesome_travel.faq.repositiry.FaqRepository;
-import renewal.awesome_travel.faq.utils.FaqCategory;
+import renewal.common.entity.Faq.FaqCategory;
 
 @Service
 @RequiredArgsConstructor

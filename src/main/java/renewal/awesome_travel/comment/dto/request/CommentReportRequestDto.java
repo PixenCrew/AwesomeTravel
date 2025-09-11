@@ -1,7 +1,7 @@
 package renewal.awesome_travel.comment.dto.request;
 
 import jakarta.validation.constraints.NotNull;
-import renewal.awesome_travel.comment.utiles.ReportReason;
+import renewal.common.entity.CommentReport.ReportReason;
 
 public class CommentReportRequestDto {
 
