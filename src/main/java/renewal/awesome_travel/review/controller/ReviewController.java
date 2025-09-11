@@ -1,4 +1,4 @@
-package renewal.awesome_travel.comment.controller;
+package renewal.awesome_travel.review.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import renewal.awesome_travel.comment.dto.request.CommentRequestDto;
-import renewal.awesome_travel.comment.dto.response.CommentResponseDto;
-import renewal.awesome_travel.comment.service.CommentService;
+
 import renewal.awesome_travel.config.security.CustomUserDetails;
+import renewal.awesome_travel.review.dto.request.ReviewRequestDto;
+import renewal.awesome_travel.review.dto.response.ReviewResponseDto;
+import renewal.awesome_travel.review.service.ReviewService;
 import renewal.common.entity.User;
 
 import java.util.List;
@@ -18,16 +19,16 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
-public class CommentController {
+public class ReviewController {
 
-    private final CommentService commentService;
+    private final ReviewService commentService;
 
     // 댓글 등록
     @PostMapping("/{productId}/comments")
     public ResponseEntity<Long> createComment(
             @PathVariable Long productId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentRequestDto dto
+            @RequestBody @Valid ReviewRequestDto dto
     ) {
         User user = userDetails.getUser();
         Long commentId = commentService.createComment(user, productId, dto);
@@ -39,7 +40,7 @@ public class CommentController {
     public ResponseEntity<Void> updateComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentRequestDto dto
+            @RequestBody @Valid ReviewRequestDto dto
     ) {
         User user = userDetails.getUser();
         commentService.updateComment(commentId, user, dto);
@@ -59,7 +60,7 @@ public class CommentController {
 
     // 상품별 댓글 목록
     @GetMapping("/{productId}/comments")
-    public ResponseEntity<Page<CommentResponseDto>> getCommentsByProduct(
+    public ResponseEntity<Page<ReviewResponseDto>> getCommentsByProduct(
             @PathVariable Long productId,
             Pageable pageable
     ) {
@@ -68,7 +69,7 @@ public class CommentController {
 
     // 내가 쓴 댓글 목록
     @GetMapping("/comments/my")
-    public ResponseEntity<Page<CommentResponseDto>> getMyComments(
+    public ResponseEntity<Page<ReviewResponseDto>> getMyComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable
     ) {

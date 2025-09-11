@@ -1,4 +1,4 @@
-package renewal.awesome_travel.comment.dto.request;
+package renewal.awesome_travel.review.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
-public class CommentRequestDto {
+public class ReviewRequestDto {
     @NotBlank
     private String content;
 

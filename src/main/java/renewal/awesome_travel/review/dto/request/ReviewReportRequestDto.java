@@ -1,9 +1,9 @@
-package renewal.awesome_travel.comment.dto.request;
+package renewal.awesome_travel.review.dto.request;
 
 import jakarta.validation.constraints.NotNull;
-import renewal.common.entity.CommentReport.ReportReason;
+import renewal.common.entity.ReviewReport.ReportReason;
 
-public class CommentReportRequestDto {
+public class ReviewReportRequestDto {
 
     @NotNull
     private ReportReason reason;

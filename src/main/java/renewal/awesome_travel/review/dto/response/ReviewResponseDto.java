@@ -1,11 +1,11 @@
-package renewal.awesome_travel.comment.dto.response;
+package renewal.awesome_travel.review.dto.response;
 
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 @Builder
-public class CommentResponseDto {
+public class ReviewResponseDto {
     private Long id;
     private String writerName;
     private String content;

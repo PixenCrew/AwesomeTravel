@@ -1,31 +1,32 @@
-package renewal.awesome_travel.comment.controller;
+package renewal.awesome_travel.review.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import renewal.awesome_travel.comment.dto.request.CommentReportRequestDto;
-import renewal.awesome_travel.comment.service.CommentReportService;
+
 import renewal.awesome_travel.config.security.CustomUserDetails;
+import renewal.awesome_travel.review.dto.request.ReviewReportRequestDto;
+import renewal.awesome_travel.review.service.ReviewReportService;
 import renewal.common.entity.User;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/products/comments")
-public class CommentReportController {
+@RequestMapping("/api/products/reviews")
+public class ReviewReportController {
 
-    private final CommentReportService commentReportService;
+    private final ReviewReportService reviewReportService;
 
     // 댓글 신고
     @PostMapping("/{commentId}/report")
     public ResponseEntity<Void> reportComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentReportRequestDto dto
+            @RequestBody @Valid ReviewReportRequestDto dto
     ) {
         User user = userDetails.getUser();
-        commentReportService.reportComment(commentId, user, dto);
+        reviewReportService.reportReview(commentId, user, dto);
         return ResponseEntity.ok().build();
     }
 }
