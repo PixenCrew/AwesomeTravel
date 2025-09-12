@@ -26,45 +26,60 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
         OAuth2User oauth2User = new DefaultOAuth2UserService().loadUser(request);
 
-        String provider = request.getClientRegistration().getRegistrationId(); // google, naver, kakao
-        String providerId = oauth2User.getName();
-        String email = getEmailFromAttributes(provider, oauth2User.getAttributes());
+        // google, naver, kakao
+        UserProvider provider = UserProvider.valueOf(
+                request.getClientRegistration().getRegistrationId().toUpperCase());
+
+        String id;
+        String email;
+        String name;
+
+        if (provider == UserProvider.GOOGLE) { // GOOGLE
+
+            id = oauth2User.getAttribute("sub");
+            email = oauth2User.getAttribute("email");
+            name = oauth2User.getAttribute("name");
+
+        } else if (provider == UserProvider.NAVER) { // NAVER
+
+            Map<String, Object> response = oauth2User.getAttribute("response");
+
+            if (response != null) {
+
+                id = (String) response.get("id");
+                email = (String) response.get("email");
+                name = (String) response.get("name");
+
+            } else {
+                throw new OAuth2AuthenticationException("Naver OAuth2 실패");
+            }
+            
+        } else {
+            throw new OAuth2AuthenticationException("지원하지 않는 OAuth2 provider입니다.");
+        }
 
         // 이메일로 유저 찾기
         return userRepository.findByEmail(email)
                 .map(existingUser -> {
                     // provider가 다르면 예외 발생
-                    if (!existingUser.getProvider().name().equalsIgnoreCase(provider)) {
-                        throw new OAuth2AuthenticationException("해당 이메일은 " + existingUser.getProvider() + " 계정으로 가입되어 있습니다.");
+                    if ( existingUser.getProvider() != provider ) {
+                        throw new OAuth2AuthenticationException(
+                                "해당 이메일은 " + existingUser.getProvider() + " 계정으로 가입되어 있습니다.");
                     }
                     return new CustomUserDetails(existingUser, oauth2User.getAttributes());
                 })
                 .orElseGet(() -> {
                     // 신규 회원가입 처리
-                    User newUser = registerUser(email, provider, providerId);
+                    User newUser = registerUser(email, name, provider, id);
                     return new CustomUserDetails(newUser, oauth2User.getAttributes());
                 });
     }
 
-    private String getEmailFromAttributes(String provider, Map<String, Object> attributes) {
-        return switch (provider) {
-            case "google" -> (String) attributes.get("email");
-            case "naver" -> {
-                Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-                yield (String) response.get("email");
-            }
-            case "kakao" -> {
-                Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-                yield (String) kakaoAccount.get("email");
-            }
-            default -> throw new IllegalArgumentException("지원하지 않는 provider: " + provider);
-        };
-    }
-
-    private User registerUser(String email, String provider, String providerId) {
+    private User registerUser(String email, String name, UserProvider provider, String providerId) {
         User user = User.builder()
                 .email(email)
-                .provider(UserProvider.valueOf(provider.toUpperCase()))
+                .name(name)
+                .provider(provider)
                 .providerId(providerId)
                 .role(UserRole.USER)
                 .status(UserStatus.ACTIVE)
