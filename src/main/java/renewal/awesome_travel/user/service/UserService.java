@@ -55,7 +55,7 @@ public class UserService {
                 .provider(UserProvider.LOCAL)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(false)
-                .createdAt(LocalDateTime.now())
+                // .createdAt(LocalDateTime.now()) // 생성시간은 JPA Auditing으로 지정
                 .build();
 
         userRepository.save(user);

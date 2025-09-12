@@ -1,18 +1,27 @@
 package renewal.awesome_travel.config;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-@EnableJpaAuditing
 @Configuration
 public class JpaConfig {
 
-    //추후 시큐리티 구현
-//    @Bean
-//    public AuditorAware<String> auditorAware() {
-//        return new AuditorAwareImpl();
-//    }
+    @Bean
+    public AuditorAware<String> auditorAware() {
+        return () -> {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
 
+            if (authentication == null || !authentication.isAuthenticated() 
+                || authentication instanceof AnonymousAuthenticationToken) {
+                return Optional.of("system"); // 인증 정보 없으면 기본값 사용
+            }
+
+            return Optional.of(authentication.getName());
+        };
+    }
 }
