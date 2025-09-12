@@ -15,4 +15,9 @@ public class MainController {
         model.addAttribute("engineTest", "타임리프 테스트");
         return "main";
     }
+
+    @GetMapping("login")
+    public String login(Model model) {
+        return "login";
+    }
 }

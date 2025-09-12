@@ -37,5 +37,6 @@ out/
 .vscode/
 certificate.p12
 src/main/resources/application-dev.properties
+src/main/resources/application-oauth.properties
 src/main/generated/*
 keyMaker.sh

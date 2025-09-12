@@ -18,61 +18,50 @@ import renewal.awesome_travel.config.CustomOAuth2UserService;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
-    private final CustomOAuth2UserService customOAuth2UserService;
+        private final CustomUserDetailsService customUserDetailsService;
+        private final CustomOAuth2UserService customOAuth2UserService;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/mypage", true) //추후 메인페이지로 바꿔야함
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")                     // 로그아웃 URL
-                        .logoutSuccessUrl("/login?logout")        // 로그아웃 후 이동 경로
-                        .invalidateHttpSession(true)              // 세션 무효화
-                        .deleteCookies("JSESSIONID")              // 쿠키 삭제
-                        .permitAll()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login") // 소셜 로그인도 동일한 로그인 페이지 사용
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/mypage/**").hasRole("USER")
-                        .anyRequest().permitAll()
-                )
-        ;
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .formLogin(form -> form
+                                                .loginPage("/login")
+                                                .defaultSuccessUrl("/", true) // 추후 메인페이지로 바꿔야함
+                                                .permitAll())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .loginPage("/login") // 소셜 로그인도 동일한 로그인 페이지 사용
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(customOAuth2UserService)))
+                                .logout(logout -> logout
+                                                .logoutUrl("/logout") // 로그아웃 URL
+                                                .logoutSuccessUrl("/login?logout") // 로그아웃 후 이동 경로
+                                                .invalidateHttpSession(true) // 세션 무효화
+                                                .deleteCookies("JSESSIONID") // 쿠키 삭제
+                                                .permitAll())
+                                .authorizeHttpRequests(auth -> auth
+                                                .anyRequest().permitAll());
 
-        return http.build();
-    }
+                return http.build();
+        }
 
+        @Bean
+        public AuthenticationManager authenticationManager(
+                        AuthenticationConfiguration configuration) throws Exception {
+                return configuration.getAuthenticationManager();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration
-    ) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    // UserDetailsService 등록
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(customUserDetailsService);
-        auth.setPasswordEncoder(passwordEncoder());
-        return auth;
-    }
+        // UserDetailsService 등록
+        @Bean
+        public DaoAuthenticationProvider authenticationProvider() {
+                DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+                auth.setUserDetailsService(customUserDetailsService);
+                auth.setPasswordEncoder(passwordEncoder());
+                return auth;
+        }
 }
-

@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
@@ -13,7 +16,7 @@ import renewal.awesome_travel.user.dto.response.EmailCheckResponseDto;
 import renewal.awesome_travel.user.dto.response.UserResponseDto;
 import renewal.awesome_travel.user.service.UserService;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class UserController {
@@ -77,6 +80,14 @@ public class UserController {
     public ResponseEntity<Void> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         userService.withdraw(userDetails.getUser().getId());
         return ResponseEntity.ok().build();
+    }
+
+    // OAuth2 테스트
+    @GetMapping("/profile")
+    public String profile(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        model.addAttribute("name", principal.getAttribute("name"));
+        model.addAttribute("email", principal.getAttribute("email"));
+        return "profile";
     }
 }
 
