@@ -26,7 +26,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
         OAuth2User oauth2User = new DefaultOAuth2UserService().loadUser(request);
 
-        // google, naver, kakao
+        // google, naver
         UserProvider provider = UserProvider.valueOf(
                 request.getClientRegistration().getRegistrationId().toUpperCase());
 

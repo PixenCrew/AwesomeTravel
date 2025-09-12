@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 public class EmailCheckResponseDto {
     private boolean exists;       // 이메일 존재 여부
-    private String provider;      // LOCAL / GOOGLE / NAVER / KAKAO / null
+    private String provider;      // LOCAL / GOOGLE / NAVER / null
     private String message;       // 사용자 안내 메시지
 }
 

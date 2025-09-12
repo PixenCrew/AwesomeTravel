@@ -101,7 +101,6 @@ public class UserService {
             case LOCAL -> "이미 가입된 이메일입니다.";
             case GOOGLE -> "해당 이메일은 구글 계정으로 가입되어 있습니다.";
             case NAVER -> "해당 이메일은 네이버 계정으로 가입되어 있습니다.";
-            case KAKAO -> "해당 이메일은 카카오 계정으로 가입되어 있습니다.";
         };
 
         return EmailCheckResponseDto.builder()
