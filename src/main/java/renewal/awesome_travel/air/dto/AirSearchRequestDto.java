@@ -1,8 +1,10 @@
 package renewal.awesome_travel.air.dto;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+import renewal.awesome_travel.air.dto.AirSearchRequestDto.RequestSegment;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.SeatClass.SeatClassType;
 
@@ -30,11 +32,11 @@ public class AirSearchRequestDto {
     private Boolean directOnly;
 
     // 구간 리스트
-    private List<RequestSegment> segments;
+    private List<RequestSegment> segments = new ArrayList<>();
 
     @Getter
     @Setter
-    public class RequestSegment {
+    public static class RequestSegment {
         private CityCode depart;
         private CityCode arrive;
 

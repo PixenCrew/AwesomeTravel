@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>항공편 검색 테스트</title>
+    <script>
+        function addSegment(containerId) {
+            const container = document.getElementById(containerId);
+            const index = container.children.length;
+            const segmentHtml = `
+            <div>
+                <label>출발 공항:
+                    <input type="text" name="segments[${index}].depart">
+                </label>
+                <label>도착 공항:
+                    <input type="text" name="segments[${index}].arrive">
+                </label>
+                <label>출발일:
+                    <input type="date" name="segments[${index}].departDate">
+                </label>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', segmentHtml);
+        }
+    </script>
+</head>
+<body>
+    <h1>항공편 검색 테스트</h1>
+
+    <!-- ROUND_TRIP -->
+    <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
+        <h2>왕복 (ROUND_TRIP)</h2>
+        <input type="hidden" th:field="*{tripType}" value="ROUND_TRIP">
+
+        성인: <input type="number" th:field="*{adultCount}" min="0"><br>
+        어린이: <input type="number" th:field="*{childCount}" min="0"><br>
+        유아: <input type="number" th:field="*{infantCount}" min="0"><br>
+
+        좌석 등급:
+        <select th:field="*{seatClassType}">
+            <option value="">선택</option>
+            <option th:value="ECONOMY">이코노미</option>
+            <option th:value="BUSINESS">비즈니스</option>
+            <option th:value="FIRST">퍼스트</option>
+        </select><br>
+
+        직항만: <input type="checkbox" th:field="*{directOnly}"><br>
+
+        <h3>구간</h3>
+        <div id="roundtrip-segments">
+            <div>출발</div>
+            <div>
+                출발 공항: <input type="text" name="segments[0].depart">
+                도착 공항: <input type="text" name="segments[0].arrive">
+                출발일: <input type="date" name="segments[0].departDate">
+            </div>
+            <br>
+            <div>귀환</div>
+            <div>
+                출발 공항: <input type="text" name="segments[1].depart">
+                도착 공항: <input type="text" name="segments[1].arrive">
+                귀환일: <input type="date" name="segments[1].departDate">
+            </div>
+        </div>
+        <button type="submit">검색</button>
+    </form>
+
+    <hr>
+
+    <!-- ONE_WAY -->
+    <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
+        <h2>편도 (ONE_WAY)</h2>
+        <input type="hidden" th:field="*{tripType}" value="ONE_WAY">
+
+        성인: <input type="number" th:field="*{adultCount}" min="0"><br>
+        어린이: <input type="number" th:field="*{childCount}" min="0"><br>
+        유아: <input type="number" th:field="*{infantCount}" min="0"><br>
+
+        좌석 등급:
+        <select th:field="*{seatClassType}">
+            <option value="">선택</option>
+            <option th:value="ECONOMY">이코노미</option>
+            <option th:value="BUSINESS">비즈니스</option>
+            <option th:value="FIRST">퍼스트</option>
+        </select><br>
+
+        직항만: <input type="checkbox" th:field="*{directOnly}"><br>
+
+        <h3>구간</h3>
+        <div id="oneway-segments">
+            <div>
+                출발 공항: <input type="text" name="segments[0].depart">
+                도착 공항: <input type="text" name="segments[0].arrive">
+                출발일: <input type="date" name="segments[0].departDate">
+            </div>
+        </div>
+        <button type="submit">검색</button>
+    </form>
+
+    <hr>
+
+    <!-- MULTI -->
+    <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
+        <h2>다구간 (MULTI)</h2>
+        <input type="hidden" th:field="*{tripType}" value="MULTI">
+
+        성인: <input type="number" th:field="*{adultCount}" min="0"><br>
+        어린이: <input type="number" th:field="*{childCount}" min="0"><br>
+        유아: <input type="number" th:field="*{infantCount}" min="0"><br>
+
+        좌석 등급:
+        <select th:field="*{seatClassType}">
+            <option value="">선택</option>
+            <option th:value="ECONOMY">이코노미</option>
+            <option th:value="BUSINESS">비즈니스</option>
+            <option th:value="FIRST">퍼스트</option>
+        </select><br>
+
+        직항만: <input type="checkbox" th:field="*{directOnly}"><br>
+
+        <h3>구간</h3>
+        <div id="multi-segments">
+            <div>
+                출발 공항: <input type="text" name="segments[0].depart">
+                도착 공항: <input type="text" name="segments[0].arrive">
+                출발일: <input type="date" name="segments[0].departDate">
+            </div>
+        </div>
+        <button type="button" onclick="addSegment('multi-segments')">구간 추가</button><br>
+        <button type="submit">검색</button>
+    </form>
+
+</body>
+</html>
