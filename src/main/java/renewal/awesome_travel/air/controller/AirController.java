@@ -26,6 +26,7 @@ public class AirController {
             @ModelAttribute AirSearchRequestDto searchRequest,
             Model model) {
                 System.out.println(searchRequest.getAdultCount());
+                System.out.println("getCityEng() : "+searchRequest.getSegments().get(0).getArrive().getCityEng());
         model.addAttribute("searchRequest", new AirSearchRequestDto());
         return "air/airSearch";
     }

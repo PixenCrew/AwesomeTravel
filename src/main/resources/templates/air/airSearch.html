@@ -10,10 +10,10 @@
             const segmentHtml = `
             <div>
                 <label>출발 공항:
-                    <input type="text" name="segments[${index}].depart">
+                    <input type="text" name="segments[${index}].depart.airportCode">
                 </label>
                 <label>도착 공항:
-                    <input type="text" name="segments[${index}].arrive">
+                    <input type="text" name="segments[${index}].arrive.airportCode">
                 </label>
                 <label>출발일:
                     <input type="date" name="segments[${index}].departDate">
@@ -49,15 +49,15 @@
         <div id="roundtrip-segments">
             <div>출발</div>
             <div>
-                출발 공항: <input type="text" name="segments[0].depart">
-                도착 공항: <input type="text" name="segments[0].arrive">
+                출발 공항: <input type="text" name="segments[0].depart.airportCode">
+                도착 공항: <input type="text" name="segments[0].arrive.airportCode">
                 출발일: <input type="date" name="segments[0].departDate">
             </div>
             <br>
             <div>귀환</div>
             <div>
-                출발 공항: <input type="text" name="segments[1].depart">
-                도착 공항: <input type="text" name="segments[1].arrive">
+                출발 공항: <input type="text" name="segments[1].depart.airportCode">
+                도착 공항: <input type="text" name="segments[1].arrive.airportCode">
                 귀환일: <input type="date" name="segments[1].departDate">
             </div>
         </div>
