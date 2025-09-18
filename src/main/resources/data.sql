@@ -1,1 +1,0 @@
-../java/renewal/common/data.sql
