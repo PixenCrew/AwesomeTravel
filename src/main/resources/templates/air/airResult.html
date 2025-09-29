@@ -1,10 +1,149 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset='utf-8'>
-    <title>항공권 검색 결과</title>
+    <meta charset="UTF-8">
+    <title>항공 검색 결과</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .trip-container {
+            margin-bottom: 40px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+
+        h2,
+        h3,
+        h4 {
+            margin-top: 10px;
+        }
+    </style>
 </head>
+
 <body>
-    
+
+    <h1>항공 검색 결과</h1>
+    <div>
+        <h4>조건</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>항공 타입</th>
+                    <th>성인</th>
+                    <th>청소년</th>
+                    <th>영유아</th>
+                    <th>좌석 등급</th>
+                    <th>직항 여부</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="${airSearchRequestDto.tripType}">항공 타입</td>
+                    <td th:text="${airSearchRequestDto.adultCount}">성인</td>
+                    <td th:text="${airSearchRequestDto.youthCount}">청소년</td>
+                    <td th:text="${airSearchRequestDto.infantCount}">영유아</td>
+                    <td th:text="${airSearchRequestDto.seatClassType}">좌석 등급</td>
+                    <td th:text="${airSearchRequestDto.directOnly}">직항 여부</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${#lists.isEmpty(searchResult)}">
+        <p>검색 결과가 없습니다.</p>
+    </div>
+
+    <div th:each="air : ${searchResult}" class="trip-container">
+        <h2>가격: <span th:text="${air.price}">0</span> 원</h2>
+
+        <div th:each="trip, iterStat : ${air.tripList}" style="border: 1px solid lightgray; margin: 5px; padding: 5px;">
+            <h3>여정 [[${iterStat.index + 1}]]</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항공사</th>
+                        <th>출발지</th>
+                        <th>출발시간</th>
+                        <th>도착지</th>
+                        <th>도착시간</th>
+                        <th>총 비행시간(분)</th>
+                        <th>경유 횟수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <img th:src="@{'/' + ${trip.airline.iconUrl}}"  style="width:24px; height:24px; vertical-align:middle; margin-right:5px;">
+                            <span th:text="${trip.airline.nameKor}">항공사</span>
+                        </td>
+                        <td th:text="${trip.depart.cityCode} + ' (' + ${trip.depart.airportCode} + ')'">출발지</td>
+                        <td th:text="${trip.departDateTime}">출발시간</td>
+                        <td th:text="${trip.arrive.cityCode} + ' (' + ${trip.arrive.airportCode} + ')'">도착지</td>
+                        <td th:text="${trip.arriveDateTime}">도착시간</td>
+                        <td th:text="${trip.flightDurationTotal}">총시간</td>
+                        <td th:text="${trip.stopOvers}">경유</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>세부 비행 구간</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항공사</th>
+                        <th>항공편</th>
+                        <th>출발지</th>
+                        <th>출발시간</th>
+                        <th>비행시간</th>
+                        <th>도착지</th>
+                        <th>도착시간</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <div th:each="seg : ${trip.flightSegments}">
+                        <tr>
+                            <td>항공사</td>
+                            <td th:text="${trip.flightNumber}">항공편</td>
+                            <td th:text="${seg.departAirport.cityCode} + ' (' + ${seg.departAirport.airportCode} + ')'">
+                                출발지</td>
+                            <td th:text="${seg.departDateTime}">출발시간</td>
+                            <td th:text="${seg.flightDuration}">1</td>
+                            <td th:text="${seg.arriveAirport.cityCode} + ' (' + ${seg.arriveAirport.airportCode} + ')'">
+                                도착지</td>
+                            <td th:text="${seg.arriveDateTime}">도착시간</td>
+                        </tr>
+                        <tr th:if="${seg.waitDuration != null}">
+                            <td>대기시간 <span th:text="${seg.waitDuration}">10</span> 분</td>
+                        </tr>
+                    </div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </body>
+
 </html>

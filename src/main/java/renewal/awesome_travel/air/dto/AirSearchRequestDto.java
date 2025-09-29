@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import renewal.awesome_travel.air.dto.AirSearchRequestDto.RequestSegment;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.SeatClass.SeatClassType;
 
@@ -22,7 +21,7 @@ public class AirSearchRequestDto {
 
     // 인원수
     private Long adultCount;
-    private Long childCount;
+    private Long youthCount;
     private Long infantCount;
 
     // 좌석 등급 (이코노미, 비즈니스 등)
