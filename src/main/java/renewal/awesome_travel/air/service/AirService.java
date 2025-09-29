@@ -85,7 +85,7 @@ public class AirService {
 
                 // 출발
                 currentTrip.setDepart(currentAir.getDepartAirport());
-                currentTrip.setDepartDateTime(currentAir.getArriveDateTime());
+                currentTrip.setDepartDateTime(currentAir.getDepartDateTime());
 
                 // 비행중
                 currentTrip.setFlightDurationTotal(currentAir.getFlightDuration());

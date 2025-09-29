@@ -171,9 +171,9 @@
         let currentFormId = "form-ROUND_TRIP"; // 처음 기본 표시 폼 id
         
         // 페이지 로드시 다구간 기본 1개 추가
-        addSegment('multi-segments');
+        addSegment('multi-segments',false);
 
-        function addSegment(containerId) {
+        function addSegment(containerId,delButton = true) {
             const container = document.getElementById(containerId);
             const index = container.children.length;
             const newSegment = document.createElement('div');
@@ -206,17 +206,19 @@
             dateInput.required = true;
             dateLabel.appendChild(dateInput);
 
-            // 삭제 버튼
-            const deleteBtn = document.createElement('button');
-            deleteBtn.type = 'button';
-            deleteBtn.textContent = '삭제';
-            deleteBtn.onclick = function () { deleteSegment(this); };
-
             // div에 라벨 추가
             newSegment.appendChild(departLabel);
             newSegment.appendChild(arriveLabel);
             newSegment.appendChild(dateLabel);
-            newSegment.appendChild(deleteBtn);
+            
+            if (delButton) {
+                // 삭제 버튼
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.textContent = '삭제';
+                deleteBtn.onclick = function () { deleteSegment(this); };
+                newSegment.appendChild(deleteBtn);
+            }
 
             container.appendChild(newSegment);
         }

@@ -85,6 +85,7 @@
                 <thead>
                     <tr>
                         <th>항공사</th>
+                        <th>항공편</th>
                         <th>출발지</th>
                         <th>출발시간</th>
                         <th>도착지</th>
@@ -99,9 +100,10 @@
                             <img th:src="@{'/' + ${trip.airline.iconUrl}}"  style="width:24px; height:24px; vertical-align:middle; margin-right:5px;">
                             <span th:text="${trip.airline.nameKor}">항공사</span>
                         </td>
-                        <td th:text="${trip.depart.cityCode} + ' (' + ${trip.depart.airportCode} + ')'">출발지</td>
+                        <td th:text="${trip.flightNumber}">항공편</td>
+                        <td th:text="${trip.depart.airportCode}">출발지</td>
                         <td th:text="${trip.departDateTime}">출발시간</td>
-                        <td th:text="${trip.arrive.cityCode} + ' (' + ${trip.arrive.airportCode} + ')'">도착지</td>
+                        <td th:text="${trip.arrive.airportCode}">도착지</td>
                         <td th:text="${trip.arriveDateTime}">도착시간</td>
                         <td th:text="${trip.flightDurationTotal}">총시간</td>
                         <td th:text="${trip.stopOvers}">경유</td>
@@ -113,8 +115,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th>항공사</th>
-                        <th>항공편</th>
                         <th>출발지</th>
                         <th>출발시간</th>
                         <th>비행시간</th>
@@ -125,14 +125,10 @@
                 <tbody>
                     <div th:each="seg : ${trip.flightSegments}">
                         <tr>
-                            <td>항공사</td>
-                            <td th:text="${trip.flightNumber}">항공편</td>
-                            <td th:text="${seg.departAirport.cityCode} + ' (' + ${seg.departAirport.airportCode} + ')'">
-                                출발지</td>
+                            <td th:text="${seg.departAirport.airportCode}">출발지</td>
                             <td th:text="${seg.departDateTime}">출발시간</td>
                             <td th:text="${seg.flightDuration}">1</td>
-                            <td th:text="${seg.arriveAirport.cityCode} + ' (' + ${seg.arriveAirport.airportCode} + ')'">
-                                도착지</td>
+                            <td th:text="${seg.arriveAirport.airportCode}">도착지</td>
                             <td th:text="${seg.arriveDateTime}">도착시간</td>
                         </tr>
                         <tr th:if="${seg.waitDuration != null}">
