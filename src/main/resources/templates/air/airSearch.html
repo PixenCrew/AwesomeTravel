@@ -28,14 +28,14 @@
     <div id="form-ROUND_TRIP" class="trip-form">
         <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
             <h2>왕복 (ROUND_TRIP)</h2>
-            <input type="hidden" name="tripType" value="ROUND_TRIP">
+            <input type="hidden" name="tripType" value="ROUND_TRIP" required>
 
-            성인:<input type="number" th:field="*{adultCount}" min="0"><br>
-            어린이:<input type="number" th:field="*{youthCount}" min="0"><br>
-            유아:<input type="number" th:field="*{infantCount}" min="0"><br>
+            성인:<input type="number" th:field="*{adultCount}" min="0" value="1" required><br>
+            어린이:<input type="number" th:field="*{youthCount}" min="0" value="0" required><br>
+            유아:<input type="number" th:field="*{infantCount}" min="0" value="0" required><br>
 
             좌석 등급:
-            <select th:field="*{seatClassType}">
+            <select th:field="*{seatClassType}" required>
                 <option value="">선택</option>
                 <option th:value="ECONOMY">이코노미</option>
                 <option th:value="BUSINESS">비즈니스</option>
@@ -50,15 +50,15 @@
                 <div>
 
                     <label>출발 공항:
-                        <input type="text" id="seg0-depart" name="segments[0].depart.airportCode">
+                        <input type="text" id="seg0-depart" name="segments[0].depart.airportCode" required>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" id="seg0-arrive" name="segments[0].arrive.airportCode">
+                        <input type="text" id="seg0-arrive" name="segments[0].arrive.airportCode" required>
                     </label>
 
                     <label>출발일:
-                        <input type="date" name="segments[0].departDate">
+                        <input type="date" name="segments[0].departDate" required>
                     </label>
 
                 </div>
@@ -67,15 +67,15 @@
                 <div>
 
                     <label>출발 공항:
-                        <input type="text" id="seg1-depart" name="segments[1].depart.airportCode" readonly>
+                        <input type="text" id="seg1-depart" name="segments[1].depart.airportCode" readonly required>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" id="seg1-arrive" name="segments[1].arrive.airportCode" readonly>
+                        <input type="text" id="seg1-arrive" name="segments[1].arrive.airportCode" readonly required>
                     </label>
 
                     <label>귀환일:
-                        <input type="date" name="segments[1].departDate">
+                        <input type="date" name="segments[1].departDate" required>
                     </label>
 
                 </div>
@@ -89,14 +89,14 @@
     <div id="form-ONE_WAY" class="trip-form" style="display:none;">
         <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
             <h2>편도 (ONE_WAY)</h2>
-            <input type="hidden" name="tripType" value="ONE_WAY">
+            <input type="hidden" name="tripType" value="ONE_WAY" required>
 
-            성인:<input type="number" th:field="*{adultCount}" min="0"><br>
-            어린이:<input type="number" th:field="*{youthCount}" min="0"><br>
-            유아:<input type="number" th:field="*{infantCount}" min="0"><br>
+            성인:<input type="number" th:field="*{adultCount}" min="0" value="1" required><br>
+            어린이:<input type="number" th:field="*{youthCount}" min="0" value="0" required><br>
+            유아:<input type="number" th:field="*{infantCount}" min="0" value="0" required><br>
 
             좌석 등급:
-            <select th:field="*{seatClassType}">
+            <select th:field="*{seatClassType}" required>
                 <option value="">선택</option>
                 <option th:value="ECONOMY">이코노미</option>
                 <option th:value="BUSINESS">비즈니스</option>
@@ -110,15 +110,15 @@
                 <div>
 
                     <label>출발 공항:
-                        <input type="text" name="segments[0].depart.airportCode">
+                        <input type="text" name="segments[0].depart.airportCode" required>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" name="segments[0].arrive.airportCode">
+                        <input type="text" name="segments[0].arrive.airportCode" required>
                     </label>
 
                     <label>출발일:
-                        <input type="date" name="segments[0].departDate">
+                        <input type="date" name="segments[0].departDate" required>
                     </label>
 
                 </div>
@@ -131,14 +131,14 @@
     <div id="form-MULTI" class="trip-form" style="display:none;">
         <form th:action="@{/air/search}" th:object="${searchRequest}" method="post">
             <h2>다구간 (MULTI)</h2>
-            <input type="hidden" name="tripType" value="MULTI">
+            <input type="hidden" name="tripType" value="MULTI" required>
 
-            성인:<input type="number" th:field="*{adultCount}" min="0"><br>
-            어린이:<input type="number" th:field="*{youthCount}" min="0"><br>
-            유아:<input type="number" th:field="*{infantCount}" min="0"><br>
+            성인:<input type="number" th:field="*{adultCount}" min="0" value="1" required><br>
+            어린이:<input type="number" th:field="*{youthCount}" min="0" value="0" required><br>
+            유아:<input type="number" th:field="*{infantCount}" min="0" value="0" required><br>
 
             좌석 등급:
-            <select th:field="*{seatClassType}">
+            <select th:field="*{seatClassType}" required>
                 <option value="">선택</option>
                 <option th:value="ECONOMY">이코노미</option>
                 <option th:value="BUSINESS">비즈니스</option>
@@ -185,6 +185,7 @@
             const departInput = document.createElement('input');
             departInput.type = 'text';
             departInput.name = `segments[${index}].depart.airportCode`;
+            departInput.required = true;
             departLabel.appendChild(departInput);
 
             // 도착 공항
@@ -193,6 +194,7 @@
             const arriveInput = document.createElement('input');
             arriveInput.type = 'text';
             arriveInput.name = `segments[${index}].arrive.airportCode`;
+            arriveInput.required = true;
             arriveLabel.appendChild(arriveInput);
 
             // 출발일
@@ -201,6 +203,7 @@
             const dateInput = document.createElement('input');
             dateInput.type = 'date';
             dateInput.name = `segments[${index}].departDate`;
+            dateInput.required = true;
             dateLabel.appendChild(dateInput);
 
             // 삭제 버튼
