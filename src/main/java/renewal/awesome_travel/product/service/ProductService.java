@@ -2,21 +2,6 @@ package renewal.awesome_travel.product.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import renewal.common.entity.Air;
-import renewal.awesome_travel.air.repository.AirRepository;
-import renewal.common.entity.Hotel;
-import renewal.awesome_travel.hotel.repository.HotelRepository;
-import renewal.awesome_travel.product.dto.requestDto.ProductRequestDto;
-import renewal.common.entity.Product;
-// import renewal.awesome_travel.product.entity.ProductList;
-// import renewal.awesome_travel.product.entity.Tag;
-// import renewal.awesome_travel.product.mapper.ProductListMapper;
-// import renewal.awesome_travel.product.mapper.ProductMapper;
-import renewal.awesome_travel.product.repository.ProductRepository;
-// import renewal.awesome_travel.product.repository.TagRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
