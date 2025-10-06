@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>패키지 검색 테스트</title>
+</head>
+
+<body>
+    <h1>패키지 검색 테스트</h1>
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>타입</th>
+                    <th>제목</th>
+                    <th>가격</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product : ${searchResult}">
+                    <td th:text="${product.id}">ID</td>
+                    <td th:text="${product.productType}">타입</td>
+                    <td th:text="${product.title}">제목</td>
+                    <td th:text="${product.price}">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

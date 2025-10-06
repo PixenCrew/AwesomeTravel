@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>패키지 검색 테스트</title>
+</head>
+
+<body>
+    <h1>패키지 검색 테스트</h1>
+    <form th:action="@{/product/search}" th:object="${searchRequest}" method="post">
+        키워드:<input type="text" th:field="*{keyword}"><br>
+        코드:<input type="text" th:field="*{menuCode}"><br>
+        <button type="submit">검색</button>
+    </form>
+</body>
+
+</html>

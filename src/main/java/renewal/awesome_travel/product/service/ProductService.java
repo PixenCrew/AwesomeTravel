@@ -1,11 +1,29 @@
 package renewal.awesome_travel.product.service;
 
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
+import renewal.awesome_travel.product.dto.ProductSpecification;
+import renewal.awesome_travel.product.repository.ProductRepository;
+import renewal.common.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
+    private final ProductRepository productRepository;
+    
+    public Page<Product> searchProducts(ProductSearchRequestDto filter, Pageable pageable) {
+        Specification<Product> spec = Specification.where(null);
+
+        if (filter.getKeyword() != null && !filter.getKeyword().isEmpty()) {
+            spec = spec.and(ProductSpecification.keywordContains(filter.getKeyword()));
+        }
+        return productRepository.findAll(spec, pageable);
+    }
 
     // private final ProductRepository productRepository;
     // private final AirRepository airRepository;
