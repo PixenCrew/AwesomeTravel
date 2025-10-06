@@ -16,9 +16,9 @@ public class CountryService {
     public List<CountryDto> getAllCountries() {
         return countryCodeRepository.findAll().stream()
                 .map(c -> new CountryDto(
-                        c.getCode(),
-                        c.getEng(),
-                        c.getKor()
+                        c.getCountryCode(),
+                        c.getCountryEng(),
+                        c.getCountryKor()
                 ))
                 .toList();
     }
