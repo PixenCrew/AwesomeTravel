@@ -3,9 +3,7 @@ package renewal.awesome_travel.purchase.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import renewal.awesome_travel.purchase.dto.requestDto.PassengerAirUpdateRequestDto;
-import renewal.awesome_travel.purchase.dto.requestDto.PurchaseAirRequestDto;
-import renewal.awesome_travel.purchase.dto.responseDto.PurchaseAirResponseDto;
+import renewal.awesome_travel.purchase.dto.requestDto.PassengerUpdateRequestDto;
 import renewal.awesome_travel.purchase.service.PurchaseAirService;
 
 @RestController
@@ -47,7 +45,7 @@ public class PurchaseAirController {
     // public ResponseEntity<Void> updatePassenger(
     //         @PathVariable Long purchaseId,
     //         @PathVariable Long passengerId,
-    //         @RequestBody PassengerAirUpdateRequestDto dto) {
+    //         @RequestBody PassengerUpdateRequestDto dto) {
     //     airPurchaseService.updatePassenger(purchaseId, passengerId, dto);
     //     return ResponseEntity.ok().build();
     // }

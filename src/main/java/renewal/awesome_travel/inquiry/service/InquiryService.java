@@ -32,7 +32,7 @@ public class InquiryService {
     public Long createInquiry(Long userId, InquiryRequestDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
-        Inquiry inquiry = Inquiry.create(user, dto.getTitle(), dto.getContent());
+        Inquiry inquiry = Inquiry.create(user, dto.getTitle(), dto.getContent(),dto.getCategory());
         return inquiryRepository.save(inquiry).getId();
     }
 
