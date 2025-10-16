@@ -15,7 +15,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     // 어드민 검색용: 키워드(title, content) 검색 + 답변 여부
     @Query("SELECT i FROM Inquiry i WHERE " +
             "( :keyword IS NULL OR i.title LIKE %:keyword% OR i.content LIKE %:keyword% ) AND " +
-            "( :isAnswered IS NULL OR i.isAnswered = :isAnswered )")
+            "( :isAnswered IS NULL OR i.isAnswered() = :isAnswered )")
     Page<Inquiry> searchAdmin(@Param("keyword") String keyword,
                               @Param("isAnswered") Boolean isAnswered,
                               Pageable pageable);
@@ -24,7 +24,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     @Query("SELECT i FROM Inquiry i WHERE " +
             "i.user = :user AND " +
             "( :keyword IS NULL OR i.title LIKE %:keyword% OR i.content LIKE %:keyword% ) AND " +
-            "( :isAnswered IS NULL OR i.isAnswered = :isAnswered )")
+            "( :isAnswered IS NULL OR i.isAnswered() = :isAnswered )")
     Page<Inquiry> searchUser(@Param("user") User user,
                              @Param("keyword") String keyword,
                              @Param("isAnswered") Boolean isAnswered,

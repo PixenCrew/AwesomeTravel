@@ -12,7 +12,7 @@ public interface PurchaseProductRepository extends JpaRepository<PurchaseProduct
 
     @Query("SELECT DISTINCT pp FROM PurchaseProduct pp " +
             "JOIN FETCH pp.product " +
-            "LEFT JOIN FETCH pp.productPassengers p " +
+            "LEFT JOIN FETCH pp.passengers p " +
             "LEFT JOIN FETCH p.nationality " +
             "WHERE pp.id = :id")
     Optional<PurchaseProduct> findByIdWithAll(@Param("id") Long id);
