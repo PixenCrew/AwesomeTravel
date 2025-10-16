@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.common.entity.PassengerBase.Sex;
+import renewal.common.entity.Passenger.Sex;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PassengerAirRequestDto {
+public class PassengerRequestDto {
     private String name;
     private String number;
     private String email;

@@ -3,14 +3,14 @@ package renewal.awesome_travel.purchase.dto.requestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import renewal.common.entity.CountryCode;
-import renewal.common.entity.PassengerBase.Sex;
+import renewal.common.entity.Passenger.Sex;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class PassengerAirUpdateRequestDto {
+public class PassengerUpdateRequestDto {
 
     private String name;
     private String number;
