@@ -14,6 +14,7 @@ import renewal.awesome_travel.air.dto.AirSearchResponseDto;
 import renewal.awesome_travel.air.dto.AirSearchResponseDto.Trip;
 import renewal.awesome_travel.air.repository.AirRepository;
 import renewal.common.entity.Air;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.SeatClass.SeatClassType;
@@ -41,8 +42,8 @@ public class AirService {
         Boolean directOnly = request.getDirectOnly();
 
         // 구간별 변수
-        CityCode depart;
-        CityCode arrive;
+        AirportCode depart;
+        AirportCode arrive;
         LocalDate departDate;
 
         // 구간들 리스트

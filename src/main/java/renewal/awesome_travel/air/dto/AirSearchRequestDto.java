@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.SeatClass.SeatClassType;
 
@@ -36,8 +37,8 @@ public class AirSearchRequestDto {
     @Getter
     @Setter
     public static class RequestSegment {
-        private CityCode depart;
-        private CityCode arrive;
+        private AirportCode depart;
+        private AirportCode arrive;
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate departDate;
