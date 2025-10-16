@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.QAir;
 import renewal.common.entity.QSeatClass;
@@ -30,8 +31,8 @@ public class AirRepositoryCustomImpl implements AirRepositoryCustom {
             Long seatCount,
             SeatClassType seatClassType,
             Boolean directOnly,
-            CityCode depart,
-            CityCode arrive,
+            AirportCode depart,
+            AirportCode arrive,
             LocalDate departDate) {
 
         BooleanBuilder builder = new BooleanBuilder();

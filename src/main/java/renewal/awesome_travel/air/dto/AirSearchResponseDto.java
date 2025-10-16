@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import renewal.common.entity.Airline;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.CityCode;
 import renewal.common.entity.Air.FlightSegment;
 import lombok.Getter;
@@ -26,13 +27,13 @@ public class AirSearchResponseDto {
         private Airline airline; // 항공사
         private String flightNumber; // 항공편 코드
 
-        private CityCode depart;
+        private AirportCode depart;
         private LocalDateTime departDateTime;
 
         private Long flightDurationTotal;
         private Integer stopOvers;
 
-        private CityCode arrive;
+        private AirportCode arrive;
         private LocalDateTime arriveDateTime;
 
         // private Long totalDuration; // 여정 소요시간 => (첫 출발시간 - 마지막 도착시간 차이로 계산?)

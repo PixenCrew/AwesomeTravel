@@ -3,7 +3,7 @@ package renewal.awesome_travel.air.repository;
 import java.time.LocalDate;
 import java.util.List;
 
-import renewal.common.entity.CityCode;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.SeatClass.SeatClassType;
 
@@ -13,8 +13,8 @@ public interface AirRepositoryCustom {
         Long seatCount,
         SeatClassType seatClassType,
         Boolean directOnly,
-        CityCode depart,
-        CityCode arrive,
+        AirportCode depart,
+        AirportCode arrive,
         LocalDate departDate
         );
 }
