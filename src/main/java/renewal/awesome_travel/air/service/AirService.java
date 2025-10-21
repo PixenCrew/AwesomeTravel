@@ -1,13 +1,12 @@
 package renewal.awesome_travel.air.service;
 
-import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.air.dto.AirSearchRequestDto;
 import renewal.awesome_travel.air.dto.AirSearchRequestDto.RequestSegment;
 import renewal.awesome_travel.air.dto.AirSearchResponseDto;
@@ -15,7 +14,6 @@ import renewal.awesome_travel.air.dto.AirSearchResponseDto.Trip;
 import renewal.awesome_travel.air.repository.AirRepository;
 import renewal.common.entity.Air;
 import renewal.common.entity.AirportCode;
-import renewal.common.entity.CityCode;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.SeatClass.SeatClassType;
 
@@ -61,8 +59,8 @@ public class AirService {
 
             List<SeatClass> current = airRepository.searchSegment(seatCount, seatClassType, directOnly, depart,
                     arrive, departDate);
-            
-                    System.out.println("========current"+current);
+
+            System.out.println("========current" + current);
 
             queryResult.add(current);
         }
@@ -78,8 +76,9 @@ public class AirService {
             for (SeatClass seat : unitlist) {
                 Trip currentTrip = new Trip();
                 Air currentAir = seat.getAir();
-                priceSum+=seat.getPriceAdult()*seatCountAdult + seat.getPriceYouth()*seatCountYouth + seat.getPriceInfant()*seatCountInfant;
-                
+                priceSum += seat.getPriceAdult() * seatCountAdult + seat.getPriceYouth() * seatCountYouth
+                        + seat.getPriceInfant() * seatCountInfant;
+
                 // 항공사
                 currentTrip.setAirline(currentAir.getAirline());
                 currentTrip.setFlightNumber(currentAir.getFlightNumber());
@@ -129,9 +128,9 @@ public class AirService {
     }
 
     // private FlightSegment airToSegment(Air air){
-    //     FlightSegment segment = new FlightSegment();
+    // FlightSegment segment = new FlightSegment();
 
-    //     return segment;
+    // return segment;
     // }
 
 }

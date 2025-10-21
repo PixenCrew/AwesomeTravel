@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import renewal.common.entity.Product;
 
-public interface ProductRepository extends JpaRepository<Product, Long> ,JpaSpecificationExecutor<Product>{
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 }

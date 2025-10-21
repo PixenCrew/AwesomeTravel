@@ -1,16 +1,41 @@
 package renewal.awesome_travel.air.repository;
 
-import jakarta.persistence.LockModeType;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import renewal.common.entity.SeatClass;
 
-import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import renewal.common.entity.AirportCode;
+import renewal.common.entity.SeatClass;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 public interface SeatClassRepository extends JpaRepository<SeatClass, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM SeatClass s WHERE s.id = :id")
     Optional<SeatClass> findByIdWithLock(@Param("id") Long id);
+    
+    SeatClass findTop1ByAir_DepartDateTimeBetweenAndAir_DepartAirportAndAir_ArriveAirportAndClassTypeInOrderByPriceAdultAsc(
+            LocalDateTime startOfDay,
+            LocalDateTime endOfDay,
+            AirportCode departAirport,
+            AirportCode arriveAirport,
+            Set<SeatClassType> classTypes);
+
+    // 너무 길어서 래핑
+    default SeatClass findLowestPriceSeat(
+            LocalDateTime startOfDay,
+            LocalDateTime endOfDay,
+            AirportCode departAirport,
+            AirportCode arriveAirport,
+            Set<SeatClass.SeatClassType> classTypes
+    ) {
+        return findTop1ByAir_DepartDateTimeBetweenAndAir_DepartAirportAndAir_ArriveAirportAndClassTypeInOrderByPriceAdultAsc(
+                startOfDay, endOfDay, departAirport, arriveAirport, classTypes
+        );
+    }
 }
