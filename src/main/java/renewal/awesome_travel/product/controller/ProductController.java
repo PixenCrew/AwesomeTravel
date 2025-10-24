@@ -43,9 +43,12 @@ public class ProductController {
     public String getProductSearch(Model model) {
 
         model.addAttribute("searchRequest", new ProductSearchRequestDto());
-        List<Product> products = productRepo.findAll();
-        List<Product> availProducts = new ArrayList<>();
-        
+
+
+        List<Product> products = productRepo.findAll(); // 전체 상품들
+        List<Product> availProducts = new ArrayList<>(); // 항공권 있는 상품들
+        LocalDate today = LocalDate.now();
+
         productLoop: // Product 루프 레이블
         for (Product product : products) {
             
@@ -69,8 +72,8 @@ public class ProductController {
                     if (type == LocationType.AIR) {
 
                         // 시작일 + 출발시간대 => 출발시간 범위 LocalDateTime ~ LocalDateTime
-                        // 오늘출발 + Schedule N일차
-                        LocalDate departDate = LocalDate.now().plusDays(sced.getDay());
+                        // 오늘기준 가장 빠른 출발일 + Schedule N일차
+                        LocalDate departDate = today.plusDays(product.getCutoffDays()).plusDays(sced.getDay());
                         DepartTimeType dtt = product.getDepartTimeType();
 
                         // 첫날(출발편)인 경우만 오전,오후,새벽 구분함
