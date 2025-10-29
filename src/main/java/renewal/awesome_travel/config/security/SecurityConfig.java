@@ -1,6 +1,5 @@
 package renewal.awesome_travel.config.security;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.CustomOAuth2UserService;
 
 @Configuration
@@ -35,7 +36,7 @@ public class SecurityConfig {
                                                                 .userService(customOAuth2UserService)))
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout") // 로그아웃 URL
-                                                .logoutSuccessUrl("/login?logout") // 로그아웃 후 이동 경로
+                                                .logoutSuccessUrl("/") // 로그아웃 후 이동 경로
                                                 .invalidateHttpSession(true) // 세션 무효화
                                                 .deleteCookies("JSESSIONID") // 쿠키 삭제
                                                 .permitAll())

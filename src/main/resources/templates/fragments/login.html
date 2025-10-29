@@ -1,10 +1,91 @@
 <div th:fragment="loginFragment">
     <h1>로그인</h1>
-    <form onsubmit="loginSubmit(event)">
+    <div class="oauth-login-buttons">
+
+        <!-- 구글 로그인 -->
+        <div id="btn-google" onclick="saveRecentLogin('google')">
+            <img src="/images/google.png" alt="Google" /> 구글 로그인
+            <span id="recent-google">최근 구글</span>
+        </div>
+
+        <!-- 네이버 로그인 -->
+        <div id="btn-naver" onclick="saveRecentLogin('naver')">
+            <img src="/images/naver.png" alt="Naver" /> 네이버 로그인
+            <span id="recent-naver">최근 네이버</span>
+        </div>
+
+    </div>
+
+    <form action="/login" method="post">
         <input type="text" name="username" placeholder="아이디">
         <input type="password" name="password" placeholder="비밀번호">
         <button type="submit">로그인</button>
     </form>
-    <button onclick="openModal(getModalContent(1))">모달 열기</button>
 
+    <script>
+
+        function showRecentLogin() {
+            const recent = localStorage.getItem('recentSocialLogin');
+            if (!recent) return; // 없으면 종료
+            console.log("recent social : " + recent);
+
+            const btn = document.getElementById(`btn-${recent}`);
+            if (!btn) return;
+
+            const overlay = btn.querySelector(`#recent-${recent}`);
+            if (overlay) overlay.style.display = 'block';
+        }
+
+        showRecentLogin();
+
+        function saveRecentLogin(provider) {
+            localStorage.setItem('recentSocialLogin', provider);
+            // 소셜 로그인 이동
+            window.location.href = "/oauth2/authorization/" + provider;
+        }
+
+    </script>
+
+    <style>
+        /* 로그인 버튼 기본 스타일 */
+        .oauth-login-buttons .btn {
+            position: relative;
+            /* overlay 위치 기준 */
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px;
+            /* 버튼 간격 */
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            user-select: none;
+        }
+
+        /* 버튼 안 이미지 */
+        .oauth-login-buttons .btn img {
+            height: 20px;
+            width: 20px;
+            margin-right: 8px;
+        }
+
+        /* 최근 로그인 표시 overlay */
+        #recent-google,
+        #recent-naver {
+            display: none;
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: red;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 4px;
+            pointer-events: none;
+            /* 클릭 방해 안함 */
+            z-index: 10;
+        }
+    </style>
 </div>

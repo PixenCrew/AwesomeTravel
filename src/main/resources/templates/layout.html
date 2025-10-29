@@ -9,63 +9,141 @@
         * {
             margin: 0px;
             padding: 0px;
-        }
-
-        /*===================================네비게이션=====================*/
-        /* 바닥 네비게이션 고정 */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: #fff;
-            border-top: 1px solid #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-
-        .bottom-nav ul {
-            display: flex;
-            width: 100%;
-            justify-content: space-around;
-            list-style: none;
-        }
-
-        .bottom-nav li a {
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
+            /* outline: 1px solid blue */
         }
 
         /*===================================메인 섹션=====================*/
         #mainSection {
             position: relative;
+            height: calc(100vh - 60px);
             width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: scroll;
         }
 
         #mainSection>section {
             position: absolute;
             top: 0;
-            left: 100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            transition: left 0.2s ease;
+            transition: transform 0.2s ease;
             z-index: 0;
             background: white;
+            transform: translateX(100%);
+            display: flex;
+            flex-direction: column;
         }
 
-        .active {
-            left: 0% !important;
-            z-index: 1 !important;
+        #mainSection>section.active {
+            transform: translateX(0);
+            z-index: 2;
         }
 
-        .exit {
-            left: -100% !important;
+        #mainSection>section.exit {
+            transform: translateX(-100%);
+            z-index: 1;
+        }
+
+        .section-header {
+            position: sticky;
+            top: 0;
+            height: 60px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            background: #eee;
+            z-index: 2;
+            padding: 0 12px;
+            box-sizing: border-box;
+        }
+
+        .section-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .section-header .left {
+            display: flex;
+            align-items: center;
+        }
+
+        .section-header .right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-header .center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-header img {
+            height: 25px;
+        }
+
+        /*===================================섹션 - 메뉴 탭=====================*/
+        #menu-travel,
+        #menu-support {
+            display: none;
+        }
+
+        #menu-travel.active,
+        #menu-support.active {
+            display: block;
+        }
+
+        /*===================================네비게이션=====================*/
+        /* 바닥 네비게이션 고정 */
+        #footerSection {
+            height: 60px;
+            min-height: 60px;
+            width: 100vw;
+            background: #fff;
+            border-top: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+        }
+
+        #footerSection nav {
+            height: 100%;
+            width: 100%;
+        }
+
+        #footerSection nav ul {
+            height: 100%;
+            width: 100%;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: #eee;
+            justify-content: space-evenly;
+        }
+
+        #footerSection nav ul li {
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #footerSection nav ul li a {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #141414;
+            text-decoration: none;
         }
 
         /*===================================풀 모달=====================*/
@@ -111,136 +189,242 @@
         .modal-slide.show {
             transform: translateX(0%);
         }
+
+        /*===================================로딩 아이콘=====================*/
+        /* 로딩 아이콘 전체 화면 오버레이 */
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        /* 로딩 이미지 크기 조정 */
+        #loading img {
+            width: 50px;
+            height: 50px;
+        }
     </style>
 </head>
 
 <body>
+    <main id="mainSection">
+        <!-- ✅ 홈 섹션 -->
+        <section id="homeSection" class="active">
 
-    <main>
-        <div id="mainSection">
-            <!-- ✅ 홈 섹션 -->
-            <section id="homeSection" class="active">
-                <div th:replace="fragments/home :: homeFragment"></div>
-            </section>
-
-            <!-- ✅ 메뉴 섹션 (header 포함) -->
-            <section id="menuSection">
-                <header>
-                    <div>
-                        <span>전체메뉴</span>
-                        <button type="button" onclick="hideMenu()">X</button>
-                    </div>
-
-                    <nav>
-                        <ul>
-                            <li><button type="button" onclick="showMenuTab('travel')">딱좋은여행</button></li>
-                            <li><button type="button" onclick="showMenuTab('support')">고객지원</button></li>
-                        </ul>
-                    </nav>
-                </header>
-
-                <!-- ✅ 딱좋은여행 탭 내용 -->
-                <div id="menu-travel">
-                    <div>
-                        <button type="button">해외여행</button>
-                        <ul>
-                            <li>유럽</li>
-                            <li>아시아</li>
-                            <li>오세아니아</li>
-                            <li>미주</li>
-                            <li>중동·아프리카</li>
-                        </ul>
-                    </div>
-                    <div><button type="button">항공</button></div>
-                    <div><button type="button">기획전</button></div>
-                    <div><button type="button">이벤트</button></div>
-                    <div><button type="button">타임딜</button></div>
+            <header class="section-header">
+                <div class="left">
+                    <img src="/logo.png">
                 </div>
 
-                <!-- ✅ 고객지원 탭 내용 -->
-                <div id="menu-support">
-                    <ul>
-                        <li><button type="button">마이페이지</button></li>
-                        <li><button type="button">고객문의</button></li>
-                        <li><button type="button">공지사항</button></li>
-                        <li><button type="button">설정</button></li>
-                    </ul>
+                <div class="right">
+                    <img src="/logo.png" onclick="showSection(3)">
                 </div>
-            </section>
+            </header>
 
-            <!-- ✅ 검색 섹션 -->
-            <section id="searchSection">
-                <form>
-                    <input type="text" name="keyword" placeholder="검색어를 입력하세요">
-                    <button type="submit">검색</button>
-                </form>
-            </section>
+            <div class="section-body">
+                <div th:replace="~{fragments/home :: homeFragment}"></div>
+            </div>
 
-            <!-- ✅  찜 섹션 -->
-            <section id="wishSection">
-                <div th:if="${currentUser != null}" th:replace="fragments/wish :: wishFragment"></div>
-                <div th:unless="${currentUser != null}" th:replace="fragments/login :: loginFragment"></div>
-            </section>
-
-            <!-- ✅ 마이이 섹션 -->
-            <section id="mypageSection">
-                <div th:if="${currentUser != null}" th:replace="fragments/mypage :: mypageFragment"></div>
-                <div th:unless="${currentUser != null}" th:replace="fragments/login :: loginFragment"></div>
-            </section>
-        </div>
-
-        <!-- ✅ 풀스크린 모달 -->
-        <section id="fullModal" class="hide">
-            <div id="modalBody"></div>
         </section>
 
+        <!-- ✅ 메뉴 섹션 (header 포함) -->
+        <section id="menuSection">
+
+            <header class="section-header">
+                <div class="left">
+                    <img src="/logo.png" onclick="prevSection()">
+                    <img src="/logo.png">
+                </div>
+            </header>
+            <div>
+                <div class="section-body">
+                    <nav>
+                        <ul>
+                            <li><button type="button" onclick="showMenuTab('menu-travel')">딱좋은여행</button></li>
+                            <li><button type="button" onclick="showMenuTab('menu-support')">고객지원</button></li>
+                        </ul>
+                    </nav>
+
+                    <!-- ✅ 딱좋은여행 탭 내용 -->
+                    <div id="menu-travel">
+                        <div>
+                            <button type="button">해외여행</button>
+                            <ul>
+                                <li onclick="fetchSection('/subMain/100')">유럽</li>
+                                <li>아시아</li>
+                                <li>오세아니아</li>
+                                <li>미주</li>
+                                <li>중동·아프리카</li>
+                            </ul>
+                        </div>
+                        <div><button type="button">항공</button></div>
+                        <div><button type="button">기획전</button></div>
+                        <div><button type="button">이벤트</button></div>
+                        <div><button type="button">타임딜</button></div>
+                    </div>
+
+                    <!-- ✅ 고객지원 탭 내용 -->
+                    <div id="menu-support">
+                        <ul>
+                            <li><button type="button">마이페이지</button></li>
+                            <li><button type="button">고객문의</button></li>
+                            <li><button type="button">공지사항</button></li>
+                            <li><button type="button">설정</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ✅ 검색 섹션 -->
+        <section id="searchSection">
+
+            <header class="section-header">
+                <div class="left">
+                    <img src="/logo.png" onclick="prevSection()">
+                </div>
+                <h1 class="right">검색 헤더</h1>
+            </header>
+
+            <div class="section-body">
+                <div>
+                    <form>
+                        <input type="text" name="keyword" placeholder="검색어를 입력하세요">
+                        <button type="submit">검색</button>
+                    </form>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ✅찜 섹션 -->
+        <section id="wishSection">
+            <header class="section-header">
+                <div class="left">
+                    <img src="/logo.png" onclick="prevSection()">
+                </div>
+                <h1 class="center">일반 헤더</h1>
+            </header>
+
+            <div class="section-body">
+                <div th:replace="~{fragments/wish :: wishFragment}">
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ✅ 마이이 섹션 -->
+        <section id="mypageSection">
+            <header class="section-header">
+                <div class="left">
+                    <img src="/logo.png" onclick="prevSection()">
+                </div>
+                <h1 class="center">일반 헤더</h1>
+            </header>
+
+
+            <div class="section-body">
+                <div th:replace="~{fragments/mypage :: mypageFragment}">
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ✅ 동적 섹션 -->
+        <section id="dynamicSection">
+            <header class="section-header">
+
+            </header>
+            <div class="section-body">
+                <div></div>
+            </div>
+        </section>
     </main>
 
-    <footer>
-        <nav class="bottom-nav">
+    <footer id="footerSection">
+        <nav>
             <ul>
-                <li><a href="#" onclick="showSection(1)">홈</a></li>
-                <li><a href="#" onclick="showSection(2)">메뉴</a></li>
-                <li><a href="#" onclick="showSection(3)">검색</a></li>
-                <li><a href="#" onclick="showSection(4)">찜</a></li>
-                <li><a href="#" onclick="showSection(5)">마이</a></li>
+                <li><a href="#home" onclick="showSection(1)">홈</a></li>
+                <li><a href="#menu" onclick="showSection(2)">메뉴</a></li>
+                <li><a href="#search" onclick="showSection(3)">검색</a></li>
+                <li><a href="#wish" onclick="showSection(4)">찜</a></li>
+                <li><a href="#mypage" onclick="showSection(5)">마이</a></li>
             </ul>
         </nav>
     </footer>
 
+    <!-- ✅ 풀스크린 모달 -->
+    <section id="fullModal" class="hide">
+        <div id="modalBody"></div>
+    </section>
+
+    <!--로딩 아이콘-->
+    <div id="loading">
+        <img src="/loading.gif" alt="로딩 중">
+    </div>
+
+    <script th:inline="javascript">
+        // 로그인 여부 확인
+        const isLoggedIn = /*[[${ currentUser != null}]]*/ false;
+        const username = /*[[${ currentUser?.name }]]*/ null;
+    </script>
+
     <script>
-
-
         // ===========================섹션제어========================
+        let sectionStack = [];
+        // {type : "static", id : 1}
+        // or
+        // {type : "dynamic", header: html, content : html}
         let currentSection = 1;
         let isAnimating = false;
-        let sectinoMap = {
+
+        const sectionMap = {
             1: 'homeSection',
             2: 'menuSection',
             3: 'searchSection',
             4: 'wishSection',
             5: 'mypageSection',
+            6: 'dynamicSection'
         };
 
-        function showSection(sectionIndex) {
-            // 대상==출발일경우 무시
+        const loginRequiredSections = [4, 5];
+        const sectionNavMaxLength = 3;
+
+        function showSection(sectionIndex, push = true) {
             if (currentSection === sectionIndex) return;
-            // 애니메이션 트랜지션 중일때 무시
             if (isAnimating) return;
+            if (loginRequiredSections.includes(sectionIndex) && !isLoggedIn) {
+                openModal('login');
+                return;
+            }
 
             isAnimating = true;
 
-            const startSection = document.getElementById(sectinoMap[currentSection]);
-            const targetSection = document.getElementById(sectinoMap[sectionIndex]);
+            // 섹션 이동 기록
+            if (push) {
+                sectionStack.push({ type: "static", id: currentSection });
+                if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+            }
+
+            const startSection = document.getElementById(sectionMap[currentSection]);
+            const targetSection = document.getElementById(sectionMap[sectionIndex]);
 
             // 출발 section hidden
-            startSection.classList.remove('active')
-            startSection.classList.add('exit')
+            startSection.classList.remove('active');
+            startSection.classList.add('exit');
 
             // 대상 section active
-            targetSection.classList.remove('exit')
-            targetSection.classList.add('active')
+            targetSection.classList.remove('exit');
+            targetSection.classList.add('active');
 
+            // 애니메이팅 완료 처리
             setTimeout(() => {
                 startSection.classList.remove('exit');
                 isAnimating = false;
@@ -249,6 +433,62 @@
             currentSection = sectionIndex;
         }
 
+        function fetchSection(endPoint) {
+            fetchContent(endPoint).then(html => {
+
+                if (currentSection !== 6) {
+                    showSection(6);
+                    document.getElementById('dynamicSection').innerHTML = html;
+                } else {
+                    // 기존 다이내믹 섹션 기록
+                    sectionStack.push({
+                        type: 'dynamic',
+                        content: document.getElementById('dynamicSection').innerHTML
+                    });
+                    if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+
+                    document.getElementById('dynamicSection').innerHTML = html;
+                }
+            });
+        }
+
+        function prevSection() {
+            if (isAnimating) return;
+
+            const prev = sectionStack.pop();
+
+            if (!prev) {
+                showSection(1, false);
+                return;
+            }
+
+            if (prev.type === 'static') {
+                // push 방지 옵션 사용
+                showSection(prev.id, false);
+            } else if (prev.type === 'dynamic') {
+                document.getElementById('dynamicSection').innerHTML = prev.content;
+
+                // 모든 section 상태 초기화 후 dynamicSection만 active
+                document.getElementById('dynamicSection').classList.add('active');
+                currentSection = 6;
+            }
+        }
+
+        // ===========================섹션 - 메뉴 탭=================
+        function showMenuTab(tabId) {
+            const tabs = ['menu-travel', 'menu-support'];
+
+            tabs.forEach(id => {
+                const menuElement = document.getElementById(id);
+                if (!menuElement) return;
+
+                if (id === tabId) {
+                    menuElement.classList.add('active');
+                } else {
+                    menuElement.classList.remove('active');
+                }
+            });
+        }
 
         // ===========================모달제어========================
         const fullModal = document.getElementById('fullModal');
@@ -259,7 +499,7 @@
         let currentModal = null;
 
         // 모달 열기 (첫 모달)
-        function openModal(contentHtml) {
+        function openModal(endPoint) {
             modalStack = []; // 스택 초기화
             fullModal.classList.remove('hide');
             fullModal.classList.add('show');
@@ -267,53 +507,41 @@
             // 새 모달 DOM 생성
             const newModal = document.createElement('div');
             newModal.classList.add('modal-slide', 'show');
-            newModal.innerHTML = contentHtml;
-
+            fetchContent(endPoint).then(html => newModal.innerHTML = html); // 모달 내용물 fetch
             modalBody.appendChild(newModal);
             currentModal = newModal;
         }
 
         // 새 모달 내용 생성
-        function createModal(contentHtml) {
+        function addModal(endPoint, flush = false) {
             const newModal = document.createElement('div');
             newModal.classList.add('modal-slide', 'leave');
-            newModal.innerHTML = contentHtml;
+
+            fetchContent(endPoint).then(html => newModal.innerHTML = html); // 모달 내용물 fetch 
             modalBody.appendChild(newModal);
+            modalStack.push(currentModal); // 기존 모달 스택에 저장
+
+            // 모달 슬라이드 인 애니메이션
             setTimeout(() => {
-                addModal(newModal);
+                newModal.classList.remove('leave');
+                newModal.classList.add('show');
             }, 0)
-        }
 
-        // [기존 모달 삭제 후] 새 모달 내용 생성
-        function createModalWithFlush(contentHtml) {
+            currentModal = newModal; // 기존 모달 새 모달로 갱신
 
-            createModal(contentHtml)
+            // flush 옵션 true일때
+            if (flush) {
+                setTimeout(() => {
+                    // 모든 모달 DOM 제거
+                    modalStack.forEach(modal => {
+                        if (modal.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
+                    });
 
-            setTimeout(() => {
-                // 모든 모달 DOM 제거
-                modalStack.forEach(modal => {
-                    if (modal.parentNode) {
-                        modal.parentNode.removeChild(modal);
-                    }
-                });
-
-                // 배열 초기화
-                modalStack = [];
-            }, 200)
-
-        }
-
-        // 모달 추가 (현재 모달 위에 새 모달)
-        function addModal(newModal) {
-
-            // 기존 모달 스택에 저장
-            modalStack.push(currentModal);
-
-            // 새 모달 슬라이드 인  
-            newModal.classList.remove('leave');
-            newModal.classList.add('show');
-
-            currentModal = newModal;
+                    modalStack = []; // 배열 초기화
+                }, 200)
+            }
 
         }
 
@@ -331,7 +559,7 @@
                 // 나간 모달 DOM 제거
                 setTimeout(() => {
                     modalBody.querySelectorAll('.leave').forEach(el => el.remove());
-                }, 100);
+                }, 200);
 
             } else {
                 closeModal();
@@ -349,17 +577,57 @@
             }, 500);
         }
 
-        // 재귀적으로 무한 스택용 모달 content 생성
+        function fetchContent(endPoint) {
+
+            // 로딩 표시
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) loadingEl.style.display = 'flex';
+
+            return fetch(endPoint, { headers: { 'Content-Type': 'text/html' } })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.text();
+                })
+                .then(html => {
+                    if (!html) throw new Error('Fetch returned empty content');
+
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+
+                    // 스크립트 실행
+                    tempDiv.querySelectorAll('script').forEach(script => {
+                        const s = document.createElement('script');
+                        if (script.src) {
+                            s.src = script.src;
+                            s.async = false;
+                        } else {
+                            s.textContent = script.textContent;
+                        }
+                        document.body.appendChild(s);
+                        document.body.removeChild(s);
+                    });
+
+                    return html;
+                })
+                .catch(err => {
+                    alert(`Fetch error: ${err}`);
+                    backModal();
+                })
+                .finally(() => {
+                    if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
+                });
+        }
+
+        // [TEST] 재귀적으로 무한 스택용 모달 content 생성
         function getModalContent(depth) {
             return `
-        <div>
-            <p>모달 깊이: ${depth}</p>
-            <button onclick="createModal(getModalContent(${depth + 1}))">새 모달 추가</button>
-            <button onclick="createModalWithFlush(getModalContent(${depth + 1}))">[Flush]새 모달 추가</button>
-            <button onclick="backModal()">뒤로</button>
-            <button onclick="closeModal()">닫기</button>
-        </div>
-    `;
+<div>
+<p>모달 깊이: ${depth}</p>
+<button onclick="addModal(getModalContent(${depth + 1}))">새 모달 추가</button>
+<button onclick="addModal(getModalContent(${depth + 1}),true)">[Flush]새 모달 추가</button>
+<button onclick="backModal()">뒤로</button>
+</div>
+`;
         }
     </script>
 
