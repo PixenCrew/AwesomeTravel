@@ -23,7 +23,8 @@ public class CouponMapper {
                 coupon.getCurrent(),
                 coupon.getIssue_start(),
                 coupon.getIssue_end(),
-                coupon.getExpiration());
+                coupon.getValidFrom(),
+                coupon.getValidUntil());
     }
 
     public static Coupon toEntity(CouponDto couponDto) {
@@ -43,7 +44,7 @@ public class CouponMapper {
                 couponDto.getCurrent(),
                 couponDto.getIssue_start(),
                 couponDto.getIssue_end(),
-                couponDto.getExpiration()
-        );
+                couponDto.getValidFrom(),
+                couponDto.getValidUntil());
     }
 }

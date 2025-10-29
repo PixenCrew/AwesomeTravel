@@ -1,24 +1,33 @@
 package renewal.awesome_travel.user.service;
 
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
 import renewal.awesome_travel.user.dto.request.UserUpdateRequestDto;
 import renewal.awesome_travel.user.dto.response.EmailCheckResponseDto;
 import renewal.awesome_travel.user.dto.response.UserResponseDto;
 import renewal.awesome_travel.user.entity.EmailVerificationToken;
+import renewal.awesome_travel.user.entity.UserCoupon;
+import renewal.awesome_travel.user.entity.UserLikedProduct;
+import renewal.awesome_travel.user.entity.UserRecentProduct;
 import renewal.awesome_travel.user.repository.EmailVerificationTokenRepository;
+import renewal.awesome_travel.user.repository.UserCouponRepository;
+import renewal.awesome_travel.user.repository.UserLikedProductRepository;
+import renewal.awesome_travel.user.repository.UserRecentProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.common.entity.User.UserProvider;
-import renewal.common.entity.User.UserStatus;
-import renewal.common.entity.User.UserRole;
 import renewal.common.entity.User;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
+import renewal.common.entity.User.MemberGrade;
+import renewal.common.entity.User.UserProvider;
+import renewal.common.entity.User.UserRole;
+import renewal.common.entity.User.UserStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +40,10 @@ public class UserService {
     private final EmailVerificationTokenRepository tokenRepository;
 
     private final EmailService emailService;
+
+    private final UserCouponRepository userCouponRepo;
+    private final UserLikedProductRepository userLikedProductRepo;
+    private final UserRecentProductRepository userRecentProductRepo;
 
     @Transactional
     public Long register(UserRegisterRequestDto dto) {
@@ -55,6 +68,8 @@ public class UserService {
                 .provider(UserProvider.LOCAL)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(false)
+                .grade(MemberGrade.BRONZE)
+                .point(0L)
                 // .createdAt(LocalDateTime.now()) // 생성시간은 JPA Auditing으로 지정
                 .build();
 
@@ -67,7 +82,6 @@ public class UserService {
 
         return user.getId();
     }
-
 
     @Transactional
     public void verifyEmail(String token) {
@@ -83,7 +97,7 @@ public class UserService {
         tokenRepository.delete(evt); // 인증 성공 시 토큰 제거
     }
 
-    //이메일 중복 확인
+    // 이메일 중복 확인
     public EmailCheckResponseDto checkEmail(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
@@ -110,11 +124,6 @@ public class UserService {
                 .build();
     }
 
-
-
-
-
-
     @Transactional(readOnly = true)
     public UserResponseDto getMyInfo(Long userId) {
         User user = userRepository.findById(userId)
@@ -139,22 +148,29 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        if (dto.getName() != null) user.setName(dto.getName());
-        if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-        if (dto.getBirthDate() != null) user.setBirthDate(dto.getBirthDate());
+        if (dto.getName() != null)
+            user.setName(dto.getName());
+        if (dto.getPhone() != null)
+            user.setPhone(dto.getPhone());
+        if (dto.getBirthDate() != null)
+            user.setBirthDate(dto.getBirthDate());
 
-        if (dto.getPassportNumber() != null) user.setPassportNumber(dto.getPassportNumber());
-        if (dto.getPassportIssuedDate() != null) user.setPassportIssuedDate(dto.getPassportIssuedDate());
-        if (dto.getPassportExpiryDate() != null) user.setPassportExpiryDate(dto.getPassportExpiryDate());
-        if (dto.getPassportCountry() != null) user.setPassportCountry(dto.getPassportCountry());
-        if (dto.getEnglishFirstName() != null) user.setEnglishFirstName(dto.getEnglishFirstName());
-        if (dto.getEnglishLastName() != null) user.setEnglishLastName(dto.getEnglishLastName());
+        if (dto.getPassportNumber() != null)
+            user.setPassportNumber(dto.getPassportNumber());
+        if (dto.getPassportIssuedDate() != null)
+            user.setPassportIssuedDate(dto.getPassportIssuedDate());
+        if (dto.getPassportExpiryDate() != null)
+            user.setPassportExpiryDate(dto.getPassportExpiryDate());
+        if (dto.getPassportCountry() != null)
+            user.setPassportCountry(dto.getPassportCountry());
+        if (dto.getEnglishFirstName() != null)
+            user.setEnglishFirstName(dto.getEnglishFirstName());
+        if (dto.getEnglishLastName() != null)
+            user.setEnglishLastName(dto.getEnglishLastName());
 
-        if (dto.getMarketingConsent() != null) user.setMarketingConsent(dto.getMarketingConsent());
+        if (dto.getMarketingConsent() != null)
+            user.setMarketingConsent(dto.getMarketingConsent());
     }
-
-
-
 
     @Transactional
     public void withdraw(Long userId) {
@@ -164,5 +180,20 @@ public class UserService {
         user.setStatus(UserStatus.WITHDRAWN);
     }
 
+    // 최근 본 상품 Top N
+    public List<UserRecentProduct> getRecentProducts(User user, int limit) {
+        return userRecentProductRepo.findTop20ByUserOrderByViewedAtDesc(user)
+                .stream().limit(limit).toList();
+    }
+
+    // 찜한 상품
+    public List<UserLikedProduct> getLikedProducts(User user) {
+        return userLikedProductRepo.findByUserAndActiveTrueOrderByLikedAtDesc(user);
+    }
+
+    // 사용 가능한 쿠폰
+    public List<UserCoupon> getAvailableCoupons(User user) {
+        return userCouponRepo.findByUserAndUsedFalseAndCoupon_ValidUntilAfter(user, LocalDateTime.now());
+    }
 
 }

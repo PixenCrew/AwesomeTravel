@@ -1,15 +1,15 @@
 package renewal.awesome_travel.coupon.dto;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.coupon.utiles.Coupon_type;
 import renewal.awesome_travel.coupon.utiles.Grade;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -42,5 +42,7 @@ public class CouponDto {
 
     private LocalDateTime issue_end;
 
-    private LocalDate expiration;
+    private LocalDateTime validFrom;
+
+    private LocalDateTime validUntil;
 }
