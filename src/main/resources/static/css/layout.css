@@ -1,0 +1,204 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+/*===================================메인 섹션=====================*/
+#mainSection {
+    position: relative;
+    height: calc(100vh - 60px);
+    width: 100vw;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+#mainSection>section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.2s ease;
+    z-index: 0;
+    background: white;
+    transform: translateX(100%);
+    display: flex;
+    flex-direction: column;
+}
+
+#mainSection>section.active {
+    transform: translateX(0);
+    z-index: 2;
+}
+
+#mainSection>section.exit {
+    transform: translateX(-100%);
+    z-index: 1;
+}
+
+.section-header {
+    position: sticky;
+    top: 0;
+    height: 60px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: #eee;
+    z-index: 2;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.section-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.section-header .left {
+    display: flex;
+    align-items: center;
+}
+
+.section-header .right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.section-header .center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.section-header img {
+    height: 25px;
+}
+
+/*===================================섹션 - 메뉴 탭=====================*/
+#menu-travel,
+#menu-support {
+    display: none;
+}
+
+#menu-travel.active,
+#menu-support.active {
+    display: block;
+}
+
+/*===================================네비게이션=====================*/
+/* 바닥 네비게이션 고정 */
+#footerSection {
+    height: 60px;
+    min-height: 60px;
+    width: 100vw;
+    background: #fff;
+    border-top: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+#footerSection nav {
+    height: 100%;
+    width: 100%;
+}
+
+#footerSection nav ul {
+    height: 100%;
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    background-color: #eee;
+    justify-content: space-evenly;
+}
+
+#footerSection nav ul li {
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#footerSection nav ul li a {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #141414;
+    text-decoration: none;
+}
+
+/*===================================풀 모달=====================*/
+/* 모달 초기 상태 */
+#fullModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: lightcoral;
+    overflow: auto;
+    z-index: 3;
+
+    transform: translateY(100%);
+    transition: transform 0.5s ease;
+}
+
+/* 표시 상태 */
+#fullModal.show {
+    transform: translateY(0);
+}
+
+/* 모달 숨김 상태 */
+#fullModal.hide {
+    transform: translateY(100%);
+}
+
+/* 모달 내부 컨텐츠 박스 */
+.modal-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: lightgray;
+    overflow: auto;
+    transition: transform 0.2s ease;
+}
+
+.modal-slide.leave {
+    transform: translateX(100vw);
+}
+
+.modal-slide.show {
+    transform: translateX(0%);
+}
+
+/*===================================로딩 아이콘=====================*/
+/* 로딩 아이콘 전체 화면 오버레이 */
+#loading {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* 로딩 이미지 크기 조정 */
+#loading img {
+    width: 50px;
+    height: 50px;
+}
