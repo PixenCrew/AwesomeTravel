@@ -1,0 +1,13 @@
+<div>
+    <h1>패키지 전체 조회 테스트</h1>
+    <ul th:each="product : ${products}" style="border: 2px solid black;">
+        <li th:text="${product.id}"></li>
+        <li th:text="${product.title}"></li>
+        <li th:text="${product.departDateTimeType}"></li>
+        <li th:text="${product.departDateTime}"></li>
+        <li th:text="${product.returnDateTime}"></li>
+        <li th:text="${product.price}"></li>
+        <li th:text="${product.remainSeats}"></li>
+        <li th:text="${product.status}"></li>
+    </ul>
+</div>

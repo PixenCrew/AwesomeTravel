@@ -1,6 +1,8 @@
 package renewal.awesome_travel;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,14 +13,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
+import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.user.service.UserService;
+import renewal.common.entity.MenuCode;
+import renewal.common.entity.Product;
 import renewal.common.entity.User;
+import renewal.common.repository.MenuCodeRepository;
 
 @RequiredArgsConstructor
 @Controller(value = "/")
 public class MainController {
 
     private final UserService userService;
+    private final ProductService productService;
+    private final MenuCodeRepository menuCodeRepo;
 
     @GetMapping
     public String main(Model model, Principal principal) {
@@ -71,10 +79,30 @@ public class MainController {
 
     // 특정 메뉴코드 서브메인
     @GetMapping("subMain/{menuCode}")
-    public String getSubmain(@PathVariable Long menuCode) {
-        // TODO 해당 메뉴코드로 해당 상품들 조회해서 추가
+    public String getSubmain(@PathVariable String menuCode, Model model) {
+        if (String.valueOf(menuCode).length() != 3)
+            return "error/error";
 
-        return "fragments/subMain/100";
+        List<MenuCode> menuCodes = menuCodeRepo.findAllByCodeStartingWith(menuCode); // 앞 3자리로 시작하는 MenuCode들
+
+        model.addAttribute("menuCodes", menuCodes);
+
+        return "fragments/subMain/" + menuCode;
+    }
+
+    // 특정 메뉴코드 상품 목록
+    @GetMapping("menu/{menuCode}")
+    public String getMenuByCode(@PathVariable String menuCode, Model model) {
+        if (String.valueOf(menuCode).length() != 6)
+            return "error/error";
+
+        MenuCode targetCode = menuCodeRepo.findByCode(menuCode);
+        List<Product> codeProducts = productService.findProductsByMenuCode(targetCode);
+        List<Product> resulProducts = productService.calcProduct(codeProducts, LocalDate.now());
+
+        model.addAttribute("products", resulProducts);
+
+        return "fragments/product/productResult.html";
     }
 
 }
