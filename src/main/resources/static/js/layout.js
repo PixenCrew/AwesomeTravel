@@ -206,7 +206,7 @@ function fetchContent(endPoint) {
 
     return fetch(endPoint, { headers: { 'Content-Type': 'text/html' } })
         .then(res => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            // if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             return res.text();
         })
         .then(html => {
@@ -232,7 +232,6 @@ function fetchContent(endPoint) {
         })
         .catch(err => {
             alert(`Fetch error: ${err}`);
-            backModal();
         })
         .finally(() => {
             if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
