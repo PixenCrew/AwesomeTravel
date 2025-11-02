@@ -1,19 +1,14 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <title>패키지 검색 테스트</title>
-</head>
-
-<body>
-    <h1>패키지 전체 조회 테스트</h1>
-    <ul th:each="product : ${products}" style="border: 2px solid black;" th:onclick="|fetchSection('/product/${product.id}')|">
+<div>
+    <header class="section-header">
+        <h1> 코드선택 결과 </h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+    </header>
+    <ul th:each="product : ${products}" style="border: 2px solid black;" th:onclick="|openModal('/product/${product.id}')|">
         <li th:text="${product.title}"></li>
         <li th:text="${product.productType}"></li>
         <li th:text="${product.finalPriceAdult}"></li>
         <li th:text="${product.departTimeType}"></li>
     </ul>
-</body>
-
-</html>
+</div>

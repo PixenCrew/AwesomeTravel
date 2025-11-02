@@ -56,19 +56,22 @@ function showSection(sectionIndex, push = true) {
 
 function fetchSection(endPoint) {
     fetchContent(endPoint).then(html => {
+        const dynamicSection = document.getElementById('dynamicSection');
 
         if (currentSection !== 6) {
             showSection(6);
-            document.getElementById('dynamicSection').innerHTML = html;
+            dynamicSection.innerHTML = html;
         } else {
             // 기존 다이내믹 섹션 기록
             sectionStack.push({
                 type: 'dynamic',
-                content: document.getElementById('dynamicSection').innerHTML
+                content: dynamicSection.innerHTML
             });
             if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
 
-            document.getElementById('dynamicSection').innerHTML = html;
+            dynamicSection.innerHTML = html;
+
+            executeScripts(dynamicSection);
         }
     });
 }
@@ -128,7 +131,10 @@ function openModal(endPoint) {
     // 새 모달 DOM 생성
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'show');
-    fetchContent(endPoint).then(html => newModal.innerHTML = html); // 모달 내용물 fetch
+    fetchContent(endPoint).then(html => {
+        newModal.innerHTML = html
+        executeScripts(newModal);
+    }); // 모달 내용물 fetch
     modalBody.appendChild(newModal);
     currentModal = newModal;
 }
@@ -138,7 +144,12 @@ function addModal(endPoint, flush = false) {
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'leave');
 
-    fetchContent(endPoint).then(html => newModal.innerHTML = html); // 모달 내용물 fetch 
+    // 모달 내용물 fetch 
+    fetchContent(endPoint).then(html => {
+        newModal.innerHTML = html;
+        executeScripts(newModal);
+    });
+
     modalBody.appendChild(newModal);
     modalStack.push(currentModal); // 기존 모달 스택에 저장
 
@@ -212,21 +223,21 @@ function fetchContent(endPoint) {
         .then(html => {
             if (!html) throw new Error('Fetch returned empty content');
 
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
+            // const tempDiv = document.createElement('div');
+            // tempDiv.innerHTML = html;
 
-            // 스크립트 실행
-            tempDiv.querySelectorAll('script').forEach(script => {
-                const s = document.createElement('script');
-                if (script.src) {
-                    s.src = script.src;
-                    s.async = false;
-                } else {
-                    s.textContent = script.textContent;
-                }
-                document.body.appendChild(s);
-                document.body.removeChild(s);
-            });
+            // // 스크립트 실행
+            // tempDiv.querySelectorAll('script').forEach(script => {
+            //     const s = document.createElement('script');
+            //     if (script.src) {
+            //         s.src = script.src;
+            //         s.async = false;
+            //     } else {
+            //         s.textContent = script.textContent;
+            //     }
+            //     document.body.appendChild(s);
+            //     document.body.removeChild(s);
+            // });
 
             return html;
         })
@@ -236,6 +247,26 @@ function fetchContent(endPoint) {
         .finally(() => {
             if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
         });
+}
+
+// fetchContent로 가져온 html의 script 실행
+// -> 모든 DOM 요소 삽입 끝난 뒤 실행할것
+function executeScripts(container) {
+    if (!container) return;
+
+    const scripts = Array.from(container.querySelectorAll('script'));
+
+    scripts.forEach(script => {
+        const s = document.createElement('script');
+        if (script.src) {
+            s.src = script.src;
+            s.async = false; // 순차 로딩
+        } else {
+            s.textContent = script.textContent;
+        }
+        document.body.appendChild(s);
+        document.body.removeChild(s);
+    });
 }
 
 // [TEST] 재귀적으로 무한 스택용 모달 content 생성

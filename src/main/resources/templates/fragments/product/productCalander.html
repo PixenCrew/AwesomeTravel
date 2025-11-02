@@ -1,13 +1,146 @@
 <div>
-    <h1>패키지 전체 조회 테스트</h1>
-    <ul th:each="product : ${products}" style="border: 2px solid black;">
-        <li th:text="${product.id}"></li>
-        <li th:text="${product.title}"></li>
-        <li th:text="${product.departDateTimeType}"></li>
-        <li th:text="${product.departDateTime}"></li>
-        <li th:text="${product.returnDateTime}"></li>
-        <li th:text="${product.price}"></li>
-        <li th:text="${product.remainSeats}"></li>
-        <li th:text="${product.status}"></li>
-    </ul>
+    <header class="section-header">
+        <h1>출발일 선택</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <div id='calendar'></div>
+        <div id='specificDateProduct' style="display:none; border:2px solid #000; padding:10px;">
+            <ul id="productList">
+                <li class="product-id"></li>
+                <li class="product-title"></li>
+                <li class="product-depart"></li>
+                <li class="product-return"></li>
+                <li class="product-price"></li>
+                <li class="product-remainSeats"></li>
+                <li class="product-status"></li>
+            </ul>
+        </div>
+    </div>
+
+    <style>
+        /* 가격 표시 스타일 */
+        .fc-event-price-available {
+            color: cadetblue;
+            font-weight: bold;
+            font-size: 0.6em;
+            text-align: center;
+        }
+
+        /* 예약대기 스타일 */
+        .fc-event-price-wait {
+            color: red;
+            font-weight: bold;
+            font-size: 0.8em;
+            text-align: center;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        (function () {
+            // 1️⃣ Java 객체 리스트 → JS 객체로 변환
+            let products = /*[[${products}]]*/[];
+
+            // 2️⃣ FullCalendar 초기화
+            let calendarEl = document.getElementById('calendar');
+
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ko',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title'
+                },
+
+                eventContent: function (arg) {
+                    const price = arg.event.extendedProps.price;
+                    const status = arg.event.extendedProps.status;
+
+                    let displayText = '';
+                    let priceClass = '';
+
+                    if (status === 'AVAILABLE' && price != null) {
+                        displayText = `${price.toLocaleString()}~`;
+                        priceClass = 'fc-event-price-available';
+                    } else {
+                        displayText = '예약대기';
+                        priceClass = 'fc-event-price-wait';
+                    }
+
+                    return {
+                        html: `<div class="${priceClass}">${displayText}</div>`
+                    };
+                },
+
+                // 클릭 시 동작
+                eventClick: function (info) {
+                    const clickedDate = info.event.start;
+                    const container = document.getElementById('specificDateProduct');
+                    const template = document.getElementById('productList');
+
+                    if (!container || !template) return;
+
+                    // 클릭한 날짜와 일치하는 products
+                    const matchingProducts = products.filter(p => {
+                        const departDate = new Date(p.departDateTime);
+                        return departDate.toDateString() === clickedDate.toDateString();
+                    });
+
+                    // 기존 내용 초기화
+                    container.innerHTML = '';
+
+                    if (matchingProducts.length > 0) {
+                        matchingProducts.forEach(p => {
+                            // 템플릿 복제
+                            const clone = template.cloneNode(true);
+
+                            // 값 채우기
+                            clone.querySelector('.product-id').textContent = `ID: ${p.id}`;
+                            clone.querySelector('.product-title').textContent = `Title: ${p.title}`;
+                            clone.querySelector('.product-depart').textContent = `Depart: ${p.departDateTime}`;
+                            clone.querySelector('.product-return').textContent = `Return: ${p.returnDateTime}`;
+                            clone.querySelector('.product-price').textContent = `Price: ${p.price}`;
+                            clone.querySelector('.product-remainSeats').textContent = `Remain Seats: ${p.remainSeats}`;
+                            clone.querySelector('.product-status').textContent = `Status: ${p.status}`;
+
+                            // fetchTarget
+                            const departDate = p.departDateTime.split('T')[0];
+                            const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDate)}`;
+                            clone.addEventListener('click', () => {
+                                console.log("fetchSection to " + fetchTarget);
+
+                                addModal(fetchTarget);
+                            });
+
+                            container.appendChild(clone);
+                        });
+                        container.style.display = 'block';
+                    } else {
+                        container.textContent = '선택한 날짜에 패키지가 없습니다.';
+                        container.style.display = 'block';
+                    }
+                },
+
+                // 이벤트 리스트
+                events: products.map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    start: e.departDateTime,
+                    extendedProps: {
+                        id: e.id,
+                        departDate: e.departDateTime,
+                        price: e.price,
+                        status: e.status
+                    }
+                }))
+            });
+
+            calendar.render();
+        })();
+
+    </script>
 </div>
