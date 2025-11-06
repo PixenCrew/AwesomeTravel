@@ -69,11 +69,11 @@ public class ProductService {
     // 설정 시)
     // }
 
-    public List<Product> calcProduct(List<Product> products, LocalDate today) {
+    public List<Product> calcProduct(List<Product> products, LocalDate departDate) {
         List<Product> availProducts = new ArrayList<>();
 
         for (Product product : products) {
-            Product calcProduct = calcSingleProduct(product, today);
+            Product calcProduct = calcSingleProduct(product, departDate);
             if (calcProduct != null) {
                 availProducts.add(calcProduct);
             }
@@ -82,7 +82,11 @@ public class ProductService {
         return availProducts;
     }
 
-    public Product calcSingleProduct(Product product, LocalDate today) {
+    public Product calcSingleProduct(Product product, LocalDate departDate) {
+        System.out.println("\n=== calcSingleProduct 호출 ===");
+        System.out.println("target.id = " + product.getId());
+        System.out.println("target.name = " + product.getTitle());
+        System.out.println("departDate = " + departDate);
 
         Hibernate.initialize(product.getTour());
         Tour tour = product.getTour();
@@ -100,7 +104,14 @@ public class ProductService {
                 LocationType type = loc.getLocationType();
                 if (type == LocationType.AIR) {
 
-                    LocalDate departDate = today.plusDays(product.getCutoffDays()).plusDays(sced.getDay());
+                    // // cutoffDays 적용 여부 선택
+                    // LocalDate departDate = today;
+                    // if (applyCutoff) {
+                    // departDate = departDate.plusDays(product.getCutoffDays());
+                    // }
+                    // departDate = departDate.plusDays(sced.getDay());
+
+                    departDate = departDate.plusDays(sced.getDay());
                     DepartTimeType dtt = product.getDepartTimeType();
                     int startHour = sced.getDay() == 0 ? dtt.getStartHour() : 0;
                     int endHour = sced.getDay() == 0 ? dtt.getEndHour() : 23;
@@ -110,6 +121,13 @@ public class ProductService {
 
                     AirportCode departAirport = loc.getDepartAirport();
                     AirportCode arriveAirport = loc.getArriveAirport();
+                    System.out.println("\n=======findLowestPriceSeat========");
+                    System.out.println(startDateTime);
+                    System.out.println(endDateTime);
+                    System.out.println(departAirport.getAirportCode());
+                    System.out.println(arriveAirport.getAirportCode());
+                    System.out.println(product.getSeatClassTypes());
+                    System.out.println("=======findLowestPriceSeat========\n");
 
                     SeatClass finalSeat = seatClassRepo.findLowestPriceSeat(
                             startDateTime,
@@ -120,6 +138,9 @@ public class ProductService {
 
                     // 항공권 없으면 null 반환
                     if (finalSeat == null) {
+                        System.out.println(
+                                "==================== null 반환: 해당 날짜(" + departDate + ")에 항공편 없음=====================");
+
                         return null;
                     }
 
@@ -131,6 +152,8 @@ public class ProductService {
 
                     // 한 product에 대해 항공권 도착시간 계속 덮어씌움 => 마지막 항공권의 도착시간 (=귀국시간)
                     product.setReturnDateTime(finalSeat.getAir().getArriveDateTime());
+
+                    // TODO 항공권 잔여좌석 확인로직 -> 해당 날짜의 상품 예약자 수 확인로직으로 변경
                     // 한 product에 대해 항공권 잔여좌석 낮은쪽 계속 덮어씌움 => 예약 가능인 수 저장
                     if (product.getAvailableSeats() == null
                             || product.getAvailableSeats() > finalSeat.getAvailableSeats()) {

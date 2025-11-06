@@ -1,0 +1,341 @@
+<div>
+    <header class="section-header">
+        <h1>상품 상세</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <input type="hidden" id="departDateHidden" th:value="${departDate}">
+        <input type="hidden" id="productIdHidden" th:value="${product.id}">
+
+        <section class="product-header">
+            <div class="product-thumbnail">
+                <img th:src="${product.image}" alt="대표 이미지" class="thumbnail-img" />
+            </div>
+
+            <div class="product-info">
+                <h1 th:text="${product.title}">상품명</h1>
+                <p>
+                    <span th:text="'상품코드: ' + ${product.productCode}"></span><br />
+                    <span th:text="'출발일: ' + ${#temporals.format(product.departDateTime, 'yyyy-MM-dd HH:mm')}"></span><br />
+                    <span th:text="'항공사: ' + ${product.airline}"></span>
+                </p>
+                <p class="price">
+                    <b>성인</b>: <span th:text="${#numbers.formatInteger(product.priceAdult, 3, 'COMMA')} + '원'"></span><br />
+                    <b>청소년</b>: <span th:text="${#numbers.formatInteger(product.priceYouth, 3, 'COMMA')} + '원'"></span><br />
+                    <b>유아</b>: <span th:text="${#numbers.formatInteger(product.priceInfant, 3, 'COMMA')} + '원'"></span>
+                </p>
+
+                <div class="product-status">
+                    <span th:text="'상태: ' + ${product.productStatus}"></span><br />
+                    <span th:text="'남은 좌석: ' + ${product.availableSeats}"></span>
+                </div>
+
+                <div class="product-flags">
+                    <span th:if="${product.noShopping}" class="flag">노쇼핑</span>
+                    <span th:if="${product.noOption}" class="flag">노옵션</span>
+                </div>
+
+                <div class="product-days">
+                    <span th:text="${product.bak} + '박 ' + ${product.il} + '일'"></span>
+                </div>
+            </div>
+        </section>
+
+        <hr />
+
+        <!-- ===== 사진 갤러리 ===== -->
+        <section class="photo-gallery">
+            <h2>여행 사진</h2>
+            <div class="gallery">
+                <img th:each="photo : ${product.photos}" th:src="${photo}" alt="상품 이미지" />
+            </div>
+        </section>
+
+        <hr />
+
+        <!-- ===== 포함 / 불포함 항목 ===== -->
+        <section class="product-infos">
+            <h2>포함 사항</h2>
+            <ul>
+                <li th:each="info : ${product.included}">
+                    <b th:text="${info.title}"></b> :
+                    <span th:text="${info.content}"></span>
+                    <small th:if="${info.appendix}" th:text="${info.appendix}" class="appendix"></small>
+                </li>
+            </ul>
+
+            <h2>불포함 사항</h2>
+            <ul>
+                <li th:each="info : ${product.excluded}">
+                    <b th:text="${info.title}"></b> :
+                    <span th:text="${info.content}"></span>
+                    <small th:if="${info.appendix}" th:text="${info.appendix}" class="appendix"></small>
+                </li>
+            </ul>
+        </section>
+
+        <hr />
+
+        <!-- ===== 일정표 ===== -->
+        <section class="product-schedule">
+            <h2>여행 일정표</h2>
+
+            <div th:each="schedule, iter : ${product.schedules}">
+                <h3 th:text="'DAY ' + ${iter.index + 1}"></h3>
+
+                <ul>
+                    <li th:each="loc : ${schedule.locations}">
+                        <span th:text="${loc.locationType}"></span> :
+                        <span th:text="${loc.name}"></span>
+                        <small th:if="${loc.description}" th:text="${loc.description}"></small>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <hr />
+
+        <!-- ===== 리뷰 ===== -->
+        <section class="product-review">
+            <h2>리뷰 요약</h2>
+            <li onclick="openHalfModal('centerModalContentBody')">리뷰 쓰기</li>
+            <div class="review-summary">
+                <p>총 리뷰 수: <span th:text="${product.star1 + product.star2 + product.star3 + product.star4 + product.star5}"></span></p>
+                <ul>
+                    <li th:text="'★1: ' + ${product.star1}"></li>
+                    <li th:text="'★2: ' + ${product.star2}"></li>
+                    <li th:text="'★3: ' + ${product.star3}"></li>
+                    <li th:text="'★4: ' + ${product.star4}"></li>
+                    <li th:text="'★5: ' + ${product.star5}"></li>
+                </ul>
+            </div>
+
+            <div class="review-list" th:if="${product.reviews != null}">
+                <article th:each="review : ${product.reviews}">
+                    <p>
+                        <b th:text="${review.user.nickname}">작성자</b>
+                        <span th:text="'(' + ${review.star} + '점)'"></span>
+                    </p>
+                    <p th:text="${review.content}"></p>
+                    <hr />
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <footer id="footerSection">
+        <nav>
+            <ul>
+                <li onclick="openHalfModal('halfModalContentBody')">예약하기</li>
+            </ul>
+        </nav>
+    </footer>
+
+    <!-- 하프 모달 -->
+    <section id="halfModalContent" class="hidden">
+        <div id="halfModalContentBody" class="half-modal-body">
+            <header class="modal-header">
+                <h3>예약하기</h3>
+                <span class="close-btn" onclick="window.closeHalfModal('halfModalContentBody')">&times;</span>
+            </header>
+
+            <div class="modal-content">
+                <div class="traveler-selector">
+                    <div>
+                        <label>성인</label>
+                        <button onclick="window.changeTravelerCount('adult', -1)">-</button>
+                        <span id="adultCount">1</span>
+                        <button onclick="window.changeTravelerCount('adult', 1)">+</button>
+                        <span id="adultPrice">0원</span>
+                    </div>
+                    <div>
+                        <label>청소년</label>
+                        <button onclick="window.changeTravelerCount('youth', -1)">-</button>
+                        <span id="youthCount">0</span>
+                        <button onclick="window.changeTravelerCount('youth', 1)">+</button>
+                        <span id="youthPrice">0원</span>
+                    </div>
+                    <div>
+                        <label>유아</label>
+                        <button onclick="window.changeTravelerCount('infant', -1)">-</button>
+                        <span id="infantCount">0</span>
+                        <button onclick="window.changeTravelerCount('infant', 1)">+</button>
+                        <span id="infantPrice">0원</span>
+                    </div>
+                </div>
+                <p id="totalTravelersText">성인: 1, 청소년: 0, 유아: 0</p>
+            </div>
+
+            <footer class="modal-footer">
+                <button onclick="window.submitReservation()">예약하기</button>
+            </footer>
+        </div>
+    </section>
+
+    <!-- 센터 모달 -->
+    <section id="centerModalContent" class="hidden">
+        <div id="centerModalContentBody" class="center-modal-body">
+            <header class="modal-header">
+                <h3>리뷰 등록</h3>
+                <span class="close-btn" onclick="window.closeCenterModal()">&times;</span>
+            </header>
+
+            <div class="modal-content">
+                <div class="star-rating">
+                    <span onclick="window.setStar(1)">☆</span>
+                    <span onclick="window.setStar(2)">☆</span>
+                    <span onclick="window.setStar(3)">☆</span>
+                    <span onclick="window.setStar(4)">☆</span>
+                    <span onclick="window.setStar(5)">☆</span>
+                </div>
+
+                <textarea id="reviewContent" placeholder="리뷰 내용을 입력하세요." maxlength="500"></textarea>
+                <p id="charCount">0 / 500</p>
+            </div>
+
+            <footer class="modal-footer">
+                <button onclick="window.submitReview()">등록하기</button>
+                <button onclick="window.closeCenterModal()">취소</button>
+            </footer>
+        </div>
+    </section>
+
+    <script th:inline="javascript">
+        (function () {
+
+            // 하프 모달
+            let travelers = { adult: 1, youth: 0, infant: 0 };
+
+            let adultPrice = /*[[${product.priceAdult}]]*/ 0;
+            let youthPrice = /*[[${product.priceYouth}]]*/ 0;
+            let infantPrice = /*[[${product.priceInfant}]]*/ 0;
+
+            let prices = {
+                adult: adultPrice,
+                youth: youthPrice,
+                infant: infantPrice
+            };
+
+            window.changeTravelerCount = function (type, delta) {
+                let newValue = travelers[type] + delta;
+
+                // 음수 방지
+                if (newValue < 0) newValue = 0;
+
+                if (type === 'adult') {
+                    travelers.adult = newValue;
+
+                    // 성인 수 줄어들면 유아 수 제한 확인
+                    if (travelers.infant > travelers.adult) {
+                        alert("유아 수는 성인 수를 초과할 수 없습니다.");
+                        travelers.infant = travelers.adult; // 자동 조정
+                    }
+                } else if (type === 'infant') {
+                    // 유아는 성인 수 초과 불가
+                    if (newValue > travelers.adult) {
+                        alert("유아 수는 성인 수를 초과할 수 없습니다.");
+                        return;
+                    }
+                    travelers.infant = newValue;
+                } else {
+                    travelers[type] = newValue;
+                }
+
+                updateTravelerDisplay();
+            }
+
+            function updateTravelerDisplay() {
+                document.getElementById('adultCount').innerText = travelers.adult;
+                document.getElementById('youthCount').innerText = travelers.youth;
+                document.getElementById('infantCount').innerText = travelers.infant;
+
+                document.getElementById('adultPrice').innerText = formatPrice(travelers.adult * prices.adult);
+                document.getElementById('youthPrice').innerText = formatPrice(travelers.youth * prices.youth);
+                document.getElementById('infantPrice').innerText = formatPrice(travelers.infant * prices.infant);
+
+                document.getElementById('totalTravelersText').innerText =
+                    `성인: ${travelers.adult}, 청소년: ${travelers.youth}, 유아: ${travelers.infant}`;
+            }
+
+            function formatPrice(num) {
+                return num.toLocaleString('ko-KR') + '원';
+            }
+
+            window.submitReservation = function () {
+                closeHalfModal('halfModalContentBody');
+                if (!isLoggedIn) {
+                    // 로그인 안 되어 있으면 로그인 모달 오픈
+                    addModal('login');
+                    return;
+                }
+
+                // traveler count 가져오기
+                const adult = parseInt(document.getElementById('adultCount').textContent);
+                const youth = parseInt(document.getElementById('youthCount').textContent);
+                const infant = parseInt(document.getElementById('infantCount').textContent);
+
+                // ✅ 서버에서 전달된 hidden input 읽기
+                const productId = document.getElementById('productIdHidden')?.value;
+                const departDate = document.getElementById('departDateHidden')?.value;
+
+                if (!productId || !departDate) {
+                    alert('상품 또는 출발일 정보가 없습니다.');
+                    return;
+                }
+
+                const payloadData = {
+                    productId,
+                    departDate,
+                    adult,
+                    youth,
+                    infant
+                };
+
+                // 로그인되어 있으면 예약 모달 실행
+                addModal('product/reservation', false, payloadData);
+            }
+
+            // 센터 모달
+            let currentStar = 0;
+
+            window.showCenterModal = function () {
+                document.getElementById('centerModal').classList.remove('hide');
+            }
+
+            window.closeCenterModal = function () {
+                document.getElementById('centerModal').classList.add('hide');
+            }
+
+            window.setStar = function (n) {
+                currentStar = n;
+                const stars = document.querySelectorAll('.star-rating span');
+                stars.forEach((s, i) => {
+                    s.textContent = (i < n) ? '★' : '☆';
+                });
+            }
+
+            document.getElementById('reviewContent').addEventListener('input', function () {
+                document.getElementById('charCount').innerText = `${this.value.length} / 500`;
+            });
+
+            window.submitReview = function () {
+                const content = document.getElementById('reviewContent').value;
+                if (currentStar === 0) {
+                    alert('별점을 선택해주세요.');
+                    return;
+                }
+                if (!content.trim()) {
+                    alert('리뷰 내용을 입력해주세요.');
+                    return;
+                }
+                alert(`별점: ${currentStar}점\n리뷰 내용: ${content}`);
+                closeCenterModal();
+            }
+
+        })();
+    </script>
+
+</div>

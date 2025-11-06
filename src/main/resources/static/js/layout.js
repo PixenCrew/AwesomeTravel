@@ -54,8 +54,8 @@ function showSection(sectionIndex, push = true) {
     currentSection = sectionIndex;
 }
 
-function fetchSection(endPoint) {
-    fetchContent(endPoint).then(html => {
+function fetchSection(endPoint, payload = null) {
+    fetchContent(endPoint, payload).then(html => {
         const dynamicSection = document.getElementById('dynamicSection');
 
         if (currentSection !== 6) {
@@ -98,6 +98,41 @@ function prevSection() {
     }
 }
 
+// 로그인시 찜, 마이페이지 다시 fetch
+async function refreshSectionsAfterLogin() {
+    console.log("refreshSectionsAfterLogin1");
+
+    const sectionConfigs = [
+        { id: "wishSection", url: "/wish" },
+        { id: "mypageSection", url: "/mypage" }
+    ];
+
+    try {
+        // 병렬 요청
+        const responses = await Promise.all(
+            sectionConfigs.map(cfg =>
+                fetch(cfg.url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+            )
+        );
+
+        // 각각 텍스트로 변환
+        const htmlFragments = await Promise.all(responses.map(res => res.text()));
+
+        // 섹션별 교체
+        sectionConfigs.forEach((cfg, index) => {
+            const target = document.querySelector(`#${cfg.id} .section-body > div`);
+            if (target) {
+                target.innerHTML = htmlFragments[index];
+            }
+        });
+
+        console.log("refreshSectionsAfterLogin2");
+
+    } catch (err) {
+        console.error("갱신 실패:", err);
+    }
+}
+
 // ===========================섹션 - 메뉴 탭=================
 function showMenuTab(tabId) {
     const tabs = ['menu-travel', 'menu-support'];
@@ -123,7 +158,7 @@ let modalStack = [];
 let currentModal = null;
 
 // 모달 열기 (첫 모달)
-function openModal(endPoint) {
+function openModal(endPoint, payload = null) {
     modalStack = []; // 스택 초기화
     fullModal.classList.remove('hide');
     fullModal.classList.add('show');
@@ -131,7 +166,7 @@ function openModal(endPoint) {
     // 새 모달 DOM 생성
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'show');
-    fetchContent(endPoint).then(html => {
+    fetchContent(endPoint, payload).then(html => {
         newModal.innerHTML = html
         executeScripts(newModal);
     }); // 모달 내용물 fetch
@@ -140,12 +175,12 @@ function openModal(endPoint) {
 }
 
 // 새 모달 내용 생성
-function addModal(endPoint, flush = false) {
+function addModal(endPoint, flush = false, payload = null) {
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'leave');
 
     // 모달 내용물 fetch 
-    fetchContent(endPoint).then(html => {
+    fetchContent(endPoint, payload).then(html => {
         newModal.innerHTML = html;
         executeScripts(newModal);
     });
@@ -209,40 +244,73 @@ function closeModal() {
     }, 500);
 }
 
-function fetchContent(endPoint) {
+// 하프모달 열기
+function openHalfModal(containerId) {
+    console.log('containerId ', containerId);
+
+    const content = document.getElementById(containerId);
+    const modalSection = document.getElementById('halfModalBody');
+    const modal = document.getElementById('halfModal');
+
+    modalSection.innerHTML = content.innerHTML;
+    content.innerHTML = '';
+
+    modal.classList.remove('hide');
+}
+
+// 하프모달 닫기
+function closeHalfModal(containerId) {
+    document.getElementById('halfModal').classList.add('hide');
+
+    const content = document.getElementById(containerId);
+    const modalSection = document.getElementById('halfModalBody');
+    const modal = document.getElementById('halfModal');
+
+    modal.classList.add('hide');
+    setTimeout(() => {
+        content.innerHTML = modalSection.innerHTML;
+        modalSection.innerHTML = '';
+    }, 300);
+}
+
+function fetchContent(endPoint, payload = null) {
 
     // 로딩 표시
     const loadingEl = document.getElementById('loading');
     if (loadingEl) loadingEl.style.display = 'flex';
 
-    return fetch(endPoint, { headers: { 'Content-Type': 'text/html' } })
+    // fetch 옵션
+    const options = {
+        method: payload ? 'POST' : 'GET',
+        headers: {}
+    };
+
+    // payload가 있을 경우 FormData
+    if (payload) {
+        if (payload instanceof FormData) {
+            options.body = payload; // 그대로 전송 (Content-Type 자동)
+        } else if (typeof payload === 'object') {
+            // 일반 JS 객체 → JSON
+            options.body = JSON.stringify(payload);
+            options.headers['Content-Type'] = 'application/json';
+        }
+    } else {
+        // GET 요청인 경우 HTML
+        options.headers['Content-Type'] = 'text/html';
+    }
+
+    return fetch(endPoint, options)
         .then(res => {
             // if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             return res.text();
         })
         .then(html => {
             if (!html) throw new Error('Fetch returned empty content');
-
-            // const tempDiv = document.createElement('div');
-            // tempDiv.innerHTML = html;
-
-            // // 스크립트 실행
-            // tempDiv.querySelectorAll('script').forEach(script => {
-            //     const s = document.createElement('script');
-            //     if (script.src) {
-            //         s.src = script.src;
-            //         s.async = false;
-            //     } else {
-            //         s.textContent = script.textContent;
-            //     }
-            //     document.body.appendChild(s);
-            //     document.body.removeChild(s);
-            // });
-
             return html;
         })
         .catch(err => {
             alert(`Fetch error: ${err}`);
+            backModal();
         })
         .finally(() => {
             if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
@@ -268,6 +336,41 @@ function executeScripts(container) {
         document.body.removeChild(s);
     });
 }
+
+// URL 해시(#...) 감지 → 해당 섹션 표시
+window.addEventListener('load', () => {
+    const hash = location.hash.replace('#', '');
+    const hashMap = {
+        home: 1,
+        menu: 2,
+        search: 3,
+        wish: 4,
+        mypage: 5,
+        dynamic: 6
+    };
+    if (hash && hashMap[hash]) {
+        showSection(hashMap[hash]);
+    } else {
+        showSection(1); // 기타: 홈
+    }
+});
+
+
+// 해시 변경시 자동 반응
+window.addEventListener('hashchange', () => {
+    const hash = location.hash.replace('#', '');
+    const hashMap = {
+        home: 1,
+        menu: 2,
+        search: 3,
+        wish: 4,
+        mypage: 5,
+        dynamic: 6
+    };
+    if (hash && hashMap[hash]) {
+        showSection(hashMap[hash]);
+    }
+});
 
 // [TEST] 재귀적으로 무한 스택용 모달 content 생성
 function getModalContent(depth) {

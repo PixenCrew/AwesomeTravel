@@ -6,6 +6,9 @@
         </div>
     </header>
     <ul th:each="product : ${products}" style="border: 2px solid black;" th:onclick="|openModal('/product/${product.id}')|">
+        <li style="margin-right: 10px;">
+            <img th:src="${product.thumbnail}" alt="썸네일" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;" />
+        </li>
         <li th:text="${product.title}"></li>
         <li th:text="${product.productType}"></li>
         <li th:text="${product.finalPriceAdult}"></li>
