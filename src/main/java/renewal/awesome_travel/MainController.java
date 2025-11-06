@@ -2,6 +2,7 @@ package renewal.awesome_travel;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -54,14 +55,11 @@ public class MainController {
 
         User user = principal.getUser(); // detached 상태
 
-        if (user == null) {
-            // 로그인 안 됐으면 login fragment 반환
-            return "fragments/login :: loginFragment";
+        if (user != null) {
+            // 마이페이지에서만 컬렉션 조회
+            model.addAttribute("likedProductsCount", userService.getLikedProducts(user).size());
+            model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
         }
-
-        // 마이페이지에서만 컬렉션 조회
-        model.addAttribute("likedProductsCount", userService.getLikedProducts(user).size());
-        model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
 
         // 로그인 되어 있으면 mypage fragment 반환
         return "fragments/mypage :: mypageFragment";
@@ -98,7 +96,24 @@ public class MainController {
 
         MenuCode targetCode = menuCodeRepo.findByCode(menuCode);
         List<Product> codeProducts = productService.findProductsByMenuCode(targetCode);
-        List<Product> resulProducts = productService.calcProduct(codeProducts, LocalDate.now());
+        List<Product> resulProducts = new ArrayList<>();
+
+        for (Product product : codeProducts) {
+
+            Product calcedProduct = null;
+            int plusDays = product.getCutoffDays().intValue();
+            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+
+            while (calcedProduct == null && plusDays < maxPlusDays) {
+                calcedProduct = productService.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                plusDays++;
+            }
+
+            if (calcedProduct != null) {
+                resulProducts.add(calcedProduct);
+            }
+
+        }
 
         model.addAttribute("products", resulProducts);
 
