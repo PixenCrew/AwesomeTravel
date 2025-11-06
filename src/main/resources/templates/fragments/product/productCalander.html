@@ -41,6 +41,7 @@
 
     <script th:inline="javascript">
         (function () {
+
             // 1️⃣ Java 객체 리스트 → JS 객체로 변환
             let products = /*[[${products}]]*/[];
 
@@ -140,6 +141,7 @@
             });
 
             calendar.render();
+
         })();
 
     </script>

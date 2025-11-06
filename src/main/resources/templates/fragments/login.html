@@ -8,21 +8,21 @@
 
     <div class="oauth-login-buttons">
         <!-- 구글 로그인 -->
-        <div id="btn-google" onclick="saveRecentLogin('google')">
+        <div id="btn-google" class="btn" onclick="saveRecentLogin('google')">
             <img src="/images/google.png" alt="Google" /> 구글 로그인
             <span id="recent-google">최근 구글</span>
         </div>
 
         <!-- 네이버 로그인 -->
-        <div id="btn-naver" onclick="saveRecentLogin('naver')">
+        <div id="btn-naver" class="btn" onclick="saveRecentLogin('naver')">
             <img src="/images/naver.png" alt="Naver" /> 네이버 로그인
             <span id="recent-naver">최근 네이버</span>
         </div>
     </div>
 
-    <form action="/login" method="post">
-        <input type="text" name="username" placeholder="아이디">
-        <input type="password" name="password" placeholder="비밀번호">
+    <form id="loginForm" action="/login" method="post">
+        <input type="text" name="username" placeholder="아이디" required>
+        <input type="password" name="password" placeholder="비밀번호" required>
         <button type="submit">로그인</button>
     </form>
 
@@ -47,6 +47,46 @@
             // 소셜 로그인 이동
             window.location.href = "/oauth2/authorization/" + provider;
         }
+
+        // 일반 로그인 Ajax
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // 기본 제출 막기
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!res.ok) throw new Error("로그인 실패");
+                window.isLoggedIn = true;
+                window.username = usernameValue ?? window.username ?? '회원';
+
+                // ✅ 로그인 성공 처리
+                await refreshSectionsAfterLogin();
+                backModal(); // 모달 닫기
+
+            } catch (err) {
+                console.error("로그인 오류:", err);
+                alert("아이디 또는 비밀번호를 확인하세요.");
+            }
+        });
+
+        // ✅ OAuth 로그인 후 돌아왔을 때 자동 실행
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            window.isLoggedIn = true;
+            window.username = usernameValue ?? window.username ?? '회원';
+            if (params.get('loginSuccess') === 'true') {
+                refreshSectionsAfterLogin().then(backModal);
+                // ?loginSuccess=true 제거
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
 
     </script>
 

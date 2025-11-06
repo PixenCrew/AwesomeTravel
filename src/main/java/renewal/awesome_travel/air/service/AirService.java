@@ -25,7 +25,6 @@ public class AirService {
 
     public List<AirSearchResponseDto> searchAir(AirSearchRequestDto request) {
 
-        // TODO
         // 첫번째 구간 검색 -> 첫 List에 저장
         // 두번째 구간 검색 -> 두번째 List에 저장
         // ...
