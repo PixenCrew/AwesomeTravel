@@ -5,14 +5,62 @@
             <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
         <style>
-            section,
-            ul {
-                padding: 10px;
-                border: 1px solid black;
-            }
-
             .current-status {
                 background-color: lightblue;
+            }
+
+            .modal-footer {
+                display: flex;
+                gap: 10px;
+                padding: 15px;
+                justify-content: center;
+                flex-wrap: wrap;
+                background: #f9f9f9;
+            }
+
+            .modal-footer button {
+                flex: 1 1 100%;
+                padding: 12px 0;
+                font-size: 16px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+
+            button {
+                flex: 1 1 100%;
+                padding: 12px 0;
+                font-size: 16px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+
+            .modal-footer button:hover {
+                background: #eee;
+            }
+
+            /* 선택적으로 버튼 색상 다르게 */
+            .modal-footer button:nth-child(1) {
+                background: #4caf50;
+                color: #fff;
+            }
+
+            .modal-footer button:nth-child(2) {
+                background: #f44336;
+                color: #fff;
+            }
+
+            .modal-footer button:nth-child(3) {
+                background: #ff9800;
+                color: #fff;
+            }
+
+            .modal-footer button:nth-child(4) {
+                background: #2196f3;
+                color: #fff;
             }
         </style>
     </header>
@@ -22,13 +70,22 @@
             <!-- 예약 상태 진행바 -->
             <section class="status-bar">
                 <ul>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 0 ? 'current-status' : ''}">예약접수</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 1 ? 'current-status' : ''}">담당자확인</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 2 ? 'current-status' : ''}">결제진행</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 3 ? 'current-status' : ''}">결제완료</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 0 ? 'current-status' : ''}">예약접수</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 1 ? 'current-status' : ''}">담당자확인</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 2 ? 'current-status' : ''}">결제진행</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 3 ? 'current-status' : ''}">결제완료</li>
                 </ul>
-                <p th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).RESERVED}">
-                    예약이 접수되었습니다. 담당자 확인 후 연락 드릴 예정입니다.
+                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 0}">
+                    예약이 접수되었습니다. 담당자 배정중입니다.
+                </p>
+                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 1}">
+                    담당자가 예약 확인중입니다. 담당자 확인 후 연락 드릴 예정입니다.
+                </p>
+                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}">
+                    담당자 확인이 완료되었습니다. 결제를 진행해 주세요.
+                </p>
+                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 3}">
+                    결제가 완료되었습니다. 즐거운 여행 되세요!
                 </p>
             </section>
 
@@ -60,7 +117,7 @@
                     <ul>
                         <li>이름: <span th:text="${passenger.name}"></span></li>
                         <li>생년월일/성별: <span th:text="${passenger.birth} + ' / ' + ${passenger.sex}"></span></li>
-                        <li>연령구분: <span th:text="${passenger.ageGroup}"></span></li>
+                        <li>연령구분: <span th:text="${passenger.ageGroup.displayName()}"></span></li>
                         <li>여권정보: <span th:text="${passenger.completed ? '등록완료' : '미등록'}">
                         <li>금액: <span th:text="
                                 ${passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).ADULT} ? ${#numbers.formatInteger(purchaseProduct.finalPriceAdult, 0, 'COMMA')} :
@@ -70,7 +127,7 @@
                         </li>
                     </ul>
                 </div>
-                <div th:onclick="|openModal('/product/purchase/${purchaseProduct.id}/passport')|">여권정보 등록</div>
+                <button th:onclick="|openModal('/product/purchase/${purchaseProduct.id}/passport')|">여권정보 등록</button>
             </section>
 
             <!-- 항공 정보 -->
@@ -142,22 +199,26 @@
             </section>
 
             <!-- 담당자 정보 -->
-            <section class="handler-info" th:if="${handler != null}">
+            <section class="handler-info" th:if="${purchaseProduct.handler != null}">
                 <h3>담당자 정보</h3>
                 <ul>
-                    <li>상품담당: <span th:text="${handler.name}"></span></li>
-                    <li>이메일: <span th:text="${handler.email}"></span></li>
-                    <li>전화: <span th:text="${handler.phone}"></span></li>
-                    <li>팩스: <span th:text="${handler.fax}"></span></li>
+                    <li>상품담당: <span th:text="${purchaseProduct.handler.position + ' / ' + purchaseProduct.handler.name}"></span></li>
+                    <li>이메일: <span th:text="${purchaseProduct.handler.email}"></span></li>
+                    <li>전화: <span th:text="${purchaseProduct.handler.number}"></span></li>
+                    <li>팩스: <span th:text="${purchaseProduct.handler.fax}"></span></li>
                 </ul>
             </section>
 
             <!-- 하단 버튼 -->
             <footer class="modal-footer">
-                <button th:if="${purchaseProduct.purchaseStatus != T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
+                <button th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}"
+                    type="button" onclick="proceedPay()">결제하기</button>
+                <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3}"
                     type="button" onclick="cancelPayment()">결제취소</button>
-                <button th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
+                <button th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}"
                     type="button" onclick="cancelReservation()">예약취소</button>
+                <button th:if="${purchaseProduct.handler != null}"
+                    type="button" onclick="sendInquiry()">1:1 문의하기</button>
             </footer>
         </div>
     </div>

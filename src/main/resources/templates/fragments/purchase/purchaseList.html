@@ -4,18 +4,13 @@
         <div class="right">
             <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
-        <style>
-            section {
-                padding: 10px;
-                border: 1px solid black;
-            }
-        </style>
+
     </header>
 
     <div class="section-body">
         <div th:each="purchaseProduct : ${purchaseProducts}">
             <ul>
-                <li th:onclick="'fetchSection(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">
+                <li th:onclick="'openModal(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">
                     <!-- 원하는 내용 표시 -->
                     <span th:text="${purchaseProduct.product.title}">상품명</span>
                 </li>

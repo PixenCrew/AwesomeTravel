@@ -258,7 +258,6 @@
     transform: translateY(0);
     transition: transform 0.3s ease;
     overflow-y: auto;
-    padding: 20px;
 }
 
 #halfModal.hide {
@@ -270,7 +269,7 @@
 }
 
 #halfModal.hide #halfModalBody {
-    transform: translateY(100%);
+    transform: translateY(100vh);
 }
 
 /*===================================센터 모달=====================*/
