@@ -179,38 +179,49 @@ function addModal(endPoint, flush = false, payload = null) {
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'leave');
 
-    // 모달 내용물 fetch 
-    fetchContent(endPoint, payload).then(html => {
-        newModal.innerHTML = html;
-        executeScripts(newModal);
-    });
-
     modalBody.appendChild(newModal);
     modalStack.push(currentModal); // 기존 모달 스택에 저장
+    currentModal = newModal; // 새 모달로 갱신
 
-    // 모달 슬라이드 인 애니메이션
-    setTimeout(() => {
-        newModal.classList.remove('leave');
-        newModal.classList.add('show');
-    }, 0)
+    // fetchContent 실행
+    fetchContent(endPoint, payload)
+        .then(html => {
+            if (!html) throw new Error('Empty content'); // html 비어있으면 실패 처리
 
-    currentModal = newModal; // 기존 모달 새 모달로 갱신
+            // 모달 내용 주입 + 스크립트 실행
+            newModal.innerHTML = html;
+            executeScripts(newModal);
 
-    // flush 옵션 true일때
-    if (flush) {
-        setTimeout(() => {
-            // 모든 모달 DOM 제거
-            modalStack.forEach(modal => {
-                if (modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            });
+            // 슬라이드 인 애니메이션
+            setTimeout(() => {
+                newModal.classList.remove('leave');
+                newModal.classList.add('show');
+            }, 0);
 
-            modalStack = []; // 배열 초기화
-        }, 200)
-    }
+            // fetch 성공시 flush
+            if (flush) {
+                setTimeout(() => {
+                    modalStack.forEach(modal => {
+                        if (modal?.parentNode) {
+                            modal.parentNode.removeChild(modal);
+                        }
+                    });
+                    modalStack = [];
+                }, 200);
+            }
+        })
+        .catch(err => {
+            console.error(`Fetch failed: ${err}`);
+            alert(`Fetch error: ${err}`);
 
+            // fetch 실패시 flush 무시, 이전 모달 복귀
+            if (newModal.parentNode) {
+                newModal.parentNode.removeChild(newModal);
+            }
+            backModal();
+        });
 }
+
 
 // 뒤로가기
 function backModal() {
@@ -309,8 +320,7 @@ function fetchContent(endPoint, payload = null) {
             return html;
         })
         .catch(err => {
-            alert(`Fetch error: ${err}`);
-            backModal();
+            throw err;
         })
         .finally(() => {
             if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김

@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.product.service.ProductService;
+import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
+import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
+import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
 import renewal.common.repository.MenuCodeRepository;
 
@@ -28,6 +31,8 @@ public class MainController {
     private final UserService userService;
     private final ProductService productService;
     private final MenuCodeRepository menuCodeRepo;
+    private final PurchaseProductRepository purchaseProductRepo;
+    private final PurchaseAirRepository purchaseAirRepo;
 
     @GetMapping
     public String main(Model model, Principal principal) {
@@ -63,6 +68,18 @@ public class MainController {
 
         // 로그인 되어 있으면 mypage fragment 반환
         return "fragments/mypage :: mypageFragment";
+    }
+
+    @GetMapping("mypage/reservation")
+    public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
+
+        User user = principal.getUser(); // detached 상태
+        List<PurchaseProduct> purchaseProducts = purchaseProductRepo.findByUserId(user.getId());
+
+        model.addAttribute("purchaseProducts", purchaseProducts);
+
+        // 로그인 되어 있으면 mypage fragment 반환
+        return "fragments/purchase/purchaseList";
     }
 
     @GetMapping("login")

@@ -22,7 +22,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.passport.dto.request.PassportDto;
+import renewal.awesome_travel.passport.dto.request.PassportUpdateRequest;
 import renewal.awesome_travel.product.dto.ProductCalanderDto;
 import renewal.awesome_travel.product.dto.ProductDetailDto;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
@@ -33,13 +36,17 @@ import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.common.entity.Location;
 import renewal.common.entity.Location.LocationType;
 import renewal.common.entity.Passenger;
 import renewal.common.entity.Passenger.AgeGroup;
 import renewal.common.entity.Product;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
+import renewal.common.entity.PurchaseProduct.ConfirmedSeatClass;
+import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
+import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PassengerRepository;
 
 @Controller
@@ -52,6 +59,7 @@ public class ProductController {
     private final UserRepository userRepo;
     private final PassengerRepository passengerRepo;
     private final PurchaseProductRepository purchaseProductRepo;
+    private final CountryCodeRepository countryCodeRepo;
 
     @GetMapping
     public String getProductSearch(Model model) {
@@ -115,13 +123,18 @@ public class ProductController {
     @GetMapping("/detail/{id}")
     public String getProductDetail(
             @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate, Model model) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate, Model model,
+            HttpSession session) {
 
         Product target = productRepo.findById(id).get();
         Product calcProduct = productService.calcSingleProduct(target, departDate);
 
         // DTO 생성
         ProductDetailDto productDto = new ProductDetailDto(calcProduct);
+
+        // 세션에 저장
+        session.setAttribute("calcProduct", calcProduct);
+        session.setAttribute("departDate", departDate);
 
         model.addAttribute("product", productDto);
         model.addAttribute("departDate", departDate); // 주문용 출발일 기록 (hidden)
@@ -130,13 +143,15 @@ public class ProductController {
     }
 
     @PostMapping("/reservation")
-    public String showPurchasePage(@RequestBody ReservationFormDto request, Model model) {
+    public String showPurchasePage(@RequestBody ReservationFormDto request, Model model, HttpSession session) {
+
+        // 세션에서 상품 불러오기
+        Product calcedProduct = (Product) session.getAttribute("calcProduct");
+        LocalDate departDate = (LocalDate) session.getAttribute("departDate");
 
         Long adult = request.getAdult();
         Long youth = request.getYouth();
         Long infant = request.getInfant();
-        Long productId = request.getProductId();
-        LocalDate departDate = request.getDepartDate();
 
         List<Passenger> passengers = new ArrayList<>();
 
@@ -156,14 +171,11 @@ public class ProductController {
             passengers.add(infantPassenger);
         }
 
-        Product product = productRepo.findById(productId).get();
-        Product calcedProduct = productService.calcSingleProduct(product, departDate);
-
         // bak (HOTEL 숙박 횟수 계산)
         Long il;
         Long bak;
-        if (product.getTour() != null && product.getTour().getSchedules() != null) {
-            bak = product.getTour().getSchedules().stream()
+        if (calcedProduct.getTour() != null && calcedProduct.getTour().getSchedules() != null) {
+            bak = calcedProduct.getTour().getSchedules().stream()
                     .filter(Objects::nonNull)
                     .flatMap(s -> s.getLocations().stream())
                     .filter(loc -> loc != null && loc.getLocationType() == LocationType.HOTEL)
@@ -173,7 +185,7 @@ public class ProductController {
         }
 
         // il 일수
-        il = (long) product.getTour().getSchedules().size();
+        il = (long) calcedProduct.getTour().getSchedules().size();
 
         calcedProduct.setIl(il);
         calcedProduct.setBak(bak);
@@ -190,16 +202,16 @@ public class ProductController {
     }
 
     @PostMapping("/purchase")
-    public String purchaseModal(@RequestBody ReservationRequestDto request, Model model, Principal principal) {
+    public String purchaseModal(@RequestBody ReservationRequestDto request, Model model, Principal principal,
+            HttpSession session) {
+
+        Product calcedProduct = (Product) session.getAttribute("calcProduct");
+        LocalDate departDate = (LocalDate) session.getAttribute("departDate");
 
         // 로그인 유저 이름(ID) 가져오기
         String userEmail = principal.getName();
         User user = userRepo.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
-
-        // 상품정보 조회 + 계산
-        Product product = productRepo.findById(request.getProductId()).get();
-        Product calcedProduct = productService.calcSingleProduct(product, request.getDepartDate());
 
         // 총 결제가격 계산
         long adult = request.getPassengers().stream()
@@ -220,16 +232,50 @@ public class ProductController {
 
         // Purchase 객체 생성 -> 저장
         PurchaseProduct purchaseProduct = new PurchaseProduct();
+
+        // PurchaseProduct 부분
         purchaseProduct.setProduct(calcedProduct);
+
+        purchaseProduct.setFinalPriceAdult(calcedProduct.getFinalPriceAdult());
+        purchaseProduct.setFinalPriceYouth(calcedProduct.getFinalPriceYouth());
+        purchaseProduct.setFinalPriceInfant(calcedProduct.getFinalPriceInfant());
+
+        purchaseProduct.setAirline(calcedProduct.getAirline());
+
+        purchaseProduct.setDepartDateTime(calcedProduct.getDepartDateTime());
+        purchaseProduct.setReturnDateTime(calcedProduct.getReturnDateTime());
+        purchaseProduct.setBak(calcedProduct.getBak());
+        purchaseProduct.setIl(calcedProduct.getIl());
+        purchaseProduct.setAdultCount(adult);
+        purchaseProduct.setYouthCount(youth);
+        purchaseProduct.setInfantCount(infant);
+
+        List<ConfirmedSeatClass> finalSeatClasses = new ArrayList<>();
+        for (Schedule schedule : calcedProduct.getTour().getSchedules()) {
+            for (Location location : schedule.getLocations()) {
+                if (location.getLocationType() == LocationType.AIR) {
+                    finalSeatClasses.add(new ConfirmedSeatClass(location.getSeatClass(), adult, youth, infant));
+
+                    // 첫 항공권 항공사 저장
+                    if (purchaseProduct.getAirline() == null) {
+                        purchaseProduct.setAirline(location.getSeatClass().getAir().getAirline());
+                    }
+                }
+            }
+        }
+        purchaseProduct.setFinalSeatClasses(finalSeatClasses);
+
+        // PurchaseBase 부분
         purchaseProduct.setPurchaseStatus(PurchaseStatus.RESERVED);
         purchaseProduct.setPrice(finalPrice);
         purchaseProduct.setUser(user);
         purchaseProduct.setName(request.getBookerName());
         purchaseProduct.setNumber(request.getBookerPhone());
         purchaseProduct.setEmail(request.getBookerEmail());
+
         purchaseProduct.setPurchaseDate(LocalDateTime.now());
-        purchaseProduct.setPaymentDueDate(product.getDepartDateTime().minusDays(5)); // 출발 5일전까지
-        purchaseProduct.setPassengerInfoDeadline(product.getDepartDateTime().minusDays(5));
+        purchaseProduct.setPaymentDueDate(calcedProduct.getDepartDateTime().minusDays(5)); // 출발 5일전까지
+        purchaseProduct.setPassengerInfoDeadline(calcedProduct.getDepartDateTime().minusDays(5));
 
         List<Passenger> passengers = new ArrayList<>();
         for (PassengerDto passengerDto : request.getPassengers()) {
@@ -251,7 +297,79 @@ public class ProductController {
 
         // PurchaseDetail 반환
         model.addAttribute("purchaseProduct", purchaseProduct);
+        model.addAttribute("paymentInfo", "");
 
-        return "fragments/product/purchaseDetail";
+        return "fragments/purchase/purchaseDetail";
+    }
+
+    @GetMapping("/purchase/{id}")
+    String getPurchaseDetail(@PathVariable Long id, Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+
+        model.addAttribute("purchaseProduct", purchaseProduct);
+        model.addAttribute("paymentInfo", "");
+
+        return "fragments/purchase/purchaseDetail";
+    }
+
+    @GetMapping("/purchase/{id}/passport")
+    String getPurchasePassportForm(@PathVariable Long id, Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+
+        model.addAttribute("passengers", purchaseProduct.getPassengers());
+        model.addAttribute("purchaseProductId", id);
+
+        return "fragments/purchase/passengerForm";
+    }
+
+    @PostMapping("/purchase/{id}/passport")
+    String postPurchasePassportForm(@PathVariable Long id, @RequestBody PassportUpdateRequest request, Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+        List<PassportDto> passengers = request.getPassengers();
+        boolean allChecked = true;
+        for (PassportDto dto : passengers) {
+            // 기존 Passenger 조회
+            Passenger passenger = passengerRepo.findById(dto.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("탑승객 ID가 유효하지 않습니다: " + dto.getId()));
+
+            // 여권정보 업데이트
+            passenger.setNationality(countryCodeRepo.findByCode(dto.getNationality()).get());
+            passenger.setPassportNum(dto.getPassportNum());
+            passenger.setLastName(dto.getLastName());
+            passenger.setFirstName(dto.getFirstName());
+            passenger.setExpire(dto.getExpire());
+            passenger.setSpecialRequests(dto.getSpecialRequests());
+
+            // 일반정보 업데이트
+            passenger.setName(dto.getName());
+            passenger.setBirth(dto.getBirth());
+            passenger.setSex(dto.getSex());
+            passenger.setNumber(dto.getNumber());
+            passenger.setEmail(dto.getEmail());
+            passenger.setAgeGroup(dto.getAgeGroup());
+
+            // 해당 탑승객 정보 null 체크
+            passenger.checkThisPassenger();
+            if (passenger.isCompleted() == false) {
+                allChecked = false;
+            }
+
+            passengerRepo.save(passenger);
+        }
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+        purchaseProduct.setIsPassengerInfoComplete(allChecked);
+
+        model.addAttribute("purchaseProduct", purchaseProduct);
+        model.addAttribute("paymentInfo", "");
+
+        return "fragments/purchase/purchaseDetail";
     }
 }

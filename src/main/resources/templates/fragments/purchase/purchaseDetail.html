@@ -4,120 +4,160 @@
         <div class="right">
             <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
+        <style>
+            section,
+            ul {
+                padding: 10px;
+                border: 1px solid black;
+            }
+
+            .current-status {
+                background-color: lightblue;
+            }
+        </style>
     </header>
 
     <div class="section-body">
         <div class="modal-content">
-
-            <!-- 상품 정보 -->
-            <section id="product-info">
-                <h2>상품정보</h2>
-                <div class="product-detail">
-                    <div class="product-img">
-                        <img th:src="${product.image}" alt="상품 이미지" />
-                    </div>
-                    <div class="product-text">
-                        <p><strong>상품명:</strong> <span th:text="${product.title}"></span></p>
-                        <p><strong>예약일:</strong> <span th:text="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy.MM.dd')}"></span></p>
-                        <p><strong>여행일정:</strong>
-                            <span th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(product.returnDateTime, 'yyyy.MM.dd')}"></span>
-                            (<span th:text="${product.bak} + '박 ' + ${product.il} + '일'"></span>)
-                        </p>
-                        <p><strong>여행인원:</strong> 성인 <span th:text="${passengers.?[ageGroup.name() == 'ADULT'].size()}"></span>명 /
-                            아동 <span th:text="${passengers.?[ageGroup.name() == 'YOUTH'].size()}"></span>명 /
-                            소아 <span th:text="${passengers.?[ageGroup.name() == 'INFANT'].size()}"></span>명
-                        </p>
-                        <p><strong>총 결제 금액:</strong> <span th:text="${finalPrice} + '원'"></span></p>
-                    </div>
-                </div>
+            <!-- 예약 상태 진행바 -->
+            <section class="status-bar">
+                <ul>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 0 ? 'current-status' : ''}">예약접수</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 1 ? 'current-status' : ''}">담당자확인</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 2 ? 'current-status' : ''}">결제진행</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() >= 3 ? 'current-status' : ''}">결제완료</li>
+                </ul>
+                <p th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).RESERVED}">
+                    예약이 접수되었습니다. 담당자 확인 후 연락 드릴 예정입니다.
+                </p>
             </section>
 
-            <!-- 예약자 정보 -->
-            <section id="booker-info">
-                <h2>예약자 정보</h2>
-                <input type="hidden" th:name="productId" th:value="${product.id}" />
-                <input type="hidden" th:name="departDate" th:value="${product.departDateTime}" />
-
-                <div>
-                    <label>이름</label>
-                    <input type="text" name="bookerName" placeholder="이름을 입력하세요." required />
+            <!-- 예약 상세 -->
+            <section class="purchase-summary">
+                <div class="product-info">
+                    <img th:src="@{${purchaseProduct.product.thumbnail}}" alt="상품 이미지" />
+                    <p th:text="${purchaseProduct.product.title}"></p>
                 </div>
-                <div>
-                    <label>생년월일</label>
-                    <input type="date" name="bookerBirth" placeholder="생년월일 8자리(ex.19900128)" required />
-                </div>
-                <div>
-                    <label>성별</label>
-                    <div class="button-group">
-                        <label class="btn selected">
-                            <input type="radio"
-                                name="bookerGender"
-                                value="MALE"
-                                checked hidden /> 남자
-                        </label>
-                        <label class="btn">
-                            <input type="radio"
-                                th:name="bookerGender"
-                                value="FEMALE"
-                                hidden /> 여자
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label>휴대폰 번호</label>
-                    <input type="text" name="bookerPhone" placeholder="휴대폰 번호(숫자만 입력)" required />
-                </div>
-                <div>
-                    <label>이메일</label>
-                    <input type="email" name="bookerEmail" placeholder="이메일(ex. abc@astravel.kr)" required />
-                </div>
+                <ul>
+                    <li>예약일: <span th:text="${#temporals.format(purchaseProduct.purchaseDate, 'yyyy.MM.dd')}"></span></li>
+                    <li>총 결제 금액: <span th:text="${#numbers.formatInteger(purchaseProduct.price, 0, 'COMMA')}"></span>원</li>
+                    <li>기본상품가: <span th:text="${#numbers.formatInteger(purchaseProduct.finalPriceAdult, 0, 'COMMA')}"></span>원 (성인 1인 기준)</li>
+                    <li>여행인원: <span th:text="'성인 ' + ${purchaseProduct.adultCount} + '명 / 아동 ' + ${purchaseProduct.youthCount} + '명 / 소아 ' + ${purchaseProduct.infantCount} + '명'"></span></li>
+                    <li>여행일정: <span th:utext="
+                            ${#temporals.format(purchaseProduct.departDateTime, 'yyyy.MM.dd(EE)')} + ' ~ ' + 
+                            ${#temporals.format(purchaseProduct.returnDateTime, 'yyyy.MM.dd(EE)')} + '<br>' +
+                            ${purchaseProduct.bak} + '박 ' + ${purchaseProduct.il} + '일'
+                        "></span>
+                    </li>
+                </ul>
             </section>
 
-            <section id="passenger-info">
-                <!-- 여행자 정보 반복 -->
-                <div class="passenger" th:each="passenger,iterStat : ${passengers}">
-                    <h3>여행자 [[${iterStat.index + 1}]]</h3> (<span th:text="${passenger.ageGroup}"></span>) <!-- AgeGroup 표시 -->
-                    <div>
-                        <label>이름</label>
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].name'" placeholder="이름을 입력하세요." required />
-                    </div>
-                    <div>
-                        <label>생년월일</label>
-                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" placeholder="생년월일 8자리(ex.19900128)" required />
-                    </div>
-                    <div>
-                        <label>연령 구분</label>
-                        <input type="text" th:value="${passenger.ageGroup}" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" readonly />
-                    </div>
-                    <label>성별</label>
-                    <div class="button-group">
-                        <label class="btn selected">
-                            <input type="radio"
-                                th:name="'passengers[' + ${iterStat.index} + '].gender'"
-                                value="MALE"
-                                checked hidden /> 남자
-                        </label>
-                        <label class="btn">
-                            <input type="radio"
-                                th:name="'passengers[' + ${iterStat.index} + '].gender'"
-                                value="FEMALE"
-                                hidden /> 여자
-                        </label>
-                    </div>
-                    <div>
-                        <label>휴대폰 번호</label>
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].phone'" placeholder="휴대폰 번호(숫자만 입력)" />
-                    </div>
-                    <div>
-                        <label>이메일</label>
-                        <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" placeholder="이메일(ex. abc@astravel.kr)" />
-                    </div>
+            <!-- 여행자 정보 -->
+            <section class="traveler-info">
+                <h3>여행자 정보</h3>
+                <div></div>
+                <div th:each="passenger, iterStat : ${purchaseProduct.passengers}">
+                    <ul>
+                        <li>이름: <span th:text="${passenger.name}"></span></li>
+                        <li>생년월일/성별: <span th:text="${passenger.birth} + ' / ' + ${passenger.sex}"></span></li>
+                        <li>연령구분: <span th:text="${passenger.ageGroup}"></span></li>
+                        <li>여권정보: <span th:text="${passenger.completed ? '등록완료' : '미등록'}">
+                        <li>금액: <span th:text="
+                                ${passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).ADULT} ? ${#numbers.formatInteger(purchaseProduct.finalPriceAdult, 0, 'COMMA')} :
+                                (${passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).YOUTH} ? ${#numbers.formatInteger(purchaseProduct.finalPriceYouth, 0, 'COMMA')} :
+                                ${#numbers.formatInteger(purchaseProduct.finalPriceInfant, 0, 'COMMA')})
+                            "></span>원
+                        </li>
+                    </ul>
                 </div>
+                <div th:onclick="|openModal('/product/purchase/${purchaseProduct.id}/passport')|">여권정보 등록</div>
             </section>
 
+            <!-- 항공 정보 -->
+            <section class="air-info">
+                <h3>항공 정보</h3>
+
+                <div th:if="${purchaseProduct.finalSeatClasses.size() > 0}">
+                    <!-- 출발 구간 -->
+                    <div>
+                        <strong>한국출발</strong>
+                        <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime, 'yyyy.MM.dd(EE) HH:mm')}"></span>
+                        <div>
+                            <span th:text="${purchaseProduct.airline.nameKor}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].flightNumber}"></span><br>
+                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].departAirport}"></span><br>
+                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].arriveDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].arriveAirport}"></span><br>
+                            <span th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration / 60, 2)} 
+                                + ':' + 
+                                ${#numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration % 60, 2)}
+                                + ' 소요'">
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 도착 구간 -->
+                    <div th:if="${purchaseProduct.finalSeatClasses.size() > 1}">
+                        <strong>한국도착</strong>
+                        <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime, 'yyyy.MM.dd(EE) HH:mm')}"></span>
+                        <div>
+                            <span th:text="${purchaseProduct.airline.nameKor}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size() - 1].flightNumber}"></span><br>
+                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departAirport}"></span><br>
+                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveAirport}"></span><br>
+                            <span th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration / 60, 2)} 
+                                + ':' + 
+                                ${#numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration % 60, 2)}
+                                + ' 소요'">
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+
+            </section>
+
+            <!-- 결제 정보 -->
+            <section class="payment-info">
+                <h3>결제 정보</h3>
+                <ul>
+                    <span>상품가격</span>
+                    <li>
+                        <span th:text="${'성인 x ' + purchaseProduct.adultCount + '명'}"></span>
+                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 'COMMA') + '원'}"></span>
+                    </li>
+                    <li>
+                        <span th:text="${'청소년 x ' + purchaseProduct.youthCount + '명'}"></span>
+                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 'COMMA') + '원'}"></span>
+                    </li>
+                    <li>
+                        <span th:text="${'영유아 x ' + purchaseProduct.infantCount + '명'}"></span>
+                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 'COMMA') + '원'}"></span>
+                    </li>
+                </ul>
+                <p>총 금액: <span th:text="${#numbers.formatInteger(purchaseProduct.price,0,'COMMA')}"></span>원</p>
+            </section>
+
+            <!-- 담당자 정보 -->
+            <section class="handler-info" th:if="${handler != null}">
+                <h3>담당자 정보</h3>
+                <ul>
+                    <li>상품담당: <span th:text="${handler.name}"></span></li>
+                    <li>이메일: <span th:text="${handler.email}"></span></li>
+                    <li>전화: <span th:text="${handler.phone}"></span></li>
+                    <li>팩스: <span th:text="${handler.fax}"></span></li>
+                </ul>
+            </section>
+
+            <!-- 하단 버튼 -->
             <footer class="modal-footer">
-                <button type="button" onclick="submitReservationModal()">예약신청</button>
+                <button th:if="${purchaseProduct.purchaseStatus != T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
+                    type="button" onclick="cancelPayment()">결제취소</button>
+                <button th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
+                    type="button" onclick="cancelReservation()">예약취소</button>
             </footer>
         </div>
     </div>
-</div>
