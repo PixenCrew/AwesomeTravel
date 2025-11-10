@@ -1,0 +1,147 @@
+<div>
+    <style>
+        .modal-footer {
+            position: sticky;
+            /* 부모 컨테이너 내에서 하단 고정 */
+            bottom: 0;
+            background: #fff;
+            /* #f9f9f9 대신 깔끔하게 */
+            border-top: 1px solid #ccc;
+            height: 60px;
+            /* 바닥 네비와 동일 */
+            min-height: 60px;
+            display: flex;
+            gap: 10px;
+            justify-content: space-evenly;
+            /* 버튼 간 간격 균등 */
+            align-items: center;
+            flex-wrap: wrap;
+            /* 화면 좁으면 아래로 내려감 */
+            padding: 0 10px;
+            /* 좌우 여백 */
+            z-index: 3;
+        }
+
+        .modal-footer button {
+            flex: 0 1 auto;
+            /* 필요 이상으로 늘어나지 않도록 */
+            min-width: 80px;
+            /* 최소 버튼 너비 */
+            max-width: 150px;
+            /* 최대 버튼 너비 */
+            height: 40px;
+            /* 버튼 높이 */
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding-bottom: 80px;
+            /* footer 높이만큼 패딩 */
+        }
+    </style>
+    <header class="section-header">
+        <h1>예약상세</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+    <div class="section-body">
+        <div class="modal-content">
+            <h4>요금 정보</h4>
+
+            <div th:if="${purchaseProduct.adultCount > 0}">
+                <div th:text="${'성인 ' + purchaseProduct.adultCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 'COMMA') + '원'}"></div>
+            </div>
+            <div th:if="${purchaseProduct.youthCount > 0}">
+                <div th:text="${'청소년 ' + purchaseProduct.youthCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 'COMMA') + '원'}"></div>
+            </div>
+            <div th:if="${purchaseProduct.infantCount > 0}">
+                <div th:text="${'영유아 ' + purchaseProduct.infantCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 'COMMA') + '원'}"></div>
+            </div>
+
+            <h4>최종 결제 금액</h4>
+            <div th:text="${#numbers.formatInteger(purchaseProduct.price, 0, 'COMMA') + '원'}"></div>
+        </div>
+
+        <div>
+            <legend>결제 방법</legend>
+
+            <label>
+                <input type="radio" name="paymentMethod" value="CARD" checked>
+                카드 결제
+            </label>
+
+            <label>
+                <input type="radio" name="paymentMethod" value="BANK">
+                계좌 이체
+            </label>
+
+            <label>
+                <input type="radio" name="paymentMethod" value="ETC">
+                기타
+            </label>
+        </div>
+    </div>
+
+    <!-- 하단 버튼 -->
+    <footer class="modal-footer">
+        <button type="button" th:onclick="'proceedPay(' + ${purchaseProduct.id} + ')'">
+            결제하기
+        </button>
+    </footer>
+
+    <script>
+        (function () {
+            window.proceedPay = async function (purchaseProductId) {
+                if (confirm('[TEST] 테스트 결제 진행')) {
+
+                    // 로딩 표시
+                    const loadingEl = document.getElementById('loading');
+                    if (loadingEl) loadingEl.style.display = 'flex';
+
+                    const url = `/product/purchase/${purchaseProductId}/payment`;
+                    const url2 = `/product/purchase/${purchaseProductId}`;
+
+                    // 라디오에서 선택된 결제수단 읽기
+                    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CARD';
+
+                    // 서버에 보낼 데이터
+                    const payload = {
+                        purchaseId: purchaseProductId,
+                        paymentMethod: selectedMethod
+                    };
+
+                    try {
+                        const response = await fetch(`/product/purchase/${purchaseProductId}/payment`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) throw new Error('결제 실패');
+
+                        alert('결제가 성공적으로 처리되었습니다!');
+                        if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
+                        addModal(`/product/purchase/${purchaseProductId}`, true);
+                    } catch (error) {
+                        console.error('결제 요청 실패:', error);
+                        alert('결제 처리 중 오류가 발생했습니다.');
+
+                        if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
+                    }
+
+                }
+            }
+        })();
+    </script>
+</div>

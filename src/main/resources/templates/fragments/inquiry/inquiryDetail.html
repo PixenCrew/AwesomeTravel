@@ -1,0 +1,21 @@
+<div>
+    <header class="section-header">
+        <h1>문의 상세</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+
+    </header>
+
+    <div class="section-body">
+        <div>문의 제목</div>
+        <div th:text="${inquiry.title}"></div>
+        <div>문의 내용</div>
+        <div th:utext="${inquiry.content}"></div>
+        <hr>
+        <div th:if="${answer!=null}">
+            <div>답변 내용</div>
+            <div th:utext="${answer.content}"></div>
+        </div>
+    </div>
+</div>

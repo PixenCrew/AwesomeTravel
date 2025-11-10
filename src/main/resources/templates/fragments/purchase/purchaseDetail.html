@@ -1,68 +1,68 @@
 <div>
+    <style>
+        .current-status {
+            background-color: lightblue;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: #f9f9f9;
+        }
+
+        .modal-footer button {
+            flex: 1 1 100%;
+            padding: 12px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button {
+            flex: 1 1 100%;
+            padding: 12px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .modal-footer button:hover {
+            background: #eee;
+        }
+
+        /* 선택적으로 버튼 색상 다르게 */
+        .modal-footer button:nth-child(1) {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(2) {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(3) {
+            background: #ff9800;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(4) {
+            background: #2196f3;
+            color: #fff;
+        }
+    </style>
     <header class="section-header">
         <h1>예약상세</h1>
         <div class="right">
             <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
-        <style>
-            .current-status {
-                background-color: lightblue;
-            }
-
-            .modal-footer {
-                display: flex;
-                gap: 10px;
-                padding: 15px;
-                justify-content: center;
-                flex-wrap: wrap;
-                background: #f9f9f9;
-            }
-
-            .modal-footer button {
-                flex: 1 1 100%;
-                padding: 12px 0;
-                font-size: 16px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: background 0.2s ease;
-            }
-
-            button {
-                flex: 1 1 100%;
-                padding: 12px 0;
-                font-size: 16px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: background 0.2s ease;
-            }
-
-            .modal-footer button:hover {
-                background: #eee;
-            }
-
-            /* 선택적으로 버튼 색상 다르게 */
-            .modal-footer button:nth-child(1) {
-                background: #4caf50;
-                color: #fff;
-            }
-
-            .modal-footer button:nth-child(2) {
-                background: #f44336;
-                color: #fff;
-            }
-
-            .modal-footer button:nth-child(3) {
-                background: #ff9800;
-                color: #fff;
-            }
-
-            .modal-footer button:nth-child(4) {
-                background: #2196f3;
-                color: #fff;
-            }
-        </style>
     </header>
 
     <div class="section-body">
@@ -212,13 +212,25 @@
             <!-- 하단 버튼 -->
             <footer class="modal-footer">
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}"
-                    type="button" onclick="proceedPay()">결제하기</button>
+                    type="button" th:onclick="'selectPayment(' + ${purchaseProduct.id} + ')'">결제하기</button>
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3}"
                     type="button" onclick="cancelPayment()">결제취소</button>
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}"
                     type="button" onclick="cancelReservation()">예약취소</button>
                 <button th:if="${purchaseProduct.handler != null}"
-                    type="button" onclick="sendInquiry()">1:1 문의하기</button>
+                    type="button" th:onclick="'sendInquiry(' + ${purchaseProduct.id} + ')'">1:1 문의하기</button>
             </footer>
         </div>
+        <script>
+            (function () {
+                window.selectPayment = function (purchaseProductId) {
+                    addModal(`/product/purchase/${purchaseProductId}/payment`);
+                }
+
+                window.sendInquiry = function (purchaseProductId) {
+                    addModal(`/product/purchase/${purchaseProductId}/inquiry `);
+                }
+
+            })(); 
+        </script>
     </div>

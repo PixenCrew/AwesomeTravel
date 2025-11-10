@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +25,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.inquiry.dto.request.InquiryRequestDto;
+import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.passport.dto.request.PassportDto;
 import renewal.awesome_travel.passport.dto.request.PassportUpdateRequest;
+import renewal.awesome_travel.payment.dto.PaymentRequest;
+import renewal.awesome_travel.payment.repository.PaymentRepository;
 import renewal.awesome_travel.product.dto.ProductCalanderDto;
 import renewal.awesome_travel.product.dto.ProductDetailDto;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
@@ -36,10 +41,14 @@ import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.common.entity.Inquiry;
+import renewal.common.entity.Inquiry.InquiryCategory;
+import renewal.common.entity.Inquiry.InquiryStatus;
 import renewal.common.entity.Location;
 import renewal.common.entity.Location.LocationType;
 import renewal.common.entity.Passenger;
 import renewal.common.entity.Passenger.AgeGroup;
+import renewal.common.entity.Payment;
 import renewal.common.entity.Product;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
@@ -59,7 +68,9 @@ public class ProductController {
     private final UserRepository userRepo;
     private final PassengerRepository passengerRepo;
     private final PurchaseProductRepository purchaseProductRepo;
+    private final PaymentRepository paymentProductRepo;
     private final CountryCodeRepository countryCodeRepo;
+    private final InquiryRepository inquiryRepo;
 
     @GetMapping
     public String getProductSearch(Model model) {
@@ -372,4 +383,80 @@ public class ProductController {
 
         return "fragments/purchase/purchaseDetail";
     }
+
+    @GetMapping("/purchase/{id}/payment")
+    String getPurchasePayForm(@PathVariable Long id, Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+
+        model.addAttribute("purchaseProduct", purchaseProduct);
+
+        return "fragments/payment";
+    }
+
+    @PostMapping("/purchase/{id}/payment")
+    ResponseEntity<?> postPurchasePayForm(
+            @PathVariable Long id,
+            @RequestBody PaymentRequest request,
+            Principal principal,
+            Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+        User buyer = userRepo.findByEmail(principal.getName()).get();
+
+        // 결제 엔티티 생성
+        Payment payment = new Payment();
+        payment.setUser(buyer);
+        payment.setPurchaseProduct(purchaseProduct);
+        payment.setPaymentMethod(Payment.PaymentMethod.valueOf(request.getPaymentMethod()));
+        payment.setPrice(purchaseProduct.getPrice());
+        payment.setPurchaseStatus(Payment.PaymentStatus.PAID);
+        payment.setPurchaseDate(LocalDateTime.now());
+
+        paymentProductRepo.save(payment);
+
+        // 구매 상태 업데이트
+        purchaseProduct.setPurchaseStatus(PurchaseStatus.PAID);
+        purchaseProductRepo.save(purchaseProduct);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/purchase/{id}/inquiry")
+    String getInquiryForm(@PathVariable Long id, Model model) {
+
+        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+
+        model.addAttribute("purchase", purchaseProduct);
+
+        return "fragments/inquiry/inquiryForm";
+    }
+
+    @PostMapping("/purchase/{id}/inquiry")
+    ResponseEntity<?> postInquiryForm(
+            @PathVariable Long id,
+            @RequestBody InquiryRequestDto request,
+            Principal principal,
+            Model model) {
+
+        User user = userRepo.findByEmail(principal.getName()).get();
+        Inquiry inquiry = new Inquiry();
+
+        inquiry.setCategory(InquiryCategory.PRODUCT);
+        inquiry.setUser(user);
+        inquiry.setTitle(request.getTitle());
+        inquiry.setContent(request.getContent());
+        inquiry.setStatus(InquiryStatus.PENDING);
+
+        inquiryRepo.save(inquiry);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

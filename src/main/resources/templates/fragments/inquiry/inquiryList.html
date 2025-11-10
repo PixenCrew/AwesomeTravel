@@ -1,0 +1,20 @@
+<div>
+    <header class="section-header">
+        <h1>문의 내역</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+
+    </header>
+
+    <div class="section-body">
+        <div th:each="inquiry : ${inquiries}">
+            <ul>
+                <li th:onclick="'fetchSection(\'/inquiry/' + ${inquiry.id} + '\')'">
+                    <span th:text="${inquiry.title}">상품명</span>
+                    <span th:text="${inquiry.status}"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

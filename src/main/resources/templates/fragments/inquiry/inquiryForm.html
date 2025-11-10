@@ -1,0 +1,117 @@
+<div>
+    <style>
+        /* 하단 고정 버튼 */
+        #fixedBottomButton {
+            box-sizing: border-box;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            padding: 10px 15px;
+            background: #fff;
+            border-top: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #fixedBottomButton button {
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #141414;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+
+    <!-- 헤더 -->
+    <header class="section-header">
+        <h1>1:1 문의 등록</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <!-- 본문 -->
+    <div class="section-body">
+        <div class="modal-content">
+            <h4>문의 상품</h4>
+            <div th:text="${purchase.product.title}"></div>
+            <h4>문의 제목</h4>
+            <input type="text" id="inquiryTitle" placeholder="문의 제목을 입력해주세요.">
+            <h4>문의 내용</h4>
+            <div id="inquiryEditor" style="height: 200px;"></div>
+            <div id="quillToolbar">
+                <button class="ql-bold"></button>
+                <button class="ql-italic"></button>
+                <button class="ql-underline"></button>
+                <button class="ql-list" value="ordered"></button>
+                <button class="ql-list" value="bullet"></button>
+                <button class="ql-link"></button>
+                <button class="ql-image"></button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 하단 고정 버튼 -->
+    <div id="fixedBottomButton">
+        <button type="button" th:onclick="'submitInquiry(' + ${purchase.id} + ')'">문의 등록</button>
+    </div>
+
+    <script>
+        (function () {
+
+            var quill = new Quill('#inquiryEditor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: '#quillToolbar'
+                }
+            });
+
+            // 문의 등록 함수
+            window.submitInquiry = async function (purchaseId) {
+                const titleEl = document.getElementById('inquiryTitle');
+                const title = titleEl ? titleEl.value.trim() : '';
+                const content = quill.root.innerHTML.trim();
+
+                // 빈 값 검증
+                if (!title) {
+                    alert('제목을 입력해주세요.');
+                    titleEl.focus();
+                    return;
+                }
+
+                // Quill 내용이 비어있는지 확인
+                if (!content || content === '<p><br></p>') {
+                    alert('문의 내용을 입력해주세요.');
+                    quill.focus();
+                    return;
+                }
+
+                const payload = { purchaseId, title, content };
+
+                try {
+                    const response = await fetch(`/product/purchase/${purchaseId}/inquiry`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || '문의 등록 실패');
+                    }
+
+                    alert('문의가 등록되었습니다.');
+                    backModal();
+                } catch (error) {
+                    console.error('문의 등록 실패:', error);
+                    alert('문의 등록 중 오류가 발생했습니다.');
+                }
+            }
+        })();
+    </script>
+
+</div>
