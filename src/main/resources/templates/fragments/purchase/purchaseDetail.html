@@ -74,6 +74,7 @@
                     <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 1 ? 'current-status' : ''}">담당자확인</li>
                     <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 2 ? 'current-status' : ''}">결제진행</li>
                     <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 3 ? 'current-status' : ''}">결제완료</li>
+                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 4 ? 'current-status' : ''}">취소됨</li>
                 </ul>
                 <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 0}">
                     예약이 접수되었습니다. 담당자 배정중입니다.
@@ -86,6 +87,12 @@
                 </p>
                 <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 3}">
                     결제가 완료되었습니다. 즐거운 여행 되세요!
+                </p>
+                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 4}">
+                    취소된 주문입니다.
+                </p>
+                <p th:if="${purchaseProduct.waiting}">
+                    예약 대기중입니다. 순번 도달시 연락 드릴 예정입니다.
                 </p>
             </section>
 
@@ -213,10 +220,10 @@
             <footer class="modal-footer">
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}"
                     type="button" th:onclick="'selectPayment(' + ${purchaseProduct.id} + ')'">결제하기</button>
-                <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3}"
-                    type="button" onclick="cancelPayment()">결제취소</button>
+                <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3 && purchaseProduct.purchaseStatus.ordinal() != 4 }"
+                    type="button" th:onclick="'cancelReservation(' + ${purchaseProduct.id} + ')'">결제취소</button>
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}"
-                    type="button" onclick="cancelReservation()">예약취소</button>
+                    type="button" th:onclick="'cancelReservation(' + ${purchaseProduct.id} + ')'">예약취소</button>
                 <button th:if="${purchaseProduct.handler != null}"
                     type="button" th:onclick="'sendInquiry(' + ${purchaseProduct.id} + ')'">1:1 문의하기</button>
             </footer>
@@ -228,7 +235,31 @@
                 }
 
                 window.sendInquiry = function (purchaseProductId) {
-                    addModal(`/product/purchase/${purchaseProductId}/inquiry `);
+                    addModal(`/product/purchase/${purchaseProductId}/inquiry`);
+                }
+
+                window.cancelReservation = async function (purchaseProductId) {
+                    if (confirm("예약을 취소하시겠습니까?")) {
+                        const dummyload = {};
+                        try {
+                            const response = await fetch(`/product/purchase/${purchaseProductId}/cancel`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(dummyload)
+                            });
+
+                            if (!response.ok) {
+                                const errorText = await response.text();
+                                throw new Error(errorText || '예약 취소 실패');
+                            }
+
+                            alert('예약이 취소되었습니다.');
+                            backModal();
+                        } catch (error) {
+                            console.error('예약 취소 실패:', error);
+                            alert('예약 취소중 오류가 발생했습니다.');
+                        }
+                    }
                 }
 
             })(); 

@@ -22,20 +22,58 @@
     </div>
 
     <style>
-        /* 가격 표시 스타일 */
-        .fc-event-price-available {
-            color: cadetblue;
-            font-weight: bold;
-            font-size: 0.6em;
+        /* 공통 이벤트 스타일 */
+        .fc-event-price-available,
+        .fc-event-price-confirmed,
+        .fc-event-price-wait {
+            font-size: 8px;
             text-align: center;
+            line-height: 1.4;
+            font-weight: 500;
+            padding: 3px 0;
         }
 
-        /* 예약대기 스타일 */
+        /* 예약가능 (가격만) */
+        .fc-event-price-available {
+            color: #111;
+        }
+
+        /* 출발확정 */
+        .fc-event-price-confirmed {
+            color: #0a5;
+        }
+
+        .fc-event-status-confirmed {
+            display: block;
+            /* 줄바꿈 */
+            margin-top: 3px;
+            font-size: 11px;
+            background-color: #e6f8ec;
+            color: #0a5;
+            border-radius: 4px;
+            font-weight: 600;
+            padding: 2px 6px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 예약대기 */
         .fc-event-price-wait {
-            color: red;
-            font-weight: bold;
-            font-size: 0.8em;
-            text-align: center;
+            color: #777;
+        }
+
+        .fc-event-status-wait {
+            display: block;
+            /* 줄바꿈 */
+            font-size: 11px;
+            background-color: #f5f5f5;
+            color: #777;
+            border-radius: 4px;
+            font-weight: 600;
+            padding: 2px 6px;
+            width: fit-content;
+            margin: 3px auto 0;
         }
     </style>
 
@@ -64,12 +102,16 @@
                     let displayText = '';
                     let priceClass = '';
 
-                    if (status === 'AVAILABLE' && price != null) {
+                    if (status === 'CONFIRMED') {
+                        displayText = `${price.toLocaleString()}~ <span class="fc-event-status-confirmed">출발확정</span>`;
+                        priceClass = 'fc-event-price-confirmed';
+                    } else if (status === 'WAITING') {
+                        displayText = '<span class="fc-event-status-wait">예약대기</span>';
+                        priceClass = 'fc-event-price-wait';
+                    } else {
+                        // 기본 형식 (AVAILABLE)
                         displayText = `${price.toLocaleString()}~`;
                         priceClass = 'fc-event-price-available';
-                    } else {
-                        displayText = '예약대기';
-                        priceClass = 'fc-event-price-wait';
                     }
 
                     return {

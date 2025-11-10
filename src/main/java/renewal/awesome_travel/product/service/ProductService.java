@@ -18,12 +18,16 @@ import renewal.awesome_travel.air.repository.SeatClassRepository;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
 import renewal.awesome_travel.product.dto.ProductSpecification;
 import renewal.awesome_travel.product.repository.ProductRepository;
+import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.common.entity.AirportCode;
 import renewal.common.entity.Location;
 import renewal.common.entity.Location.LocationType;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
 import renewal.common.entity.Product.DepartTimeType;
+import renewal.common.entity.Product.ProductStatus;
+import renewal.common.entity.PurchaseBase.PurchaseStatus;
+import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.Schedule;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.Tour;
@@ -33,6 +37,7 @@ import renewal.common.entity.Tour;
 public class ProductService {
 
     private final ProductRepository productRepo;
+    private final PurchaseProductRepository purchaseProductRepo;
     private final SeatClassRepository seatClassRepo;
 
     public Page<Product> searchProducts(ProductSearchRequestDto filter, Pageable pageable) {
@@ -83,10 +88,10 @@ public class ProductService {
     }
 
     public Product calcSingleProduct(Product product, LocalDate departDate) {
-        System.out.println("\n=== calcSingleProduct 호출 ===");
-        System.out.println("target.id = " + product.getId());
-        System.out.println("target.name = " + product.getTitle());
-        System.out.println("departDate = " + departDate);
+        // System.out.println("\n=== calcSingleProduct 호출 ===");
+        // System.out.println("target.id = " + product.getId());
+        // System.out.println("target.name = " + product.getTitle());
+        // System.out.println("departDate = " + departDate);
 
         Hibernate.initialize(product.getTour());
         Tour tour = product.getTour();
@@ -111,13 +116,13 @@ public class ProductService {
                     // }
                     // departDate = departDate.plusDays(sced.getDay());
 
-                    departDate = departDate.plusDays(sced.getDay());
+                    LocalDate currentdepartDate = departDate.plusDays(sced.getDay());
                     DepartTimeType dtt = product.getDepartTimeType();
                     int startHour = sced.getDay() == 0 ? dtt.getStartHour() : 0;
                     int endHour = sced.getDay() == 0 ? dtt.getEndHour() : 23;
 
-                    LocalDateTime startDateTime = departDate.atTime(startHour, 0);
-                    LocalDateTime endDateTime = departDate.atTime(endHour, 59, 59);
+                    LocalDateTime startDateTime = currentdepartDate.atTime(startHour, 0);
+                    LocalDateTime endDateTime = currentdepartDate.atTime(endHour, 59, 59);
 
                     AirportCode departAirport = loc.getDepartAirport();
                     AirportCode arriveAirport = loc.getArriveAirport();
@@ -139,7 +144,8 @@ public class ProductService {
                     // 항공권 없으면 null 반환
                     if (finalSeat == null) {
                         System.out.println(
-                                "==================== null 반환: 해당 날짜(" + departDate + ")에 항공편 없음=====================");
+                                "==================== null 반환: 해당 날짜(" + currentdepartDate
+                                        + ")에 항공편 없음=====================");
 
                         return null;
                     }
@@ -153,12 +159,12 @@ public class ProductService {
                     // 한 product에 대해 항공권 도착시간 계속 덮어씌움 => 마지막 항공권의 도착시간 (=귀국시간)
                     product.setReturnDateTime(finalSeat.getAir().getArriveDateTime());
 
-                    // TODO 항공권 잔여좌석 확인로직 -> 해당 날짜의 상품 예약자 수 확인로직으로 변경
-                    // 한 product에 대해 항공권 잔여좌석 낮은쪽 계속 덮어씌움 => 예약 가능인 수 저장
-                    if (product.getAvailableSeats() == null
-                            || product.getAvailableSeats() > finalSeat.getAvailableSeats()) {
-                        product.setAvailableSeats(finalSeat.getAvailableSeats());
-                    }
+                    // 항공권 잔여좌석 확인로직 -> 해당 날짜의 상품 예약자 수 확인로직으로 변경
+                    // // 한 product에 대해 항공권 잔여좌석 낮은쪽 계속 덮어씌움 => 예약 가능인 수 저장
+                    // if (product.getAvailableSeats() == null
+                    // || product.getAvailableSeats() > finalSeat.getAvailableSeats()) {
+                    // product.setAvailableSeats(finalSeat.getAvailableSeats());
+                    // }
 
                     finalPriceAdult += finalSeat.getPriceAdult();
                     finalPriceYouth += finalSeat.getPriceYouth();
@@ -175,6 +181,25 @@ public class ProductService {
         product.setFinalPriceAdult(finalPriceAdult);
         product.setFinalPriceYouth(finalPriceYouth);
         product.setFinalPriceInfant(finalPriceInfant);
+
+        // 항공권 잔여좌석 확인로직 -> 해당 날짜의 상품 예약자 수 확인로직으로 변경
+        Long reserved = 0L;
+        // 해당 날짜의 상품 예약들
+        List<PurchaseProduct> purchaseProducts = purchaseProductRepo.findByProductAndDepartDate(product, departDate);
+        for (PurchaseProduct pp : purchaseProducts) {
+            if (pp.getPurchaseStatus() != PurchaseStatus.CANCELLED && !pp.isWaiting()) {
+                reserved += pp.getAdultCount();
+                reserved += pp.getYouthCount();
+                // reserved += pp.getInfantCount(); // 영유아는 인원수 카운트 안함
+            }
+
+            // waiting인 주문이 하나라도 있으면 예약대기 상품임
+            if (pp.isWaiting()) {
+                product.setProductStatus(ProductStatus.WAITING);
+            }
+        }
+        product.setReservedSeats(reserved);
+        product.setAvailableSeats(product.getTour().getMaxCapacity() - reserved);
 
         return product;
     }

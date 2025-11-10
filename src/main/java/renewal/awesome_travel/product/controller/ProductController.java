@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.data.domain.Page;
@@ -50,6 +51,7 @@ import renewal.common.entity.Passenger;
 import renewal.common.entity.Passenger.AgeGroup;
 import renewal.common.entity.Payment;
 import renewal.common.entity.Product;
+import renewal.common.entity.Product.ProductStatus;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.PurchaseProduct.ConfirmedSeatClass;
@@ -276,6 +278,15 @@ public class ProductController {
         }
         purchaseProduct.setFinalSeatClasses(finalSeatClasses);
 
+        if (calcedProduct.getProductStatus() == ProductStatus.WAITING) {
+            purchaseProduct.setWaiting(true);
+        }
+
+        // 예약 요청인수보다 잔여좌석이 적으면 예약대기 취급
+        if (adult + youth > calcedProduct.getAvailableSeats()) {
+            purchaseProduct.setWaiting(true); // 해당 주문은 예약대기
+        }
+
         // PurchaseBase 부분
         purchaseProduct.setPurchaseStatus(PurchaseStatus.RESERVED);
         purchaseProduct.setPrice(finalPrice);
@@ -329,8 +340,6 @@ public class ProductController {
     @GetMapping("/purchase/{id}/passport")
     String getPurchasePassportForm(@PathVariable Long id, Model model) {
 
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
-
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
 
         model.addAttribute("passengers", purchaseProduct.getPassengers());
@@ -342,7 +351,6 @@ public class ProductController {
     @PostMapping("/purchase/{id}/passport")
     String postPurchasePassportForm(@PathVariable Long id, @RequestBody PassportUpdateRequest request, Model model) {
 
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
         List<PassportDto> passengers = request.getPassengers();
         boolean allChecked = true;
         for (PassportDto dto : passengers) {
@@ -387,8 +395,6 @@ public class ProductController {
     @GetMapping("/purchase/{id}/payment")
     String getPurchasePayForm(@PathVariable Long id, Model model) {
 
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
-
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
 
         model.addAttribute("purchaseProduct", purchaseProduct);
@@ -402,8 +408,6 @@ public class ProductController {
             @RequestBody PaymentRequest request,
             Principal principal,
             Model model) {
-
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
 
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
         User buyer = userRepo.findByEmail(principal.getName()).get();
@@ -429,8 +433,6 @@ public class ProductController {
     @GetMapping("/purchase/{id}/inquiry")
     String getInquiryForm(@PathVariable Long id, Model model) {
 
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
-
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
 
         model.addAttribute("purchase", purchaseProduct);
@@ -455,6 +457,48 @@ public class ProductController {
         inquiry.setStatus(InquiryStatus.PENDING);
 
         inquiryRepo.save(inquiry);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/purchase/{id}/cancel")
+    ResponseEntity<?> cancelPurchase(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> dummyload,
+            Principal principal,
+            Model model) {
+
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
+        purchaseProduct.setPurchaseStatus(PurchaseStatus.CANCELLED);
+        purchaseProduct.setWaiting(false);
+        purchaseProductRepo.save(purchaseProduct);
+
+        List<PurchaseProduct> candidate = purchaseProductRepo
+                .findByProductAndDepartDate(
+                        purchaseProduct.getProduct(),
+                        purchaseProduct.getDepartDateTime().toLocalDate());
+
+        Product product = productRepo.findById(purchaseProduct.getProduct().getId()).get();
+        Product calcedProduct = productService
+                .calcSingleProduct(product, purchaseProduct.getDepartDateTime().toLocalDate());
+
+        for (PurchaseProduct candidatePP : candidate) {
+            Long totalRequiredSeats = candidatePP.getAdultCount() + candidatePP.getYouthCount();
+            if (candidatePP.isWaiting() && candidatePP.getPurchaseStatus() != PurchaseStatus.CANCELLED) {
+                if (totalRequiredSeats <= calcedProduct.getAvailableSeats()) {
+
+                    calcedProduct.setAvailableSeats(calcedProduct.getAvailableSeats() + totalRequiredSeats);
+                    calcedProduct.UpdateProductStatus();
+                    productRepo.save(calcedProduct);
+
+                    candidatePP.setWaiting(false);
+                    purchaseProductRepo.save(candidatePP);
+                    // TODO candidatePP 해당 사용자 알람 보내기
+                } else {
+                    break; // 순번 건너뛰기 방지
+                }
+            }
+        }
 
         return ResponseEntity.ok().build();
     }

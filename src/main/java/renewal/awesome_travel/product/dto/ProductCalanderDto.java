@@ -36,7 +36,7 @@ public class ProductCalanderDto {
         this.returnDateTime = product.getReturnDateTime();
         this.price = product.getFinalPriceAdult();
         this.remainSeats = product.getAvailableSeats();
-        this.status = ProductStatus.AVAILABLE; // 예약가능, 예약대기 기능 구현시 변경
+        this.status = product.getProductStatus();
     }
 
 }

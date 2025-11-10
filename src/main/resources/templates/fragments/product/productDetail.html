@@ -213,6 +213,8 @@
             let youthPrice = /*[[${product.priceYouth}]]*/ 0;
             let infantPrice = /*[[${product.priceInfant}]]*/ 0;
 
+            let maxTravelers = /*[[${product.availableSeats}]]*/ 0;
+
             let prices = {
                 adult: adultPrice,
                 youth: youthPrice,
@@ -256,8 +258,16 @@
                 document.getElementById('youthPrice').innerText = formatPrice(travelers.youth * prices.youth);
                 document.getElementById('infantPrice').innerText = formatPrice(travelers.infant * prices.infant);
 
-                document.getElementById('totalTravelersText').innerText =
-                    `성인: ${travelers.adult}, 청소년: ${travelers.youth}, 유아: ${travelers.infant}`;
+                const totalTravelers = travelers.adult + travelers.youth;
+
+                // 최대 예약 가능 인원 체크
+                if (totalTravelers > maxTravelers) {
+                    document.getElementById('totalTravelersText').innerText =
+                        `성인+청소년 합계가 최대 예약 가능 인원(${maxTravelers})을 초과했습니다. 예약은 대기 상태로 처리됩니다.\n성인: ${travelers.adult}, 청소년: ${travelers.youth}, 유아: ${travelers.infant}`;
+                } else {
+                    document.getElementById('totalTravelersText').innerText =
+                        `성인: ${travelers.adult}, 청소년: ${travelers.youth}, 유아: ${travelers.infant}`;
+                }
             }
 
             function formatPrice(num) {
