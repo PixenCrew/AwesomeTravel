@@ -1,11 +1,9 @@
 package renewal.awesome_travel.notification.utils;
 
-import lombok.RequiredArgsConstructor;
 // import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
-import renewal.common.entity.Notification;
-// import renewal.common.entity.NotificationMessage;
-import renewal.awesome_travel.notification.repository.NotificationRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -15,10 +13,9 @@ public class NotificationConsumer {
 
     // @RabbitListener(queues = "notification.queue")
     // public void handleNotification(NotificationMessage message) {
-    //     notificationRepository.save(Notification.create(
-    //             message.getUserId(),
-    //             message.getMessage()
-    //     ));
+    // notificationRepository.save(Notification.create(
+    // message.getUserId(),
+    // message.getMessage()
+    // ));
     // }
 }
-

@@ -4,20 +4,18 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import renewal.common.entity.AirportCode;
-import renewal.common.entity.CityCode;
-import renewal.common.entity.SeatClass.SeatClassType;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import org.springframework.format.annotation.DateTimeFormat;
+import renewal.common.entity.AirportCode;
+import renewal.common.entity.SeatClass.SeatClassType;
 
 @Getter
 @Setter
 public class AirSearchRequestDto {
 
-    // 여행 타입: 
+    // 여행 타입:
     private TripType tripType;
 
     // 인원수
@@ -44,7 +42,7 @@ public class AirSearchRequestDto {
         private LocalDate departDate;
     }
 
-    public enum TripType{
+    public enum TripType {
         ROUND_TRIP,
         ONE_WAY,
         MULTI

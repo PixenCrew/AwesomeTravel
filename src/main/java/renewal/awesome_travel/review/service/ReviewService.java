@@ -1,20 +1,18 @@
 package renewal.awesome_travel.review.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import renewal.common.entity.Review;
-import renewal.common.entity.Product;
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.awesome_travel.review.dto.request.ReviewRequestDto;
 import renewal.awesome_travel.review.dto.response.ReviewResponseDto;
 import renewal.awesome_travel.review.repository.ReviewRepository;
+import renewal.common.entity.Product;
+import renewal.common.entity.Review;
 import renewal.common.entity.User;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +20,7 @@ public class ReviewService {
 
     private final ReviewRepository commentRepository;
     private final ProductRepository productRepository;
-    //private final UserRepository userRepository;
+    // private final UserRepository userRepository;
 
     // 댓글 등록
     @Transactional
@@ -67,7 +65,6 @@ public class ReviewService {
                 .map(this::toResponseDto);
     }
 
-
     // 내가 쓴 댓글 목록
     @Transactional(readOnly = true)
     public Page<ReviewResponseDto> getMyComments(User user, Pageable pageable) {
@@ -86,4 +83,3 @@ public class ReviewService {
                 .build();
     }
 }
-

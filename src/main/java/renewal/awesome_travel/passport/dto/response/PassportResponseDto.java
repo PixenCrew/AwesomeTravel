@@ -1,14 +1,13 @@
 package renewal.awesome_travel.passport.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import renewal.awesome_travel.purchase.dto.CountryDto;
 import renewal.common.entity.Passenger.Sex;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter

@@ -1,21 +1,21 @@
 package renewal.awesome_travel.air.repository;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import lombok.RequiredArgsConstructor;
 import renewal.common.entity.AirportCode;
-import renewal.common.entity.CityCode;
 import renewal.common.entity.QAir;
 import renewal.common.entity.QSeatClass;
 import renewal.common.entity.SeatClass;
 // import renewal.awesome_travel.air.mapper.AirMapper;
 import renewal.common.entity.SeatClass.SeatClassType;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class AirRepositoryCustomImpl implements AirRepositoryCustom {
 
         builder.and(air.departAirport.airportCode.eq(depart.getAirportCode()));
         builder.and(air.arriveAirport.airportCode.eq(arrive.getAirportCode()));
-        builder.and(air.departDateTime.between(departDate.atStartOfDay(),departDate.atTime(LocalTime.MAX)));
+        builder.and(air.departDateTime.between(departDate.atStartOfDay(), departDate.atTime(LocalTime.MAX)));
 
         return queryFactory
                 .selectFrom(seat)

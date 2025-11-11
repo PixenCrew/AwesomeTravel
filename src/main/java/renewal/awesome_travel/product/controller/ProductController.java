@@ -160,7 +160,6 @@ public class ProductController {
 
         // 세션에서 상품 불러오기
         Product calcedProduct = (Product) session.getAttribute("calcProduct");
-        LocalDate departDate = (LocalDate) session.getAttribute("departDate");
 
         Long adult = request.getAdult();
         Long youth = request.getYouth();
@@ -219,7 +218,6 @@ public class ProductController {
             HttpSession session) {
 
         Product calcedProduct = (Product) session.getAttribute("calcProduct");
-        LocalDate departDate = (LocalDate) session.getAttribute("departDate");
 
         // 로그인 유저 이름(ID) 가져오기
         String userEmail = principal.getName();

@@ -1,10 +1,12 @@
 package renewal.awesome_travel.review.dto.response;
 
-import lombok.Builder;
-
 import java.time.LocalDateTime;
 
+import lombok.Builder;
+import lombok.Getter;
+
 @Builder
+@Getter
 public class ReviewResponseDto {
     private Long id;
     private String writerName;
@@ -13,4 +15,3 @@ public class ReviewResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

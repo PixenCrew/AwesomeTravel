@@ -1,13 +1,12 @@
 package renewal.awesome_travel.passport.dto.request;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import renewal.awesome_travel.purchase.dto.CountryDto;
 import renewal.common.entity.Passenger.Sex;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,7 +18,7 @@ public class PassportRequestDto {
 
     private Sex sex;
 
-    private String  countryName;
+    private String countryName;
 
     private String passportNum;
 

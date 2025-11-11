@@ -16,9 +16,7 @@ import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.product.service.ProductService;
-import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
 import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
-import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.MenuCode;
@@ -32,11 +30,9 @@ import renewal.common.repository.MenuCodeRepository;
 public class MainController {
 
     private final UserService userService;
-    private final UserRepository userRepo;
     private final ProductService productService;
     private final MenuCodeRepository menuCodeRepo;
     private final PurchaseProductRepository purchaseProductRepo;
-    private final PurchaseAirRepository purchaseAirRepo;
     private final InquiryRepository inquiryRepo;
 
     @GetMapping

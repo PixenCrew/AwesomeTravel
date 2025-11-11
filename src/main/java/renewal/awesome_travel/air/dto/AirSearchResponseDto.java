@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import renewal.common.entity.Airline;
-import renewal.common.entity.AirportCode;
-import renewal.common.entity.CityCode;
-import renewal.common.entity.Air.FlightSegment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import renewal.common.entity.Air.FlightSegment;
+import renewal.common.entity.Airline;
+import renewal.common.entity.AirportCode;
 
 @Getter
 @Setter

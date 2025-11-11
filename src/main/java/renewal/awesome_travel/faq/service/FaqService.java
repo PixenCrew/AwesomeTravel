@@ -1,13 +1,13 @@
 package renewal.awesome_travel.faq.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import renewal.awesome_travel.faq.dto.request.FaqRequestDto;
+
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.faq.dto.response.FaqResponseDto;
-import renewal.common.entity.Faq;
 import renewal.awesome_travel.faq.repositiry.FaqRepository;
+import renewal.common.entity.Faq;
 import renewal.common.entity.Faq.FaqCategory;
 
 @Service
@@ -36,4 +36,3 @@ public class FaqService {
                 .build();
     }
 }
-
