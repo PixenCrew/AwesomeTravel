@@ -56,23 +56,48 @@ function showSection(sectionIndex, push = true) {
 
 function fetchSection(endPoint, payload = null) {
     fetchContent(endPoint, payload).then(html => {
-        const dynamicSection = document.getElementById('dynamicSection');
+        // const dynamicSection = document.getElementById('dynamicSection');
 
-        if (currentSection !== 6) {
-            showSection(6);
-            dynamicSection.innerHTML = html;
-        } else {
-            // 기존 다이내믹 섹션 기록
+        // if (currentSection !== 6) {
+        //     showSection(6);
+        //     dynamicSection.innerHTML = html;
+        // } else {
+        //     // 기존 다이내믹 섹션 기록
+        //     sectionStack.push({
+        //         type: 'dynamic',
+        //         content: dynamicSection.innerHTML
+        //     });
+        //     if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+
+        //     dynamicSection.innerHTML = html;
+
+        //     executeScripts(dynamicSection);
+        // }
+        const container = document.getElementById('dynamicSection');
+
+        // 새 섹션 div 생성
+        const newSection = document.createElement('div');
+        newSection.classList.add('dynamic-section-new');
+        newSection.innerHTML = html;
+
+        // 기존 내용 스택에 저장
+        if (currentSection === 6) {
             sectionStack.push({
                 type: 'dynamic',
-                content: dynamicSection.innerHTML
+                content: container.innerHTML
             });
             if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
-
-            dynamicSection.innerHTML = html;
-
-            executeScripts(dynamicSection);
         }
+
+        // 기존 dynamicSection 내용 교체
+        container.innerHTML = ''; // 기존 내용 제거
+        container.appendChild(newSection);
+
+        // 스크립트 실행
+        executeScripts(newSection);
+
+        // 현재 섹션 표시
+        if (currentSection !== 6) showSection(6);
     });
 }
 

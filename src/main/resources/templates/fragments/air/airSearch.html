@@ -1,0 +1,332 @@
+<div>
+    <header class="section-header">
+        <h1>항공권 검색</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+
+        <!-- ==== 타입 선택 ==== -->
+
+        <label>왕복
+            <input type="radio" name="tripTypeSelect" value="ROUND_TRIP" checked onclick="showForm('ROUND_TRIP')">
+        </label>
+
+        <label>편도
+            <input type="radio" name="tripTypeSelect" value="ONE_WAY" onclick="showForm('ONE_WAY')">
+        </label>
+
+        <label>다구간
+            <input type="radio" name="tripTypeSelect" value="MULTI" onclick="showForm('MULTI')">
+        </label>
+
+        <hr>
+        <!-- ROUND_TRIP -->
+        <div id="form-ROUND_TRIP" class="trip-form">
+            <h2>왕복 (ROUND_TRIP)</h2>
+            <input type="hidden" name="tripType" value="ROUND_TRIP" required>
+
+            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
+            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
+            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
+
+            좌석 등급:
+            <select name="seatClassType" required>
+                <option value="">선택</option>
+                <option value="ECONOMY">이코노미</option>
+                <option value="BUSINESS">비즈니스</option>
+                <option value="FIRST">퍼스트</option>
+            </select><br>
+
+            직항만:<input type="checkbox" name="directOnly"><br>
+
+            <h3>구간</h3>
+            <div id="roundtrip-segments">
+                <div>출발</div>
+                <div>
+
+                    <label>출발 공항:
+                        <input type="text" id="seg0-depart" name="segments[0].depart.airportCode"
+                            oninput="document.getElementById('seg1-arrive').value=this.value" required>
+                    </label>
+
+                    <label>도착 공항:
+                        <input type="text" id="seg0-arrive" name="segments[0].arrive.airportCode"
+                            oninput="document.getElementById('seg1-depart').value=this.value" required>
+                    </label>
+
+                    <label>출발일:
+                        <input type="date" name="segments[0].departDate" required>
+                    </label>
+
+                </div>
+                <br>
+                <div>귀환</div>
+                <div>
+
+                    <label>출발 공항:
+                        <input type="text" id="seg1-depart" name="segments[1].depart.airportCode" readonly required>
+                    </label>
+
+                    <label>도착 공항:
+                        <input type="text" id="seg1-arrive" name="segments[1].arrive.airportCode" readonly required>
+                    </label>
+
+                    <label>귀환일:
+                        <input type="date" name="segments[1].departDate" required>
+                    </label>
+
+                </div>
+            </div>
+
+            <button type="button" onclick="submitAirSearch('ROUND_TRIP')">검색</button>
+        </div>
+
+        <!-- ONE_WAY -->
+        <div id="form-ONE_WAY" class="trip-form" style="display:none;">
+            <h2>편도 (ONE_WAY)</h2>
+            <input type="hidden" name="tripType" value="ONE_WAY" required>
+
+            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
+            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
+            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
+
+            좌석 등급:
+            <select name="seatClassType" required>
+                <option value="">선택</option>
+                <option value="ECONOMY">이코노미</option>
+                <option value="BUSINESS">비즈니스</option>
+                <option value="FIRST">퍼스트</option>
+            </select><br>
+
+            직항만:<input type="checkbox" name="directOnly"><br>
+
+            <h3>구간</h3>
+            <div id="oneway-segments">
+                <div>
+
+                    <label>출발 공항:
+                        <input type="text" name="segments[0].depart.airportCode" required>
+                    </label>
+
+                    <label>도착 공항:
+                        <input type="text" name="segments[0].arrive.airportCode" required>
+                    </label>
+
+                    <label>출발일:
+                        <input type="date" name="segments[0].departDate" required>
+                    </label>
+
+                </div>
+            </div>
+            <button type="button" onclick="submitAirSearch('ONE_WAY')">검색</button>
+        </div>
+
+        <!-- MULTI -->
+        <div id="form-MULTI" class="trip-form" style="display:none;">
+            <h2>다구간 (MULTI)</h2>
+            <input type="hidden" name="tripType" value="MULTI" required>
+
+            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
+            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
+            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
+
+            좌석 등급:
+            <select name="seatClassType" required>
+                <option value="">선택</option>
+                <option value="ECONOMY">이코노미</option>
+                <option value="BUSINESS">비즈니스</option>
+                <option value="FIRST">퍼스트</option>
+            </select><br>
+
+            직항만:<input type="checkbox" name="directOnly"><br>
+
+            <h3>구간</h3>
+            <div id="multi-segments">
+                <!-- <div class="segment">
+                    <label>출발 공항:
+                        <input type="text" name="segments[0].depart.airportCode">
+                    </label>
+                    <label>도착 공항:
+                        <input type="text" name="segments[0].arrive.airportCode">
+                    </label>
+                    <label>출발일:
+                        <input type="date" name="segments[0].departDate">
+                    </label>
+                    <button type="button" class="delete-segment" onclick="deleteSegment(this)">삭제</button>
+                </div> -->
+            </div>
+            <button type="button" onclick="addSegment('multi-segments')">구간 추가</button><br>
+            <button type="button" onclick="submitAirSearch('MULTI')">검색</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            let currentFormId = "form-ROUND_TRIP"; // 처음 기본 표시 폼 id
+
+            window.addSegment = function (containerId, delButton = true) {
+                const container = document.getElementById(containerId);
+                const index = container.children.length;
+                const newSegment = document.createElement('div');
+                newSegment.className = 'segment';
+
+                // 출발 공항
+                const departLabel = document.createElement('label');
+                departLabel.textContent = '출발 공항:';
+                const departInput = document.createElement('input');
+                departInput.type = 'text';
+                departInput.name = `segments[${index}].depart.airportCode`;
+                departInput.required = true;
+                departLabel.appendChild(departInput);
+
+                // 도착 공항
+                const arriveLabel = document.createElement('label');
+                arriveLabel.textContent = '도착 공항:';
+                const arriveInput = document.createElement('input');
+                arriveInput.type = 'text';
+                arriveInput.name = `segments[${index}].arrive.airportCode`;
+                arriveInput.required = true;
+                arriveLabel.appendChild(arriveInput);
+
+                // 출발일
+                const dateLabel = document.createElement('label');
+                dateLabel.textContent = '출발일:';
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date';
+                dateInput.name = `segments[${index}].departDate`;
+                dateInput.required = true;
+                dateLabel.appendChild(dateInput);
+
+                // div에 라벨 추가
+                newSegment.appendChild(departLabel);
+                newSegment.appendChild(arriveLabel);
+                newSegment.appendChild(dateLabel);
+
+                if (delButton) {
+                    // 삭제 버튼
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.textContent = '삭제';
+                    deleteBtn.onclick = function () { deleteSegment(this); };
+                    newSegment.appendChild(deleteBtn);
+                }
+
+                container.appendChild(newSegment);
+            }
+
+            // 페이지 로드시 다구간 기본 1개 추가
+            addSegment('multi-segments', false);
+
+            // // 왕복 출발-도착지 지정시 귀환편 출발-도착지 자동 입력하게 이벤트 리스너 추가
+            // document.addEventListener("DOMContentLoaded", () => {
+            //     const depart0 = document.getElementById("seg0-depart");
+            //     const arrive0 = document.getElementById("seg0-arrive");
+            //     const depart1 = document.getElementById("seg1-depart");
+            //     const arrive1 = document.getElementById("seg1-arrive");
+
+            //     // 첫 번째 출발 → 두 번째 도착
+            //     depart0.addEventListener("input", () => {
+            //         arrive1.value = depart0.value;
+            //     });
+
+            //     // 첫 번째 도착 → 두 번째 출발
+            //     arrive0.addEventListener("input", () => {
+            //         depart1.value = arrive0.value;
+            //     });
+            // });
+
+            // 화면에 표시되는 폼 바꾸는 함수
+            window.showForm = function (type) {
+                // 1. 현재 보이는 폼을 찾아서 값 초기화 후 숨기기
+                const prev = document.getElementById(currentFormId);
+                if (prev) {
+                    const formTag = prev.querySelector("form");
+                    if (formTag) {
+                        formTag.reset(); // 모든 입력값 초기화
+                    }
+                    prev.style.display = "none"; // 숨기기
+                }
+
+                // 2. 새로 선택한 폼 보이기
+                const nextId = "form-" + type;
+                const next = document.getElementById(nextId);
+                if (next) {
+                    next.style.display = "block";
+                    currentFormId = nextId;// 현재 폼 id 갱신
+                }
+            }
+
+            // 삭제 함수
+            window.deleteSegment = function (btn) {
+                const segment = btn.closest('.segment');
+                if (!segment) return;
+
+                const container = segment.parentNode;
+                container.removeChild(segment);
+
+                // 삭제 후 재인덱싱
+                reindexSegments(container);
+            }
+
+            // 재인덱싱 함수
+            window.reindexSegments = function (container) {
+                const segments = container.querySelectorAll('.segment');
+                segments.forEach((seg, idx) => {
+                    const inputs = seg.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        if (input.name.includes('depart.airportCode')) {
+                            input.name = `segments[${idx}].depart.airportCode`;
+                        } else if (input.name.includes('arrive.airportCode')) {
+                            input.name = `segments[${idx}].arrive.airportCode`;
+                        } else if (input.name.includes('departDate')) {
+                            input.name = `segments[${idx}].departDate`;
+                        }
+                    });
+                });
+            }
+
+            window.submitAirSearch = function (tripType) {
+                const container = document.getElementById(`form-${tripType}`);
+                if (!container) return;
+
+                // 기본 필드 수집
+                const payload = {};
+                payload.segments = [];
+
+                // 일반 input/select
+                container.querySelectorAll('input[name]:not([name^="segments"]), select[name]').forEach(el => {
+                    if (el.type === 'checkbox') {
+                        payload[el.name] = el.checked;
+                    } else {
+                        payload[el.name] = el.value;
+                    }
+                });
+
+                // segments 수집
+                const segmentDivs = container.querySelectorAll('div.segment, #roundtrip-segments > div:nth-child(n+2), #oneway-segments > div, #multi-segments > div');
+                segmentDivs.forEach(segDiv => {
+                    const segment = {};
+                    const departInput = segDiv.querySelector('[name$=".depart.airportCode"]');
+                    const arriveInput = segDiv.querySelector('[name$=".arrive.airportCode"]');
+                    const dateInput = segDiv.querySelector('[name$=".departDate"]');
+
+                    if (!departInput && !arriveInput && !dateInput) return; // 빈 div skip
+
+                    segment.depart = { airportCode: departInput?.value || '' };
+                    segment.arrive = { airportCode: arriveInput?.value || '' };
+                    segment.departDate = dateInput?.value || '';
+
+                    payload.segments.push(segment);
+                });
+                console.log(payload);
+
+                // fetchSection 호출
+                fetchSection('/air/search', payload);
+            };
+
+        })();
+    </script>
+</div>

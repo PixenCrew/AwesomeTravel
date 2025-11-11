@@ -1,13 +1,15 @@
 package renewal.awesome_travel.air.controller;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.air.dto.AirSearchRequestDto;
 import renewal.awesome_travel.air.dto.AirSearchResponseDto;
 import renewal.awesome_travel.air.service.AirService;
@@ -22,16 +24,17 @@ public class AirController {
     @GetMapping("/search")
     public String getAirSearch(Model model) {
         model.addAttribute("searchRequest", new AirSearchRequestDto());
-        return "air/airSearch";
+        return "fragments/air/airSearch.html";
     }
 
     @PostMapping("/search")
-    public String postAirSearch(@ModelAttribute AirSearchRequestDto searchRequest, Model model) {
+    public String postAirSearch(@RequestBody AirSearchRequestDto searchRequest, Model model) {
 
         List<AirSearchResponseDto> resultList = airService.searchAir(searchRequest);
-        System.out.println("===============Result================="+resultList.toString());
+        System.out.println("===============Result=================" + resultList.toString());
+        model.addAttribute("airSearchRequestDto", searchRequest);
         model.addAttribute("searchResult", resultList);
-        return "air/airResult";
+        return "fragments/air/airResult";
     }
 
     // @PostMapping("/search")
