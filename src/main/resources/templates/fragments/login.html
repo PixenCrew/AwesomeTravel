@@ -1,33 +1,35 @@
-<div th:fragment="loginFragment">
+<div>
+
     <header class="section-header">
-        <div class="left">
+        <h1>로그인</h1>
+        <div class="right">
             <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
-        <h1 class="center">로그인</h1>
     </header>
 
-    <div class="oauth-login-buttons">
-        <!-- 구글 로그인 -->
-        <div id="btn-google" class="btn" onclick="saveRecentLogin('google')">
-            <img src="/images/google.png" alt="Google" /> 구글 로그인
-            <span id="recent-google">최근 구글</span>
+    <div class="section-body">
+        <div class="oauth-login-buttons">
+            <!-- 구글 로그인 -->
+            <div id="btn-google" class="btn" onclick="saveRecentLogin('google')">
+                <img src="/images/google.png" alt="Google" /> 구글 로그인
+                <span id="recent-google">최근 구글</span>
+            </div>
+
+            <!-- 네이버 로그인 -->
+            <div id="btn-naver" class="btn" onclick="saveRecentLogin('naver')">
+                <img src="/images/naver.png" alt="Naver" /> 네이버 로그인
+                <span id="recent-naver">최근 네이버</span>
+            </div>
         </div>
 
-        <!-- 네이버 로그인 -->
-        <div id="btn-naver" class="btn" onclick="saveRecentLogin('naver')">
-            <img src="/images/naver.png" alt="Naver" /> 네이버 로그인
-            <span id="recent-naver">최근 네이버</span>
-        </div>
+        <form id="loginForm" action="/login" method="post">
+            <input type="text" name="username" placeholder="아이디" required>
+            <input type="password" name="password" placeholder="비밀번호" required>
+            <button type="submit">로그인</button>
+        </form>
     </div>
 
-    <form id="loginForm" action="/login" method="post">
-        <input type="text" name="username" placeholder="아이디" required>
-        <input type="password" name="password" placeholder="비밀번호" required>
-        <button type="submit">로그인</button>
-    </form>
-
     <script>
-
         function showRecentLogin() {
             const recent = localStorage.getItem('recentSocialLogin');
             if (!recent) return; // 없으면 종료

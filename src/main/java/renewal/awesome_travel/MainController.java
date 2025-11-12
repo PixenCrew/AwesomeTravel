@@ -96,13 +96,13 @@ public class MainController {
     }
 
     @GetMapping("login")
-    public String loginFragment(Authentication authentication) throws InterruptedException {
+    public String loginPage(Authentication authentication) throws InterruptedException {
         Thread.sleep(200);
         if (authentication != null && authentication.isAuthenticated()) {
             // 로그인 되어 있으면 홈으로 리다이렉트
             return "redirect:/";
         }
-        return "fragments/login :: loginFragment";
+        return "fragments/login";
     }
 
     // 특정 메뉴코드 서브메인
