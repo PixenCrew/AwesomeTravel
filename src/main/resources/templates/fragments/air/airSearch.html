@@ -1,4 +1,70 @@
 <div>
+    <style>
+        #calendar {
+            max-height: 90vh;
+            overflow-y: scroll;
+        }
+
+        .fc-month-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 10px 0;
+            border-bottom: 2px solid #666;
+            padding-bottom: 5px;
+        }
+
+        .fc-month-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .calendar-modal {
+            display: none;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            transform: translateX(0%);
+            width: 100vw;
+            height: 100vh;
+            background: #fff;
+            border: 1px solid #ccc;
+            z-index: 9999;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        td.unavail {
+            color: #888;
+            opacity: 0.6;
+        }
+
+        td.today {
+            background: #ff5252;
+            color: white;
+            font-weight: bold;
+        }
+
+        td.selected {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        td.range {
+            background-color: #cce5ff;
+            color: #000;
+            border-radius: 0;
+            transition: background 0.2s;
+        }
+
+        td.range.selected {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
+        }
+    </style>
     <header class="section-header">
         <h1>항공권 검색</h1>
         <div class="right">
@@ -46,38 +112,48 @@
             <div id="roundtrip-segments">
                 <div>출발</div>
                 <div>
-
                     <label>출발 공항:
-                        <input type="text" id="seg0-depart" name="segments[0].depart.airportCode"
-                            oninput="document.getElementById('seg1-arrive').value=this.value" required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].depart.airportCode"
+                                onclick="openCityModal('depart', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" id="seg0-arrive" name="segments[0].arrive.airportCode"
-                            oninput="document.getElementById('seg1-depart').value=this.value" required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].arrive.airportCode"
+                                onclick="openCityModal('arrive', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>출발일:
-                        <input type="date" name="segments[0].departDate" required>
-                    </label>
-
+                        <input type="date" name="segments[0].departDate" onclick="openCalendar(this)" readonly required>
+                    </label><br>
                 </div>
                 <br>
                 <div>귀환</div>
                 <div>
-
                     <label>출발 공항:
-                        <input type="text" id="seg1-depart" name="segments[1].depart.airportCode" readonly required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].depart.airportCode"
+                                onclick="openCityModal('depart', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" id="seg1-arrive" name="segments[1].arrive.airportCode" readonly required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].arrive.airportCode"
+                                onclick="openCityModal('arrive', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>귀환일:
-                        <input type="date" name="segments[1].departDate" required>
-                    </label>
-
+                        <input type="date" name="segments[1].departDate" onclick="openCalendar(this)" readonly required>
+                    </label><br>
                 </div>
             </div>
 
@@ -106,19 +182,26 @@
             <h3>구간</h3>
             <div id="oneway-segments">
                 <div>
-
                     <label>출발 공항:
-                        <input type="text" name="segments[0].depart.airportCode" required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].depart.airportCode"
+                                onclick="openCityModal('depart', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>도착 공항:
-                        <input type="text" name="segments[0].arrive.airportCode" required>
+                        <div class="city-input-wrapper">
+                            <input type="text" name="segments[0].arrive.airportCode"
+                                onclick="openCityModal('arrive', this)" readonly required>
+                            <span class="city-label"></span>
+                        </div>
                     </label>
 
                     <label>출발일:
-                        <input type="date" name="segments[0].departDate" required>
-                    </label>
-
+                        <input type="date" name="segments[0].departDate"
+                            onclick="openCalendar(this)" readonly required>
+                    </label><br>
                 </div>
             </div>
             <button type="button" onclick="submitAirSearch('ONE_WAY')">검색</button>
@@ -158,14 +241,186 @@
                     <button type="button" class="delete-segment" onclick="deleteSegment(this)">삭제</button>
                 </div> -->
             </div>
+
             <button type="button" onclick="addSegment('multi-segments')">구간 추가</button><br>
             <button type="button" onclick="submitAirSearch('MULTI')">검색</button>
         </div>
+
     </div>
 
+    <div id="location-selection">
+
+    </div>
+
+    <template id="calendar-modal">
+        <header class="section-header">
+            <h4>일정 선택</h4>
+            <div class="right">
+                <button class="close-btn" onclick="closeCalendar()">✕</button>
+            </div>
+        </header>
+
+        <div class="section-body">
+            <div id="calendar"></div>
+        </div>
+
+        <footer class="section-footer">
+            <div id="selected-date-text">
+                ~
+            </div>
+
+            <button class="confirm-btn" onclick="confirmSelectedDates()">선택 완료</button>
+        </footer>
+    </template>
+
+    <template id="city-select-modal">
+        <div class="modal-overlay">
+            <div class="modal-bottom city-modal">
+                <header class="section-header">
+                    <h4 id="cityModalTitle">도시 선택</h4>
+                    <div class="right">
+                        <button type="button" class="close-btn" onclick="closeModal()">✕</button>
+                    </div>
+                </header>
+
+                <div class="section-body">
+                    <!-- 검색창 -->
+                    <div class="city-search-box">
+                        <input type="text" id="citySearchInput" placeholder="국가 / 도시 / 공항명으로 검색" oninput="filterCityList(this.value)">
+                        <button type="button" onclick="filterCityList(document.getElementById('citySearchInput').value)">검색</button>
+                    </div>
+
+                    <!-- 검색 결과 -->
+                    <div id="citySearchResults" class="city-list" style="display:none;">
+                        <p>검색결과</p>
+                        <ul id="citySearchList"></ul>
+                    </div>
+
+                    <!-- 전체 목록 -->
+                    <div id="cityGroupList" class="city-list">
+                        <ul>
+                            <p>국내</p>
+                            <li>
+                                <button data-code="ICN" data-name="서울" onclick="selectCity(this)">서울</button>
+                                <button data-code="GMP" data-name="김포" onclick="selectCity(this)">김포</button>
+                                <button data-code="CJU" data-name="제주" onclick="selectCity(this)">제주</button>
+                                <button data-code="PUS" data-name="부산" onclick="selectCity(this)">부산</button>
+                                <button data-code="CJJ" data-name="청주" onclick="selectCity(this)">청주</button>
+                                <button data-code="TAE" data-name="대구" onclick="selectCity(this)">대구</button>
+                                <button data-code="USN" data-name="울산" onclick="selectCity(this)">울산</button>
+                                <button data-code="RSU" data-name="여수" onclick="selectCity(this)">여수</button>
+                                <button data-code="KWJ" data-name="광주" onclick="selectCity(this)">광주</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>동남아시아</p>
+                            <li>
+                                <button data-code="BKK" data-name="방콕" onclick="selectCity(this)">방콕</button>
+                                <button data-code="DAD" data-name="다낭" onclick="selectCity(this)">다낭</button>
+                                <button data-code="CXR" data-name="나트랑" onclick="selectCity(this)">나트랑</button>
+                                <button data-code="TPE" data-name="타이페이" onclick="selectCity(this)">타이페이</button>
+                                <button data-code="DPS" data-name="발리" onclick="selectCity(this)">발리</button>
+                                <button data-code="CNX" data-name="치앙마이" onclick="selectCity(this)">치앙마이</button>
+                                <button data-code="SIN" data-name="싱가포르" onclick="selectCity(this)">싱가포르</button>
+                                <button data-code="CEB" data-name="세부" onclick="selectCity(this)">세부</button>
+                                <button data-code="MNL" data-name="마닐라" onclick="selectCity(this)">마닐라</button>
+                                <button data-code="HAN" data-name="하노이" onclick="selectCity(this)">하노이</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>중국</p>
+                            <li>
+                                <button data-code="CAN" data-name="광저우" onclick="selectCity(this)">광저우</button>
+                                <button data-code="YNJ" data-name="연길" onclick="selectCity(this)">연길</button>
+                                <button data-code="PVG" data-name="상해/푸동" onclick="selectCity(this)">상해/푸동</button>
+                                <button data-code="SHE" data-name="심양" onclick="selectCity(this)">심양</button>
+                                <button data-code="HGH" data-name="항주" onclick="selectCity(this)">항주</button>
+                                <button data-code="SZX" data-name="심천" onclick="selectCity(this)">심천</button>
+                                <button data-code="PEK" data-name="북경" onclick="selectCity(this)">북경</button>
+                                <button data-code="XIY" data-name="시안" onclick="selectCity(this)">시안</button>
+                                <button data-code="CSX" data-name="장사" onclick="selectCity(this)">장사</button>
+                                <button data-code="HRB" data-name="하얼빈" onclick="selectCity(this)">하얼빈</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>일본</p>
+                            <li>
+                                <button data-code="KIX" data-name="오사카/간사이" onclick="selectCity(this)">오사카/간사이</button>
+                                <button data-code="NRT" data-name="도쿄/나리타" onclick="selectCity(this)">도쿄/나리타</button>
+                                <button data-code="HND" data-name="도쿄/하네다" onclick="selectCity(this)">도쿄/하네다</button>
+                                <button data-code="CTS" data-name="삿포로" onclick="selectCity(this)">삿포로</button>
+                                <button data-code="FUK" data-name="후쿠오카" onclick="selectCity(this)">후쿠오카</button>
+                                <button data-code="OKA" data-name="오키나와" onclick="selectCity(this)">오키나와</button>
+                                <button data-code="NGO" data-name="나고야" onclick="selectCity(this)">나고야</button>
+                                <button data-code="SDJ" data-name="센다이" onclick="selectCity(this)">센다이</button>
+                                <button data-code="TAK" data-name="다카마쓰" onclick="selectCity(this)">다카마쓰</button>
+                                <button data-code="UKB" data-name="오사카/고베" onclick="selectCity(this)">오사카/고베</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>미주/중남미</p>
+                            <li>
+                                <button data-code="JFK" data-name="뉴욕" onclick="selectCity(this)">뉴욕</button>
+                                <button data-code="LAX" data-name="로스앤젤레스" onclick="selectCity(this)">로스앤젤레스</button>
+                                <button data-code="HNL" data-name="하와이/호놀룰루" onclick="selectCity(this)">하와이/호놀룰루</button>
+                                <button data-code="YVR" data-name="밴쿠버" onclick="selectCity(this)">밴쿠버</button>
+                                <button data-code="SFO" data-name="샌프란시스코" onclick="selectCity(this)">샌프란시스코</button>
+                                <button data-code="YYZ" data-name="토론토" onclick="selectCity(this)">토론토</button>
+                                <button data-code="SEA" data-name="시애틀" onclick="selectCity(this)">시애틀</button>
+                                <button data-code="ATL" data-name="애틀랜타" onclick="selectCity(this)">애틀랜타</button>
+                                <button data-code="GRU" data-name="상파울로" onclick="selectCity(this)">상파울로</button>
+                                <button data-code="CUN" data-name="칸쿤" onclick="selectCity(this)">칸쿤</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>유럽</p>
+                            <li>
+                                <button data-code="CDG" data-name="파리" onclick="selectCity(this)">파리</button>
+                                <button data-code="LHR" data-name="런던" onclick="selectCity(this)">런던</button>
+                                <button data-code="FCO" data-name="로마" onclick="selectCity(this)">로마</button>
+                                <button data-code="BCN" data-name="바르셀로나" onclick="selectCity(this)">바르셀로나</button>
+                                <button data-code="FRA" data-name="프랑크푸르트" onclick="selectCity(this)">프랑크푸르트</button>
+                                <button data-code="IST" data-name="이스탄불" onclick="selectCity(this)">이스탄불</button>
+                                <button data-code="BUD" data-name="부다페스트" onclick="selectCity(this)">부다페스트</button>
+                                <button data-code="PRG" data-name="프라하" onclick="selectCity(this)">프라하</button>
+                                <button data-code="ZRH" data-name="취리히" onclick="selectCity(this)">취리히</button>
+                                <button data-code="MXP" data-name="밀라노" onclick="selectCity(this)">밀라노</button>
+                            </li>
+                        </ul>
+
+                        <ul>
+                            <p>대양주/기타</p>
+                            <li>
+                                <button data-code="SYD" data-name="시드니" onclick="selectCity(this)">시드니</button>
+                                <button data-code="GUM" data-name="괌" onclick="selectCity(this)">괌</button>
+                                <button data-code="AKL" data-name="오클랜드" onclick="selectCity(this)">오클랜드</button>
+                                <button data-code="SPN" data-name="사이판" onclick="selectCity(this)">사이판</button>
+                                <button data-code="BNE" data-name="브리즈번" onclick="selectCity(this)">브리즈번</button>
+                                <button data-code="MEL" data-name="멜버른" onclick="selectCity(this)">멜버른</button>
+                                <button data-code="PER" data-name="퍼스" onclick="selectCity(this)">퍼스</button>
+                                <button data-code="ZQN" data-name="퀸스타운" onclick="selectCity(this)">퀸스타운</button>
+                                <button data-code="CHC" data-name="크라이스트처치" onclick="selectCity(this)">크라이스트처치</button>
+                                <button data-code="ADL" data-name="아델레이드" onclick="selectCity(this)">아델레이드</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </template>
+
     <script>
+        var segmentCount = 0; // 다구간 선택필요날짜 갰수
+        var currentFormId = "form-ROUND_TRIP"; // 처음 기본 표시 폼 id
+        var daysToSelect = 0; // 달력 렌더시점 최종 선택 필요갯수
+
         (function () {
-            let currentFormId = "form-ROUND_TRIP"; // 처음 기본 표시 폼 id
 
             window.addSegment = function (containerId, delButton = true) {
                 const container = document.getElementById(containerId);
@@ -173,49 +428,82 @@
                 const newSegment = document.createElement('div');
                 newSegment.className = 'segment';
 
-                // 출발 공항
+                // ===== 출발 공항 =====
                 const departLabel = document.createElement('label');
                 departLabel.textContent = '출발 공항:';
+
+                const departWrapper = document.createElement('div');
+                departWrapper.className = 'city-input-wrapper';
+
                 const departInput = document.createElement('input');
                 departInput.type = 'text';
                 departInput.name = `segments[${index}].depart.airportCode`;
                 departInput.required = true;
-                departLabel.appendChild(departInput);
+                departInput.readOnly = true;
+                departInput.onclick = function () { openCityModal('depart', this); };
 
-                // 도착 공항
+                const departCityLabel = document.createElement('span');
+                departCityLabel.className = 'city-label';
+
+                departWrapper.appendChild(departInput);
+                departWrapper.appendChild(departCityLabel);
+                departLabel.appendChild(departWrapper);
+
+                // ===== 도착 공항 =====
                 const arriveLabel = document.createElement('label');
                 arriveLabel.textContent = '도착 공항:';
+
+                const arriveWrapper = document.createElement('div');
+                arriveWrapper.className = 'city-input-wrapper';
+
                 const arriveInput = document.createElement('input');
                 arriveInput.type = 'text';
                 arriveInput.name = `segments[${index}].arrive.airportCode`;
                 arriveInput.required = true;
-                arriveLabel.appendChild(arriveInput);
+                arriveInput.readOnly = true;
+                arriveInput.onclick = function () { openCityModal('arrive', this); };
 
-                // 출발일
+                const arriveCityLabel = document.createElement('span');
+                arriveCityLabel.className = 'city-label';
+
+                arriveWrapper.appendChild(arriveInput);
+                arriveWrapper.appendChild(arriveCityLabel);
+                arriveLabel.appendChild(arriveWrapper);
+
+                // ===== 출발일 =====
                 const dateLabel = document.createElement('label');
                 dateLabel.textContent = '출발일:';
+
                 const dateInput = document.createElement('input');
                 dateInput.type = 'date';
                 dateInput.name = `segments[${index}].departDate`;
                 dateInput.required = true;
+                dateInput.readOnly = true;
+                dateInput.onclick = function () { openCalendar(this); };
+
                 dateLabel.appendChild(dateInput);
 
-                // div에 라벨 추가
+                // ===== 조립 =====
                 newSegment.appendChild(departLabel);
                 newSegment.appendChild(arriveLabel);
                 newSegment.appendChild(dateLabel);
+                newSegment.appendChild(document.createElement('br'));
 
+                // ===== 삭제 버튼 =====
                 if (delButton) {
-                    // 삭제 버튼
                     const deleteBtn = document.createElement('button');
                     deleteBtn.type = 'button';
                     deleteBtn.textContent = '삭제';
                     deleteBtn.onclick = function () { deleteSegment(this); };
                     newSegment.appendChild(deleteBtn);
+                    newSegment.appendChild(document.createElement('br'));
                 }
 
+                newSegment.appendChild(document.createElement('hr'));
                 container.appendChild(newSegment);
-            }
+
+                segmentCount++;
+            };
 
             // 페이지 로드시 다구간 기본 1개 추가
             addSegment('multi-segments', false);
@@ -269,6 +557,8 @@
 
                 // 삭제 후 재인덱싱
                 reindexSegments(container);
+
+                segmentCount--;
             }
 
             // 재인덱싱 함수
@@ -327,6 +617,389 @@
                 fetchSection('/air/search', payload);
             };
 
+            // 오늘 확인 함수
+            window.isTodayDate = function (dateObj) {
+                const now = new Date();
+                return (
+                    dateObj.getFullYear() === now.getFullYear() &&
+                    dateObj.getMonth() === now.getMonth() &&
+                    dateObj.getDate() === now.getDate()
+                );
+            }
+
+            // 예약 불가 날짜인지 체크
+            window.isUnavailDate = function (dateObj) {
+                const inputDate = new Date(dateObj);
+                const today = new Date();
+
+                // 시분초를 제거 (날짜만 비교)
+                inputDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                // 오늘로부터 2일 후 계산
+                const after2Days = new Date(today);
+                after2Days.setDate(today.getDate() + 2);
+
+                // 오늘 이전이거나 오늘 이후 3일 이내
+                if (inputDate < today || inputDate <= after2Days) {
+                    return true;
+                }
+                return false;
+            };
+
+            // 달력 열기
+            window.openCalendar = function () {
+                daysToSelect =
+                    currentFormId == "form-ROUND_TRIP" ? 2 :
+                        currentFormId == "form-ONE_WAY" ? 1 :
+                            segmentCount;
+
+                console.log('daysToSelect = ', daysToSelect);
+
+                const calendarHtml = document.getElementById('calendar-modal').innerHTML;
+                openModalHtml(calendarHtml);
+                renderCalendar();
+            }
+
+            window.closeCalendar = function () {
+                selected = [];
+                closeModal()
+            }
+
+            // 달력 렌더링
+            window.renderCalendar = function () {
+                const container = document.getElementById('calendar');
+                const today = new Date();
+                const startMonth = today.getMonth();
+                const startYear = today.getFullYear();
+
+                for (let i = 0; i < 12; i++) {
+                    const monthDate = new Date(startYear, startMonth + i, 1);
+                    const year = monthDate.getFullYear();
+                    const month = monthDate.getMonth();
+
+                    const monthEl = document.createElement('div');
+                    monthEl.className = 'month';
+                    const monthName = monthDate.toLocaleString('default', { month: 'long' });
+                    monthEl.innerHTML = `<h3>${year}년 ${monthName}</h3>`;
+
+                    const table = document.createElement('table');
+                    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+
+                    // 요일 헤더
+                    const headerRow = document.createElement('tr');
+                    daysOfWeek.forEach(d => {
+                        const th = document.createElement('th');
+                        th.textContent = d;
+                        headerRow.appendChild(th);
+                    });
+                    table.appendChild(headerRow);
+
+                    // 날짜 셀 생성
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    let row = document.createElement('tr');
+
+                    // 빈칸 채우기
+                    for (let i = 0; i < firstDay; i++) {
+                        const td = document.createElement('td');
+                        td.className = 'empty';
+                        row.appendChild(td);
+                    }
+
+                    // 날짜 채우기
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dateObj = new Date(year, month, day);
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                        const td = document.createElement('td');
+                        td.textContent = day;
+                        td.dataset.date = dateStr;
+
+                        // 예약 불가 날짜 흐리게
+                        if (isUnavailDate(dateObj)) {
+                            if (isTodayDate(dateObj)) {
+                                td.classList.add('today');
+                            } else {
+                                td.classList.add('unavail');
+                            }
+                        }
+
+                        // 오늘 날짜 강조
+
+                        // 클릭 이벤트
+                        td.onclick = () => selectDay(td);
+
+                        row.appendChild(td);
+
+                        // 줄바꿈 처리
+                        if ((firstDay + day) % 7 === 0 || day === daysInMonth) {
+                            table.appendChild(row);
+                            row = document.createElement('tr');
+                        }
+                    }
+
+                    monthEl.appendChild(table);
+                    container.appendChild(monthEl);
+                }
+            }
+
         })();
+    </script>
+
+    <script>
+        // 달력 선택 관련
+        (function () {
+
+            let selectedDates = [];
+
+            // YYYY-MM-DD -> Date (00:00:00)
+            window.parseDateYMD = function (ymd) {
+                const [y, m, d] = ymd.split('-').map(Number);
+                return new Date(y, m - 1, d, 0, 0, 0, 0);
+            }
+
+            // Date -> YYYY-MM-DD
+            window.formatDateYMD = function (date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            // 모든 날짜 셀에서 range/selected 클래스 제거
+            window.clearAllRangeAndSelected = function () {
+                document.querySelectorAll('td[data-date].range, td[data-date].selected').forEach(td => {
+                    td.classList.remove('range', 'selected');
+                });
+            }
+
+            // 주어진 시작~끝(포함) 날짜까지 순회하면서 각 날짜의 td를 찾아 callback 실행
+            window.forEachDateInRange = function (startDate, endDate, callback) {
+                const d = new Date(startDate);
+                while (d <= endDate) {
+                    const ds = formatDateYMD(d);
+                    const td = document.querySelector(`td[data-date="${ds}"]`);
+                    if (td) callback(td, ds);
+                    d.setDate(d.getDate() + 1);
+                }
+            }
+
+            // 날짜 클릭 테스트
+            window.selectDay = function (cell) {
+                const date = cell.dataset.date;
+                if (!date) return;
+                console.log("선택된 날짜 클릭:", date);
+
+                // 예약 불가 여부
+                if (window.isUnavailDate && window.isUnavailDate(date)) {
+                    alert(`선택된 날짜는 예약 불가능합니다.: ${date}`);
+                    return;
+                }
+
+                // 중복 클릭 무시(원하면 토글로 변경 가능)
+                if (selectedDates.includes(date)) {
+                    console.log('이미 선택된 날짜입니다:', date);
+                    return;
+                }
+
+                const clickedDate = parseDateYMD(date);
+
+                // 1) selectedDates가 daysToSelect만큼 차있으면 배열 초기화 후 push
+                if (selectedDates.length >= daysToSelect) {
+                    selectedDates = [date];
+                } else if (selectedDates.length > 0) {
+                    // selectedDates가 비어있지 않을 때: 배열의 가장 이른 날짜와 비교
+                    const firstSelectedDate = parseDateYMD(selectedDates[0]);
+
+                    // 2) 클릭한 날짜가 기존 선택들보다 이르면 배열 초기화 후 push
+                    if (clickedDate < firstSelectedDate) {
+                        selectedDates = [date];
+                    } else {
+                        // 3) 기존 선택들보다 늦으면 그냥 push
+                        selectedDates.push(date);
+                    }
+                } else {
+                    // selectedDates가 비어있으면 그냥 push
+                    selectedDates.push(date);
+                }
+
+                console.log('현재 selected 배열:', selectedDates);
+
+                // 4) 클래스 업데이트: 기존 range/selected 제거 -> 배열 첫~마지막 날짜까지 range 클래스 추가
+                clearAllRangeAndSelected();
+
+                // 정렬 보장: selected는 논리상 오름차순이지만 안전하게 정렬 (문자열로도 YYYY-MM-DD이므로 정렬 가능)
+                selectedDates.sort();
+
+                const start = parseDateYMD(selectedDates[0]);
+                const end = parseDateYMD(selectedDates[selectedDates.length - 1]);
+
+                // start~end에 대해 range 클래스 추가
+                forEachDateInRange(start, end, (td) => {
+                    td.classList.add('range');
+                });
+
+                // 배열 내 날짜들에는 selected 클래스 추가 (우선순위: selected 위에 range 있어도 함께 유지)
+                selectedDates.forEach(ds => {
+                    const td = document.querySelector(`td[data-date="${ds}"]`);
+                    if (td) {
+                        td.classList.add('selected');
+                        td.classList.remove('range');
+                    }
+                });
+
+                // footer 텍스트 갱신
+                updateFooterStatus();
+            };
+
+            window.updateFooterStatus = function () {
+                const textEl = document.getElementById('selected-date-text');
+                const btn = document.querySelector('.confirm-btn');
+
+                if (!textEl || !btn) return;
+
+                if (selectedDates.length === 0) {
+                    textEl.textContent = '날짜를 선택하세요';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    return;
+                }
+
+                const start = selectedDates[0];
+                const end = selectedDates[selectedDates.length - 1];
+
+                // ✅ 날짜 요약 표시
+                if (selectedDates.length === 1) {
+                    textEl.textContent = `${start} 선택 중`;
+                } else {
+                    textEl.textContent = `${start} ~ ${end}`;
+                }
+
+                // ✅ 버튼 활성화 조건
+                if (selectedDates.length === daysToSelect) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                }
+            };
+
+            window.confirmSelectedDates = function () {
+                if (!currentFormId) {
+                    console.warn("currentFormId가 설정되지 않았습니다.");
+                    return;
+                }
+
+                if (selectedDates.length === 0) {
+                    alert("날짜를 선택하세요.");
+                    return;
+                }
+
+                selectedDates.sort();
+
+                // 현재 폼 내 date input 목록 가져오기
+                const form = document.getElementById(currentFormId);
+                if (!form) {
+                    console.warn("폼을 찾을 수 없습니다.");
+                    return;
+                }
+
+                const dateInputs = form.querySelectorAll('input[type="date"][name^="segments"]');
+                if (dateInputs.length === 0) {
+                    console.warn("날짜 입력란이 없습니다.");
+                    return;
+                }
+
+                // 선택된 날짜를 순서대로 입력
+                const count = Math.min(selectedDates.length, dateInputs.length);
+                for (let i = 0; i < count; i++) {
+                    dateInputs[i].value = selectedDates[i];
+                }
+
+                selectedDates = [];
+                closeModal();
+            }
+
+
+        })();
+    </script>
+    <script>
+        let currentCityMode = null; // 'depart' || 'arrive'
+        let currentCityInput = null;
+
+        (function () {
+
+            window.openCityModal = function (mode, inputEl) {
+                currentCityMode = mode;
+                currentCityInput = inputEl;
+
+                const html = document.getElementById('city-select-modal').innerHTML;
+                openModalHtml(html);
+
+                const titleEl = document.getElementById('cityModalTitle');
+                if (titleEl) {
+                    titleEl.textContent = mode === 'depart' ? '출발지 선택' : '도착지 선택';
+                }
+            }
+
+            window.filterCityList = function (keyword) {
+                keyword = keyword.trim();
+                const resultsBox = document.getElementById('citySearchResults');
+                const listBox = document.getElementById('cityGroupList');
+                const list = document.getElementById('citySearchList');
+                list.innerHTML = '';
+
+                if (!keyword) {
+                    resultsBox.style.display = 'none';
+                    listBox.style.display = 'block';
+                    return;
+                }
+
+                const allCities = [...document.querySelectorAll('#cityGroupList button')];
+                const matches = allCities.filter(btn => btn.textContent.includes(keyword));
+
+                if (matches.length === 0) {
+                    list.innerHTML = '<li><p>검색된 지역이 없습니다.</p></li>';
+                } else {
+                    matches.forEach(btn => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<button onclick="selectCity('${btn.textContent}')">${btn.textContent}</button>`;
+                        list.appendChild(li);
+                    });
+                }
+
+                resultsBox.style.display = 'block';
+                listBox.style.display = 'none';
+            };
+
+            window.selectCity = function (btn) {
+                const cityCode = btn.dataset.code;
+                const cityName = btn.dataset.name;
+
+                if (!currentCityInput) return;
+
+                // 실제 form input에는 공항 코드 저장
+                currentCityInput.value = cityCode;
+
+                // input 옆에 도시명 라벨이 있으면 업데이트
+                let label = currentCityInput.nextElementSibling;
+                if (!label || !label.classList.contains('city-label')) {
+                    label = document.createElement('span');
+                    label.className = 'city-label';
+                    label.style.marginLeft = '6px';
+                    label.style.fontWeight = 'bold';
+                    currentCityInput.insertAdjacentElement('afterend', label);
+                }
+                label.textContent = cityName;
+
+                console.log(`선택됨 → ${cityName} (${cityCode})`);
+
+                closeModal();
+            };
+
+        })();
+
     </script>
 </div>

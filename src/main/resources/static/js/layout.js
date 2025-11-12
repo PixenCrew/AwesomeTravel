@@ -199,6 +199,22 @@ function openModal(endPoint, payload = null) {
     currentModal = newModal;
 }
 
+// 문자열 모달 열기
+function openModalHtml(htmlString) {
+    modalStack = [];
+    fullModal.classList.remove('hide');
+    fullModal.classList.add('show');
+
+    const newModal = document.createElement('div');
+    newModal.classList.add('modal-slide', 'show');
+
+    // 전달받은 HTML 직접 주입
+    newModal.innerHTML = htmlString;
+    executeScripts(newModal);
+    modalBody.appendChild(newModal);
+    currentModal = newModal;
+}
+
 // 새 모달 내용 생성
 function addModal(endPoint, flush = false, payload = null) {
     const newModal = document.createElement('div');
