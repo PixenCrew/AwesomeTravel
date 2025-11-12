@@ -97,6 +97,9 @@ public class AirService {
                 // 항공편 경로 상세
                 currentTrip.setFlightSegments(currentAir.getFlightSegments());
 
+                // seatClass id 입력
+                currentTrip.setSeatClassId(seat.getId());
+
                 currentTrips.add(currentTrip);
             }
             current.setPrice(priceSum);

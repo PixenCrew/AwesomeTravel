@@ -23,6 +23,8 @@ public class AirSearchResponseDto {
     @Setter
     @NoArgsConstructor
     public static class Trip { // == SeatClass
+        private Long seatClassId;
+
         private Airline airline; // 항공사
         private String flightNumber; // 항공편 코드
 

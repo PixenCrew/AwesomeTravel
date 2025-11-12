@@ -1,4 +1,10 @@
 <div>
+    <style>
+        .trip-container {
+            box-sizing: border-box;
+            border: 1px solid darkgray;
+        }
+    </style>
     <header class="section-header">
         <h1>항공 검색 결과</h1>
         <div class="right">
@@ -23,10 +29,13 @@
             <p>검색 결과가 없습니다.</p>
         </div>
 
-        <div th:each="air : ${searchResult}" class="trip-container">
+        <div th:each="air : ${searchResult}" class="trip-container" onclick="logSeatClassIds(this)">
             <h2>가격: <span th:text="${air.price}">0</span> 원</h2>
 
-            <div th:each="trip, iterStat : ${air.tripList}" style="border: 1px solid lightgray; margin: 5px; padding: 5px;">
+            <div th:each="trip, iterStat : ${air.tripList}"
+                class="trip-item"
+                th:attr="data-seatclass-id=${trip.seatClassId}"
+                style="border: 1px solid lightgray; margin: 5px; padding: 5px;">
                 <h3>여정 [[${iterStat.index + 1}]]</h3>
                 <table>
                     <thead>
@@ -88,4 +97,17 @@
         </div>
     </div>
 
+    <script>
+        window.logSeatClassIds = function (container) {
+            // 현재 클릭한 trip-container 내의 모든 trip 요소에서 seatClassId 수집
+            const seatIds = [];
+
+            // seatClassId는 숨김 input이나 data-* 속성으로 전달되어야 접근 가능
+            container.querySelectorAll('[data-seatclass-id]').forEach(el => {
+                seatIds.push(el.dataset.seatclassId);
+            });
+
+            console.log('🔹 SeatClass IDs:', seatIds);
+        };
+    </script>
 </div>
