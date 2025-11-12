@@ -591,7 +591,7 @@
                     if (el.type === 'checkbox') {
                         payload[el.name] = el.checked;
                     } else {
-                        payload[el.name] = el.value;
+                        payload[el.name] = el.value.trim();
                     }
                 });
 
@@ -605,15 +605,48 @@
 
                     if (!departInput && !arriveInput && !dateInput) return; // 빈 div skip
 
-                    segment.depart = { airportCode: departInput?.value || '' };
-                    segment.arrive = { airportCode: arriveInput?.value || '' };
+                    segment.depart = { airportCode: departInput?.value.trim() || '' };
+                    segment.arrive = { airportCode: arriveInput?.value.trim() || '' };
                     segment.departDate = dateInput?.value || '';
 
                     payload.segments.push(segment);
                 });
-                console.log(payload);
 
-                // fetchSection 호출
+                // 입력값 누락 확인용
+                const missing = [];
+
+                // 1. 인원 수
+                const adult = parseInt(payload.adultCount || 0);
+                const youth = parseInt(payload.youthCount || 0);
+                const infant = parseInt(payload.infantCount || 0);
+                const totalPassengers = adult + youth + infant;
+
+                if (totalPassengers <= 0) {
+                    missing.push('탑승 인원 1명 이상');
+                }
+
+                // 2. 유아 > 성인
+                if (infant > adult) missing.push('유아 수는 성인 수를 초과할 수 없습니다');
+
+                // 3. 좌석 등급
+                if (!payload.seatClassType) missing.push('좌석 등급');
+
+                // 4. 세그먼트 값
+                payload.segments.forEach((seg, i) => {
+                    const n = i + 1;
+                    if (!seg.depart.airportCode) missing.push(`구간${n} 출발 공항`);
+                    if (!seg.arrive.airportCode) missing.push(`구간${n} 도착 공항`);
+                    if (!seg.departDate) missing.push(`구간${n} 출발일`);
+                });
+
+                if (missing.length > 0) {
+                    alert(`다음 항목을 입력해야 합니다:\n\n- ${missing.join('\n- ')}`);
+                    return;
+                }
+
+                console.log('payload:', payload);
+
+                // 서버 전송
                 fetchSection('/air/search', payload);
             };
 
@@ -926,8 +959,8 @@
         })();
     </script>
     <script>
-        let currentCityMode = null; // 'depart' || 'arrive'
-        let currentCityInput = null;
+        var currentCityMode = null; // 'depart' || 'arrive'
+        var currentCityInput = null;
 
         (function () {
 
