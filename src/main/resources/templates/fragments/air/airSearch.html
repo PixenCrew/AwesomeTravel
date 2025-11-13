@@ -286,8 +286,18 @@
                 <div class="section-body">
                     <!-- 검색창 -->
                     <div class="city-search-box">
-                        <input type="text" id="citySearchInput" placeholder="국가 / 도시 / 공항명으로 검색" oninput="filterCityList(this.value)">
-                        <button type="button" onclick="filterCityList(document.getElementById('citySearchInput').value)">검색</button>
+                        <input
+                            type="text"
+                            id="citySearchInput"
+                            placeholder="국가 / 도시 / 공항명으로 검색"
+                            oninput="filterCityList(this.value)"
+                            onfocus="isCityInputFocused = true"
+                            onblur="isCityInputFocused = false; clearTimeout(citySearchTimer)">
+                        <button
+                            type="button"
+                            onclick="filterCityList(document.getElementById('citySearchInput').value)">
+                            검색
+                        </button>
                     </div>
 
                     <!-- 검색 결과 -->
@@ -961,6 +971,8 @@
     <script>
         var currentCityMode = null; // 'depart' || 'arrive'
         var currentCityInput = null;
+        var citySearchTimer = null;
+        var isCityInputFocused = false;
 
         (function () {
 
@@ -978,34 +990,77 @@
             }
 
             window.filterCityList = function (keyword) {
-                keyword = keyword.trim();
-                const resultsBox = document.getElementById('citySearchResults');
-                const listBox = document.getElementById('cityGroupList');
-                const list = document.getElementById('citySearchList');
-                list.innerHTML = '';
+                clearTimeout(citySearchTimer);
 
-                if (!keyword) {
-                    resultsBox.style.display = 'none';
-                    listBox.style.display = 'block';
+                // blur 상태 검색 UI 변경 금지
+                if (!isCityInputFocused) {
                     return;
                 }
 
-                const allCities = [...document.querySelectorAll('#cityGroupList button')];
-                const matches = allCities.filter(btn => btn.textContent.includes(keyword));
+                const groupList = document.getElementById('cityGroupList');
+                const searchResults = document.getElementById('citySearchResults');
+                const searchList = document.getElementById('citySearchList');
 
-                if (matches.length === 0) {
-                    list.innerHTML = '<li><p>검색된 지역이 없습니다.</p></li>';
-                } else {
-                    matches.forEach(btn => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<button onclick="selectCity('${btn.textContent}')">${btn.textContent}</button>`;
-                        list.appendChild(li);
-                    });
+                let query = keyword.trim();
+
+                // 입력이 없으면 → 기본 목록 표시
+                if (query.length === 0) {
+                    groupList.style.display = 'block';
+                    searchResults.style.display = 'none';
+                    searchList.innerHTML = '';
+                    return;
                 }
 
-                resultsBox.style.display = 'block';
-                listBox.style.display = 'none';
+                // focus 중일 때만 UI 업데이트
+                groupList.style.display = 'none';
+                searchResults.style.display = 'block';
+
+                // // 2글자 미만이면 fetch 안 함
+                // if (query.length < 2) {
+                //     searchList.innerHTML = '<li>2글자 이상 입력해주세요.</li>';
+                //     return;
+                // }
+
+                searchList.innerHTML = '';
+
+                citySearchTimer = setTimeout(() => {
+
+                    // blur 되었다면 fetch 실행 안함
+                    if (!isCityInputFocused) return;
+
+                    searchList.innerHTML = '<li>검색 중...</li>';
+
+                    fetch(`/api/code/search?keyword=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!isCityInputFocused) return;
+                            renderCitySearchResults(data);
+                        })
+                        .catch(err => {
+                            searchList.innerHTML = '<li>검색 실패. 다시 시도해주세요.</li>';
+                        });
+
+                }, 1000);
             };
+
+            function renderCitySearchResults(data) {
+                const list = document.getElementById("citySearchList");
+                list.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<li>검색된 결과가 없습니다.</li>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                                    <button data-code="${item.airportCode}" data-name="${item.cityKor}" onclick="selectCity(this)">
+                                        ${item.cityKor} - ${item.airportKor} (${item.airportCode})
+                                    </button>`;
+                    list.appendChild(li);
+                });
+            }
 
             window.selectCity = function (btn) {
                 const cityCode = btn.dataset.code;
