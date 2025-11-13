@@ -1,6 +1,7 @@
 package renewal.awesome_travel.air.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,4 +37,16 @@ public interface SeatClassRepository extends JpaRepository<SeatClass, Long> {
                 return findTop1ByAir_DepartDateTimeBetweenAndAir_DepartAirportAndAir_ArriveAirportAndClassTypeInOrderByPriceAdultAsc(
                                 startOfDay, endOfDay, departAirport, arriveAirport, classTypes);
         }
+
+        @Query("""
+                            SELECT DISTINCT sc FROM SeatClass sc
+                            JOIN FETCH sc.air a
+                            JOIN FETCH a.airline al
+                            JOIN FETCH a.departAirport da
+                            JOIN FETCH a.arriveAirport aa
+                            LEFT JOIN FETCH a.flightSegments fs
+                            WHERE sc.id IN :ids
+                        """)
+        List<SeatClass> findAllWithAirInfoByIds(@Param("ids") List<Long> ids);
+
 }

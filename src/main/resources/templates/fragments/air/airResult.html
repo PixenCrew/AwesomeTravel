@@ -13,15 +13,15 @@
     </header>
 
     <div class="section-body">
-        <div>
+        <div class="search-summary">
             <h4>조건</h4>
             <ul>
-                <li>항공 타입: <span th:text="${airSearchRequestDto.tripType}">항공 타입</span></li>
-                <li>성인: <span th:text="${airSearchRequestDto.adultCount}">성인</span></li>
-                <li>청소년: <span th:text="${airSearchRequestDto.youthCount}">청소년</span></li>
-                <li>영유아: <span th:text="${airSearchRequestDto.infantCount}">영유아</span></li>
-                <li>좌석 등급: <span th:text="${airSearchRequestDto.seatClassType}">좌석 등급</span></li>
-                <li>직항 여부: <span th:text="${airSearchRequestDto.directOnly}">직항 여부</span></li>
+                <li>항공 타입: <span id="tripType" th:text="${airSearchRequestDto.tripType}"></span></li>
+                <li>성인: <span id="adultCount" th:text="${airSearchRequestDto.adultCount}"></span></li>
+                <li>청소년: <span id="youthCount" th:text="${airSearchRequestDto.youthCount}"></span></li>
+                <li>영유아: <span id="infantCount" th:text="${airSearchRequestDto.infantCount}"></span></li>
+                <li>좌석 등급: <span id="seatClassType" th:text="${airSearchRequestDto.seatClassType}"></span></li>
+                <li>직항 여부: <span id="directOnly" th:text="${airSearchRequestDto.directOnly}"></span></li>
             </ul>
         </div>
 
@@ -29,7 +29,7 @@
             <p>검색 결과가 없습니다.</p>
         </div>
 
-        <div th:each="air : ${searchResult}" class="trip-container" onclick="logSeatClassIds(this)">
+        <div th:each="air : ${searchResult}" class="trip-container" onclick="getAirDetail(this)">
             <h2>가격: <span th:text="${air.price}">0</span> 원</h2>
 
             <div th:each="trip, iterStat : ${air.tripList}"
@@ -98,16 +98,30 @@
     </div>
 
     <script>
-        window.logSeatClassIds = function (container) {
-            // 현재 클릭한 trip-container 내의 모든 trip 요소에서 seatClassId 수집
-            const seatIds = [];
+        window.getAirDetail = function (container) {
 
-            // seatClassId는 숨김 input이나 data-* 속성으로 전달되어야 접근 가능
+            // 요청 정보 수집
+            const requestData = {};
+            const summaryEl = document.querySelector(".search-summary");
+            const spans = summaryEl.querySelectorAll("span[id]");
+
+            spans.forEach(span => {
+                const key = span.id;
+                const value = span.textContent.trim();
+                requestData[key] = value;
+            });
+            console.log('🔹 requestData:', requestData);
+
+            // seatClassId 수집 (현재 클릭한 컨테이너)
+            const seatIds = [];
             container.querySelectorAll('[data-seatclass-id]').forEach(el => {
                 seatIds.push(el.dataset.seatclassId);
             });
-
             console.log('🔹 SeatClass IDs:', seatIds);
+
+            requestData.seatClassIds = seatIds;
+
+            openModal('/air/detail', requestData);
         };
     </script>
 </div>
