@@ -132,25 +132,24 @@
                         <input type="date" name="segments[0].departDate" onclick="openCalendar(this)" readonly required>
                     </label><br>
                 </div>
-                <br>
-                <div>귀환</div>
                 <div>
-                    <label>출발 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].depart.airportCode"
-                                onclick="openCityModal('depart', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
+                    <div style="display: none;">
+                        <label>출발 공항:
+                            <div class="city-input-wrapper">
+                                <input type="text" name="segments[1].depart.airportCode"
+                                    onclick="openCityModal('depart', this)" readonly required>
+                                <span class="city-label"></span>
+                            </div>
+                        </label>
 
-                    <label>도착 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].arrive.airportCode"
-                                onclick="openCityModal('arrive', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
-
+                        <label>도착 공항:
+                            <div class="city-input-wrapper">
+                                <input type="text" name="segments[1].arrive.airportCode"
+                                    onclick="openCityModal('arrive', this)" readonly required>
+                                <span class="city-label"></span>
+                            </div>
+                        </label>
+                    </div>
                     <label>귀환일:
                         <input type="date" name="segments[1].departDate" onclick="openCalendar(this)" readonly required>
                     </label><br>
@@ -1040,7 +1039,7 @@
                             searchList.innerHTML = '<li>검색 실패. 다시 시도해주세요.</li>';
                         });
 
-                }, 1000);
+                }, 500);
             };
 
             function renderCitySearchResults(data) {
@@ -1083,6 +1082,23 @@
                 label.textContent = cityName;
 
                 console.log(`선택됨 → ${cityName} (${cityCode})`);
+
+                // 왕복시 동기화
+                if (currentFormId === "form-ROUND_TRIP") {
+                    const name = currentCityInput.name;
+
+                    // 출발 segment0 → depart
+                    if (name === "segments[0].depart.airportCode") {
+                        const hiddenArrive1 = document.querySelector('input[name="segments[1].arrive.airportCode"]');
+                        if (hiddenArrive1) hiddenArrive1.value = currentCityInput.value;
+                    }
+
+                    // 도착 segment0 → arrive
+                    if (name === "segments[0].arrive.airportCode") {
+                        const hiddenDepart1 = document.querySelector('input[name="segments[1].depart.airportCode"]');
+                        if (hiddenDepart1) hiddenDepart1.value = currentCityInput.value;
+                    }
+                }
 
                 closeModal();
             };
