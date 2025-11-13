@@ -97,8 +97,33 @@
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+        window.isChangeSearch = /*[[${airSearchRequestDto.changeSearch}]]*/ false;
+
         window.getAirDetail = function (container) {
+
+            // 항공 변경 검색 모드일 때 
+            if (isChangeSearch === true) {
+                console.log("항공편 변경 모드");
+
+                // seatClassId 하나만 추출 (변경 검색 결과는 편도 1개)
+                let selectedSeatClassId = null;
+                const seatEl = container.querySelector('[data-seatclass-id]');
+                if (seatEl) {
+                    selectedSeatClassId = seatEl.dataset.seatclassId;
+                }
+
+                console.log("선택된 seatClassId:", selectedSeatClassId);
+
+                // 부모 모달로 callback 전달
+                if (typeof window.changeFlightCallback === 'function') {
+                    window.changeFlightCallback(selectedSeatClassId);
+                }
+
+                // 변경 검색 모달 닫기
+                // closeModal();
+                return;
+            }
 
             // 요청 정보 수집
             const requestData = {};

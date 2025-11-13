@@ -36,7 +36,7 @@ public class AirService {
         Long seatCountYouth = request.getYouthCount();
         Long seatCountInfant = request.getInfantCount();
         SeatClassType seatClassType = request.getSeatClassType();
-        Boolean directOnly = request.getDirectOnly();
+        boolean directOnly = request.isDirectOnly();
 
         // 구간별 변수
         AirportCode depart;

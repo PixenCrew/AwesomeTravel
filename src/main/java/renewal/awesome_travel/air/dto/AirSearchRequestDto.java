@@ -27,10 +27,14 @@ public class AirSearchRequestDto {
     private SeatClassType seatClassType;
 
     // 직항 여부
-    private Boolean directOnly;
+    private boolean directOnly;
 
     // 구간 리스트
     private List<RequestSegment> segments = new ArrayList<>();
+
+    // 항공편 교체 검색 요청인지?
+    private boolean changeSearch = false;
+    private Long excludeSeatClassId = 0L;
 
     @Getter
     @Setter

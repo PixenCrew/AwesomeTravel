@@ -25,7 +25,7 @@
                 <div class="date-info">
                     <!-- ONE_WAY -->
                     <span th:if="${detailRequest.tripType.name() == 'ONE_WAY'}"
-                        th:text="${detailRequest.segments[0].departDate}"></span>
+                        th:text="${seatClasses[0].air.departDateTime}"></span>
                     <!-- ROUND_TRIP -->
                     <span th:if="${detailRequest.tripType.name() == 'ROUND_TRIP'}">
                         <span th:text="${seatClasses[0].air.departDateTime}"></span>
@@ -185,7 +185,11 @@
             <section class="trip-detail">
                 <h3>여정 정보</h3>
 
-                <div th:each="seat, idx : ${seatClasses}" class="trip-box">
+                <div
+                    th:each="seat, idx : ${seatClasses}"
+                    th:attr="data-seatclass-id=${seat.id}, data-segment-index=${idx.index}"
+                    class="trip-box">
+
                     <!-- 구간 제목: ONE_WAY / ROUND_TRIP / MULTI -->
                     <!-- ONE_WAY -->
                     <h4 class="trip-title"
@@ -218,11 +222,20 @@
 
                         <div class="flight-info">
 
-                            <!-- 항공사/편명/변경 버튼 -->
+                            <!-- 항공편 변경 버튼 -->
                             <div class="flight-header">
                                 <span th:text="${seat.air.airline.nameKor}"></span>
                                 <span th:text="${seat.air.flightNumber}"></span>
-                                <button class="change-flight-btn">항공편 변경</button>
+
+                                <button class="change-flight-btn"
+                                    th:onclick="openFlightChange(this)"
+                                    th:data-index="${idx.index}"
+                                    th:data-depart="${seat.air.departAirport.airportCode}"
+                                    th:data-arrive="${seat.air.arriveAirport.airportCode}"
+                                    th:data-date="${seat.air.departDateTime.toLocalDate()}"
+                                    th:data-exclude="${seat.id}">
+                                    항공편 변경
+                                </button>
                             </div>
 
                             <!-- 시간 -->
@@ -255,6 +268,72 @@
             </section>
         </div>
     </div>
-    <script>
+    <script th:inline="javascript">
+
+        // Thymeleaf에서 detailRequest를 객체로 받되 문자열 배열로 강제 변환
+        window.detailRequest = /*[[${detailRequest}]]*/ {};
+
+        // seatClassIds 모두 문자열로 통일
+        if (Array.isArray(window.detailRequest.seatClassIds)) {
+            window.detailRequest.seatClassIds =
+                window.detailRequest.seatClassIds.map(id => id + "");
+        }
+
+        window.openFlightChange = function (btn) {
+
+            const idx = parseInt(btn.dataset.index);
+            const depart = btn.dataset.depart;
+            const arrive = btn.dataset.arrive;
+            const date = btn.dataset.date;
+            const exclude = btn.dataset.exclude;
+
+            console.log("변경 대상 index:", idx);
+            console.log("depart:", depart);
+            console.log("arrive:", arrive);
+            console.log("date:", date);
+
+            window.latestSegmentIndex = idx; // callback에서 사용
+
+            const request = {
+                tripType: "ONE_WAY",
+                adultCount: detailRequest.adultCount,
+                youthCount: detailRequest.youthCount,
+                infantCount: detailRequest.infantCount,
+                seatClassType: detailRequest.seatClassType,
+                directOnly: detailRequest.directOnly,
+                changeSearch: true,
+                excludeSeatClassId: exclude,
+                segments: [
+                    {
+                        depart: { airportCode: depart },
+                        arrive: { airportCode: arrive },
+                        departDate: date
+                    }
+                ]
+            };
+
+            // 항공 선택 모달 열기
+            addModal('/air/search', false, request);  // 원하는 URL 적용
+        };
+
+        // seatClassId 교체 후 재조회할 callback
+        window.changeFlightCallback = function (newSeatClassId) {
+
+            console.log("새 seatClassId:", newSeatClassId);
+            console.log("변경 대상 index:", window.latestSegmentIndex);
+
+            const idx = window.latestSegmentIndex;
+
+            // seatClassIds 배열의 해당 index만 교체
+            detailRequest.seatClassIds[idx] = newSeatClassId;
+
+            console.log("detailRequest ", detailRequest);
+            isChangeSearch = false;
+
+            // 다시 상세 페이지 로딩
+            addModal('/air/detail', true, detailRequest);
+        };
+
+
     </script>
 </div>

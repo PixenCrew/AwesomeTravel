@@ -1,5 +1,6 @@
 package renewal.awesome_travel.air.controller;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -35,6 +36,26 @@ public class AirController {
     public String postAirSearch(@RequestBody AirSearchRequestDto searchRequest, Model model) {
 
         List<AirSearchResponseDto> resultList = airService.searchAir(searchRequest);
+
+        // 결과 제외 대상 확인
+        if (searchRequest.isChangeSearch() && searchRequest.getExcludeSeatClassId() != null) {
+
+            Long exclude = searchRequest.getExcludeSeatClassId();
+
+            for (int i = 0; i < resultList.size(); i++) {
+
+                AirSearchResponseDto dto = resultList.get(i);
+
+                // 현재 항공편의 seatClassId
+                Long seatClassId = dto.getTripList().get(0).getSeatClassId();
+
+                if (seatClassId.equals(exclude)) {
+                    resultList.remove(i); // 해당 요소 제거
+                    break; // 바로 종료
+                }
+            }
+        }
+
         System.out.println("===============Result=================" + resultList.toString());
         model.addAttribute("airSearchRequestDto", searchRequest);
         model.addAttribute("searchResult", resultList);
@@ -45,6 +66,7 @@ public class AirController {
     public String showPurchasePage(@RequestBody AirDetailRequestDto detailRequest, Model model) {
 
         List<SeatClass> seatClasses = seatClassRepo.findAllWithAirInfoByIds(detailRequest.getSeatClassIds());
+        seatClasses.sort(Comparator.comparing(sc -> sc.getAir().getDepartDateTime()));
 
         long PRICEADULT = 0L;
         long PRICEYOUTH = 0L;
