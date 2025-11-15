@@ -67,6 +67,9 @@ dependencies {
 	annotationProcessor 	group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
 	annotationProcessor 	group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0'
 
+	testCompileOnly			group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
+	testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
+
 	// QueryDSL
 	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
 	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
@@ -99,4 +102,14 @@ dependencies {
 
 test {
     useJUnitPlatform()
+	
+    reports {
+        html.required.set(true)
+        junitXml.required.set(true)
+    }
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+        showStandardStreams = true
+        exceptionFormat = "full"
+    }
 }
