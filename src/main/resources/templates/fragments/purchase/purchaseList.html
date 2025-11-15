@@ -11,8 +11,15 @@
         <div th:each="purchaseProduct : ${purchaseProducts}">
             <ul>
                 <li th:onclick="'openModal(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">
-                    <!-- 원하는 내용 표시 -->
                     <span th:text="${purchaseProduct.product.title}">상품명</span>
+                </li>
+            </ul>
+        </div>
+
+        <div th:each="purchaseAir : ${purchaseAirs}">
+            <ul>
+                <li th:onclick="'openModal(\'/air/purchase/' + ${purchaseAir.id} + '\')'">
+                    <span th:text="${purchaseAir.title}">상품명</span>
                 </li>
             </ul>
         </div>

@@ -52,9 +52,9 @@ import renewal.common.entity.Passenger.AgeGroup;
 import renewal.common.entity.Payment;
 import renewal.common.entity.Product;
 import renewal.common.entity.Product.ProductStatus;
+import renewal.common.entity.PurchaseBase.ConfirmedSeatClass;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
-import renewal.common.entity.PurchaseProduct.ConfirmedSeatClass;
 import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
 import renewal.common.repository.CountryCodeRepository;
@@ -70,7 +70,7 @@ public class ProductController {
     private final UserRepository userRepo;
     private final PassengerRepository passengerRepo;
     private final PurchaseProductRepository purchaseProductRepo;
-    private final PaymentRepository paymentProductRepo;
+    private final PaymentRepository paymentRepo;
     private final CountryCodeRepository countryCodeRepo;
     private final InquiryRepository inquiryRepo;
 
@@ -286,6 +286,7 @@ public class ProductController {
         }
 
         // PurchaseBase 부분
+        purchaseProduct.setTitle(calcedProduct.getTitle());
         purchaseProduct.setPurchaseStatus(PurchaseStatus.RESERVED);
         purchaseProduct.setPrice(finalPrice);
         purchaseProduct.setUser(user);
@@ -319,7 +320,7 @@ public class ProductController {
         model.addAttribute("purchaseProduct", purchaseProduct);
         model.addAttribute("paymentInfo", "");
 
-        return "fragments/purchase/purchaseDetail";
+        return "fragments/purchase/purchaseProductDetail";
     }
 
     @GetMapping("/purchase/{id}")
@@ -332,7 +333,7 @@ public class ProductController {
         model.addAttribute("purchaseProduct", purchaseProduct);
         model.addAttribute("paymentInfo", "");
 
-        return "fragments/purchase/purchaseDetail";
+        return "fragments/purchase/purchaseProductDetail";
     }
 
     @GetMapping("/purchase/{id}/passport")
@@ -387,7 +388,7 @@ public class ProductController {
         model.addAttribute("purchaseProduct", purchaseProduct);
         model.addAttribute("paymentInfo", "");
 
-        return "fragments/purchase/purchaseDetail";
+        return "fragments/purchase/purchaseProductDetail";
     }
 
     @GetMapping("/purchase/{id}/payment")
@@ -395,7 +396,8 @@ public class ProductController {
 
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
 
-        model.addAttribute("purchaseProduct", purchaseProduct);
+        model.addAttribute("purchaseBase", purchaseProduct);
+        model.addAttribute("paymentType", "product");
 
         return "fragments/payment";
     }
@@ -419,7 +421,7 @@ public class ProductController {
         payment.setPurchaseStatus(Payment.PaymentStatus.PAID);
         payment.setPurchaseDate(LocalDateTime.now());
 
-        paymentProductRepo.save(payment);
+        paymentRepo.save(payment);
 
         // 구매 상태 업데이트
         purchaseProduct.setPurchaseStatus(PurchaseStatus.PAID);

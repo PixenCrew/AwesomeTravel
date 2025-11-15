@@ -17,33 +17,36 @@
             <section class="route-summary">
                 <!-- 공통 출발지 → 도착지 -->
                 <div class="route-info">
-                    <span th:text="${seatClasses[0].air.departAirport.airportCode}"></span>
+                    <span th:text="${detailResult.seatClasses[0].air.departAirport.airportCode}"></span>
                     →
-                    <span th:text="${seatClasses[seatClasses.size()-1].air.arriveAirport.airportCode}"></span>
+                    <span th:text="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'} 
+                        ? ${detailResult.seatClasses[0].air.arriveAirport.airportCode} 
+                        : ${detailResult.seatClasses[detailResult.seatClasses.size()-1].air.arriveAirport.airportCode}">
+                    </span>
                 </div>
                 <!-- 날짜 표현: ROUND_TRIP / ONE_WAY / MULTI -->
                 <div class="date-info">
                     <!-- ONE_WAY -->
-                    <span th:if="${detailRequest.tripType.name() == 'ONE_WAY'}"
-                        th:text="${seatClasses[0].air.departDateTime}"></span>
+                    <span th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}"
+                        th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
                     <!-- ROUND_TRIP -->
-                    <span th:if="${detailRequest.tripType.name() == 'ROUND_TRIP'}">
-                        <span th:text="${seatClasses[0].air.departDateTime}"></span>
+                    <span th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}">
+                        <span th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
                         ~
-                        <span th:text="${seatClasses[1].air.arriveDateTime}"></span>
+                        <span th:text="${detailResult.seatClasses[1].air.arriveDateTime}"></span>
                     </span>
                     <!-- MULTI -->
-                    <span th:if="${detailRequest.tripType.name() == 'MULTI'}">
-                        <span th:text="${seatClasses[0].air.departDateTime}"></span>
+                    <span th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}">
+                        <span th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
                         ~
-                        <span th:text="${seatClasses[seatClasses.size()-1].air.arriveDateTime}"></span>
+                        <span th:text="${detailResult.seatClasses[seatClasses.size()-1].air.arriveDateTime}"></span>
                     </span>
                 </div>
                 <div class="people-info">
-                    <span>성인 <span th:text="${detailRequest.adultCount}"></span></span>
-                    <span th:if="${detailRequest.youthCount > 0}"> / 청소년 <span th:text="${detailRequest.youthCount}"></span></span>
-                    <span th:if="${detailRequest.infantCount > 0}"> / 유아 <span th:text="${detailRequest.infantCount}"></span></span>
-                    · <span th:text="${detailRequest.seatClassType}"></span>
+                    <span>성인 <span th:text="${detailResult.detailRequest.adultCount}"></span></span>
+                    <span th:if="${detailResult.detailRequest.youthCount > 0}"> / 청소년 <span th:text="${detailResult.detailRequest.youthCount}"></span></span>
+                    <span th:if="${detailResult.detailRequest.infantCount > 0}"> / 유아 <span th:text="${detailResult.detailRequest.infantCount}"></span></span>
+                    · <span th:text="${detailResult.detailRequest.seatClassType}"></span>
                 </div>
             </section>
 
@@ -56,12 +59,12 @@
                 <div class="fare-box">
 
                     <!--성인 요금 상세-->
-                    <div th:if="${detailRequest.adultCount != 0}">
+                    <div th:if="${detailResult.detailRequest.adultCount != 0}">
 
                         <!-- 총액 -->
                         <div class="fare-row">
-                            <span>성인 <span th:text="${detailRequest.adultCount}"></span>명</span>
-                            <strong th:text="${#numbers.formatInteger(adultTotal, 3, 'COMMA')} + '원'"></strong>
+                            <span>성인 <span th:text="${detailResult.detailRequest.adultCount}"></span>명</span>
+                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.adultTotal, 3, 'COMMA')} + '원'"></strong>
                         </div>
 
                         <div class="fare-detail">
@@ -69,37 +72,37 @@
                             <!-- 기본운임 -->
                             <div class="fare-subrow">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${#numbers.formatInteger(adultBase, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultBase, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 유류할증료 -->
                             <div class="fare-subrow">
                                 <span>유류할증료</span>
-                                <span th:text="${#numbers.formatInteger(adultOil, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultOil, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 제세공과금 -->
                             <div class="fare-subrow">
                                 <span>제세공과금</span>
-                                <span th:text="${#numbers.formatInteger(adultTax, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultTax, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 발권 수수료 -->
                             <div class="fare-subrow">
                                 <span>발권 수수료</span>
-                                <span th:text="${#numbers.formatInteger(adultFee, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultFee, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                         </div>
                     </div>
 
                     <!--청소년 요금 상세-->
-                    <div th:if="${detailRequest.youthCount != 0}">
+                    <div th:if="${detailResult.detailRequest.youthCount != 0}">
 
                         <!-- 총액 -->
                         <div class="fare-row">
-                            <span>청소년 <span th:text="${detailRequest.youthCount}"></span>명</span>
-                            <strong th:text="${#numbers.formatInteger(youthTotal, 3, 'COMMA')} + '원'"></strong>
+                            <span>청소년 <span th:text="${detailResult.detailRequest.youthCount}"></span>명</span>
+                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.youthTotal, 3, 'COMMA')} + '원'"></strong>
                         </div>
 
                         <div class="fare-detail">
@@ -107,37 +110,37 @@
                             <!-- 기본운임 -->
                             <div class="fare-subrow">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${#numbers.formatInteger(youthBase, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthBase, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 유류할증료 -->
                             <div class="fare-subrow">
                                 <span>유류할증료</span>
-                                <span th:text="${#numbers.formatInteger(youthOil, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthOil, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 제세공과금 -->
                             <div class="fare-subrow">
                                 <span>제세공과금</span>
-                                <span th:text="${#numbers.formatInteger(youthTax, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthTax, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 발권 수수료 -->
                             <div class="fare-subrow">
                                 <span>발권 수수료</span>
-                                <span th:text="${#numbers.formatInteger(youthFee, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthFee, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                         </div>
                     </div>
 
                     <!--영유아 요금 상세-->
-                    <div th:if="${detailRequest.infantCount != 0}">
+                    <div th:if="${detailResult.detailRequest.infantCount != 0}">
 
                         <!-- 총액 -->
                         <div class="fare-row">
-                            <span>영유아 <span th:text="${detailRequest.infantCount}"></span>명</span>
-                            <strong th:text="${#numbers.formatInteger(infantTotal, 3, 'COMMA')} + '원'"></strong>
+                            <span>영유아 <span th:text="${detailResult.detailRequest.infantCount}"></span>명</span>
+                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.infantTotal, 3, 'COMMA')} + '원'"></strong>
                         </div>
 
                         <div class="fare-detail">
@@ -145,25 +148,25 @@
                             <!-- 기본운임 -->
                             <div class="fare-subrow">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${#numbers.formatInteger(infantBase, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantBase, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 유류할증료 -->
                             <div class="fare-subrow">
                                 <span>유류할증료</span>
-                                <span th:text="${#numbers.formatInteger(infantOil, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantOil, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 제세공과금 -->
                             <div class="fare-subrow">
                                 <span>제세공과금</span>
-                                <span th:text="${#numbers.formatInteger(infantTax, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantTax, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                             <!-- 발권 수수료 -->
                             <div class="fare-subrow">
                                 <span>발권 수수료</span>
-                                <span th:text="${#numbers.formatInteger(infantFee, 3, 'COMMA')} + '원'"></span>
+                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantFee, 3, 'COMMA')} + '원'"></span>
                             </div>
 
                         </div>
@@ -171,7 +174,7 @@
 
                     <div class="fare-total">
                         <span>최종 결제 금액</span>
-                        <strong th:text="${#numbers.formatInteger(priceTotal,3,'COMMA')} + '원'"></strong>
+                        <strong th:text="${detailResult.#numbers.formatInteger(detailResult.priceTotal,3,'COMMA')} + '원'"></strong>
                     </div>
                 </div>
 
@@ -186,26 +189,26 @@
                 <h3>여정 정보</h3>
 
                 <div
-                    th:each="seat, idx : ${seatClasses}"
+                    th:each="seat, idx : ${detailResult.seatClasses}"
                     th:attr="data-seatclass-id=${seat.id}, data-segment-index=${idx.index}"
                     class="trip-box">
 
                     <!-- 구간 제목: ONE_WAY / ROUND_TRIP / MULTI -->
                     <!-- ONE_WAY -->
                     <h4 class="trip-title"
-                        th:if="${detailRequest.tripType.name() == 'ONE_WAY'}">
+                        th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}">
                         가는 편
                     </h4>
 
                     <!-- ROUND_TRIP -->
                     <h4 class="trip-title"
-                        th:if="${detailRequest.tripType.name() == 'ROUND_TRIP'}"
+                        th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}"
                         th:text="${idx.count == 1} ? '가는 편' : '오는 편'">
                     </h4>
 
                     <!-- MULTI -->
                     <h4 class="trip-title"
-                        th:if="${detailRequest.tripType.name() == 'MULTI'}"
+                        th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}"
                         th:text="'여정 ' + ${idx.count}">
                     </h4>
 
@@ -264,14 +267,18 @@
             </section>
 
             <section class="footer-section">
-                <button class="next-step-btn" onclick="goToPassenger()">다음 단계</button>
+                <button class="next-step-btn" onclick="selectPayment()">다음 단계</button>
             </section>
         </div>
     </div>
+
     <script th:inline="javascript">
 
-        // Thymeleaf에서 detailRequest를 객체로 받되 문자열 배열로 강제 변환
-        window.detailRequest = /*[[${detailRequest}]]*/ {};
+        window.selectPayment = function (purchaseProductId) {
+            addModal(`/air/purchase/payment`);
+        }
+
+        window.detailRequest = /*[[${detailResult.detailRequest}]]*/ {};
 
         // seatClassIds 모두 문자열로 통일
         if (Array.isArray(window.detailRequest.seatClassIds)) {

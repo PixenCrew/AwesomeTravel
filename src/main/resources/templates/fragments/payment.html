@@ -54,23 +54,26 @@
     </header>
     <div class="section-body">
         <div class="modal-content">
+            <h4>상품명</h4>
+            <div th:text="${purchaseBase.title}"></div>
+
             <h4>요금 정보</h4>
 
-            <div th:if="${purchaseProduct.adultCount > 0}">
-                <div th:text="${'성인 ' + purchaseProduct.adultCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 'COMMA') + '원'}"></div>
+            <div th:if="${purchaseBase.adultCount > 0}">
+                <div th:text="${'성인 ' + purchaseBase.adultCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceAdult * purchaseBase.adultCount, 0, 'COMMA') + '원'}"></div>
             </div>
-            <div th:if="${purchaseProduct.youthCount > 0}">
-                <div th:text="${'청소년 ' + purchaseProduct.youthCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 'COMMA') + '원'}"></div>
+            <div th:if="${purchaseBase.youthCount > 0}">
+                <div th:text="${'청소년 ' + purchaseBase.youthCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceYouth * purchaseBase.youthCount, 0, 'COMMA') + '원'}"></div>
             </div>
-            <div th:if="${purchaseProduct.infantCount > 0}">
-                <div th:text="${'영유아 ' + purchaseProduct.infantCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 'COMMA') + '원'}"></div>
+            <div th:if="${purchaseBase.infantCount > 0}">
+                <div th:text="${'영유아 ' + purchaseBase.infantCount + '명'}"></div>
+                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceInfant * purchaseBase.infantCount, 0, 'COMMA') + '원'}"></div>
             </div>
 
             <h4>최종 결제 금액</h4>
-            <div th:text="${#numbers.formatInteger(purchaseProduct.price, 0, 'COMMA') + '원'}"></div>
+            <div th:text="${#numbers.formatInteger(purchaseBase.price, 0, 'COMMA') + '원'}"></div>
         </div>
 
         <div>
@@ -95,34 +98,47 @@
 
     <!-- 하단 버튼 -->
     <footer class="modal-footer">
-        <button type="button" th:onclick="'proceedPay(' + ${purchaseProduct.id} + ')'">
+        <button type="button" th:onclick="'proceedPay(' + ${purchaseBase.id} + ')'">
             결제하기
         </button>
     </footer>
 
-    <script>
+    <script th:inline="javascript">
+
+        let paymentType = /*[[${ paymentType }]]*/'';
+
         (function () {
-            window.proceedPay = async function (purchaseProductId) {
+            window.proceedPay = async function (purchaseBaseId) {
                 if (confirm('[TEST] 테스트 결제 진행')) {
 
                     // 로딩 표시
                     const loadingEl = document.getElementById('loading');
                     if (loadingEl) loadingEl.style.display = 'flex';
 
-                    const url = `/product/purchase/${purchaseProductId}/payment`;
-                    const url2 = `/product/purchase/${purchaseProductId}`;
+                    let url;
+                    let url2;
+
+                    if (paymentType == 'product') {
+                        url = `/product/purchase/${purchaseBaseId}/payment`;
+                        url2 = `/product/purchase/${purchaseBaseId}`;
+                    } else if (paymentType == 'air') {
+                        url = `/air/purchase/payment`;
+                    } else {
+                        alert('결제 타입 에러');
+                        return;
+                    }
 
                     // 라디오에서 선택된 결제수단 읽기
                     const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CARD';
 
                     // 서버에 보낼 데이터
                     const payload = {
-                        purchaseId: purchaseProductId,
+                        purchaseId: purchaseBaseId,
                         paymentMethod: selectedMethod
                     };
 
                     try {
-                        const response = await fetch(`/product/purchase/${purchaseProductId}/payment`, {
+                        const response = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -132,7 +148,15 @@
 
                         alert('결제가 성공적으로 처리되었습니다!');
                         if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
-                        addModal(`/product/purchase/${purchaseProductId}`, true);
+
+                        if (paymentType == 'air') {
+                            const result = await response.json();
+                            const purchaseAirId = result.purchaseAirId;
+
+                            url2 = `/air/purchase/${purchaseAirId}`;
+                        }
+
+                        addModal(url2, true);
                     } catch (error) {
                         console.error('결제 요청 실패:', error);
                         alert('결제 처리 중 오류가 발생했습니다.');

@@ -1,0 +1,249 @@
+<div>
+    <style>
+        .current-status {
+            background-color: #d3ebff;
+            font-weight: bold;
+        }
+
+        .status-bar ul {
+            display: flex;
+            gap: 8px;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .status-bar ul li {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .section-header {
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-body {
+            padding-bottom: 80px;
+        }
+
+        .air-segment-box {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #fff;
+        }
+
+        .modal-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: #f9f9f9;
+            z-index: 1000;
+        }
+
+        .modal-footer button {
+            flex: 1 1 100%;
+            padding: 12px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .modal-footer button:nth-child(1) {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(2) {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(3) {
+            background: #2196f3;
+            color: #fff;
+        }
+
+        .modal-footer button:nth-child(4) {
+            background: #ff9800;
+            color: #fff;
+        }
+    </style>
+
+    <header class="section-header">
+        <h1>결제 완료</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <div class="modal-content">
+
+            <!-- 예약 상태 -->
+            <section class="status-bar">
+                <ul>
+                    <li th:classappend="${purchaseAir.purchaseStatus.ordinal() == 0 ? 'current-status' : ''}">예약접수</li>
+                    <li th:classappend="${purchaseAir.purchaseStatus.ordinal() == 1 ? 'current-status' : ''}">담당자확인</li>
+                    <li th:classappend="${purchaseAir.purchaseStatus.ordinal() == 2 ? 'current-status' : ''}">결제진행</li>
+                    <li th:classappend="${purchaseAir.purchaseStatus.ordinal() == 3 ? 'current-status' : ''}">결제완료</li>
+                    <li th:classappend="${purchaseAir.purchaseStatus.ordinal() == 4 ? 'current-status' : ''}">취소됨</li>
+                </ul>
+            </section>
+
+            <!-- 요금 정보 -->
+            <section>
+                <h3>요금 정보</h3>
+                <div class="air-segment-box">
+                    <ul style="list-style:none;padding:0;">
+                        <li>
+                            성인
+                            <span th:text="${purchaseAir.adultCount}"></span>명 :
+                            <b th:text="${#numbers.formatInteger(purchaseAir.finalPriceAdult * purchaseAir.adultCount,0,'COMMA')}"></b>원
+                        </li>
+                        <li th:if="${purchaseAir.youthCount > 0}">
+                            청소년
+                            <span th:text="${purchaseAir.youthCount}"></span>명 :
+                            <b th:text="${#numbers.formatInteger(purchaseAir.finalPriceYouth * purchaseAir.youthCount,0,'COMMA')}"></b>원
+                        </li>
+
+                        <li th:if="${purchaseAir.infantCount > 0}">
+                            영유아
+                            <span th:text="${purchaseAir.infantCount}"></span>명 :
+                            <b th:text="${#numbers.formatInteger(purchaseAir.finalPriceInfant * purchaseAir.infantCount,0,'COMMA')}"></b>원
+                        </li>
+                    </ul>
+                    <p>최종 결제 금액 :</p>
+                    <h2 th:text="${#numbers.formatInteger(purchaseAir.price,0,'COMMA')} + '원'"></h2>
+                </div>
+            </section>
+
+            <!-- 여정 정보 -->
+            <section>
+                <h3>여정 정보</h3>
+
+                <!-- 모든 구간 자동 반복 -->
+                <div th:each="seg, iter : ${purchaseAir.finalSeatClasses}" class="air-segment-box">
+
+                    <!-- 편도/왕복/다구간 제목 자동 설정 -->
+                    <strong th:text="
+                                        ${purchaseAir.finalSeatClasses.size() == 1} ? '가는 편' :
+                                        (${iter.index == 0} ? '가는 편' :
+                                        (${iter.index == purchase.finalSeatClasses.size()-1} ? '오는 편' :
+                                        '여정 ' + (iter.index + 1)))
+                                    "></strong>
+                    <br>
+
+                    <!-- 날짜 범위 -->
+                    <span th:text="${#temporals.format(seg.departDateTime,'yyyy.MM.dd(EE)')}"></span>
+                    →
+                    <span th:text="${#temporals.format(seg.arriveDateTime,'yyyy.MM.dd(EE)')}"></span>
+
+                    <!-- 상세 정보 -->
+                    <div style="margin-top:10px;">
+                        <b th:text="${seg.flightNumber}"></b><br>
+
+                        출발 :
+                        <span th:text="${seg.departAirport}"></span>
+                        <span th:text="${#temporals.format(seg.departDateTime,'HH:mm')}"></span><br>
+
+                        도착 :
+                        <span th:text="${seg.arriveAirport}"></span>
+                        <span th:text="${#temporals.format(seg.arriveDateTime,'HH:mm')}"></span><br>
+
+                        비행시간 :
+                        <span th:text="${seg.flightDuration / 60}"></span>시간
+                        <span th:text="${seg.flightDuration % 60}"></span>분
+                    </div>
+                </div>
+            </section>
+
+            <!-- 탑승객 정보 -->
+            <section>
+                <h3>탑승객 정보</h3>
+
+                <button class="btn" th:onclick="|addModal('/air/purchase/${purchaseAir.id}/passport')|">
+                    여권 정보 입력하기
+                </button>
+
+                <div th:each="p : ${purchaseAir.passengers}" class="air-segment-box">
+                    <b th:text="${p.name}"></b><br>
+                    <span th:text="${p.birth}"></span> / <span th:text="${p.sex}"></span><br>
+                    여권정보 :
+                    <span th:text="${p.completed ? '등록완료' : '미등록'}"></span>
+                </div>
+            </section>
+
+            <!-- 결제 정보 -->
+            <section>
+                <h3>결제 정보</h3>
+
+                <div class="air-segment-box">
+                    <p>결제 금액 :
+                        <b th:text="${#numbers.formatInteger(purchaseAir.price,0,'COMMA')}"></b>원
+                    </p>
+                    <p>결제자 :
+                        <b th:text="${purchaseAir.name}"></b>
+                    </p>
+
+                    <button class="btn"
+                        th:onclick="|addModal('/air/purchase/${purchaseAir.id}/receipt')|">
+                        영수증 보기
+                    </button>
+                </div>
+            </section>
+
+            <!-- 취소 요청 -->
+            <section>
+                <button class="btn"
+                    style="background:#f44336;color:white;"
+                    th:onclick="'cancelAirReservation(' + ${purchaseAir.id} + ')'">
+                    취소 요청
+                </button>
+            </section>
+
+            <!-- 하단 고정 버튼 -->
+            <footer class="modal-footer">
+                <button th:if="${purchaseAir.purchaseStatus.ordinal() == 3}"
+                    type="button"
+                    th:onclick="'cancelAirReservation(' + ${purchaseAir.id} + ')'">
+                    예약취소
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        window.cancelAirReservation = async function (id) {
+            if (!confirm("예약을 취소하시겠습니까?")) return;
+
+            const response = await fetch(`/air/purchase/${id}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}'
+            });
+
+            if (!response.ok) {
+                alert('취소 오류');
+                return;
+            }
+
+            alert('예약이 취소되었습니다.');
+            backModal();
+        }
+    </script>
+</div>
