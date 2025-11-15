@@ -1,52 +1,101 @@
 package renewal.awesome_travel.purchase.controller;
 
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.passport.dto.request.PassportDto;
+import renewal.awesome_travel.passport.dto.request.PassportUpdateRequest;
+import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
+import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
+import renewal.common.entity.Passenger;
+import renewal.common.entity.PurchaseAir;
+import renewal.common.entity.PurchaseBase;
+import renewal.common.repository.CountryCodeRepository;
+import renewal.common.repository.PassengerRepository;
 
-@RestController
-@RequestMapping("/purchases")
+@Controller
+@RequestMapping("/purchase")
 @RequiredArgsConstructor
 public class PurchaseController {
 
-    // // 1. 좌석 홀딩 (예약만)
-    // @PostMapping
-    // public ResponseEntity<Long> holdSeats(@RequestBody PurchaseAirRequestDto
-    // request) {
-    // Long purchaseId = airPurchaseService.holdSeats(request);
-    // return ResponseEntity.ok(purchaseId);
-    // }
+    private final PurchaseAirRepository purchaseAirRepo;
+    private final PurchaseProductRepository purchaseProductRepo;
+    private final CountryCodeRepository countryCodeRepo;
+    private final PassengerRepository passengerRepo;
 
-    // // 2. 결제 성공 후 확정 처리
-    // @PatchMapping("/{id}/confirm")
-    // public ResponseEntity<Void> confirmPayment(@PathVariable Long id) {
-    // airPurchaseService.confirmPayment(id);
-    // return ResponseEntity.ok().build();
-    // }
+    @GetMapping("/{type}/{id}/passport")
+    public String getPassportForm(
+            @PathVariable String type,
+            @PathVariable Long id,
+            Model model) {
 
-    // // 3. 구매 상세 조회
-    // @GetMapping("/{id}")
-    // public ResponseEntity<PurchaseAirResponseDto> getPurchase(@PathVariable Long
-    // id) {
-    // return ResponseEntity.ok(airPurchaseService.getPurchase(id));
-    // }
+        PurchaseBase purchaseBase;
 
-    // //4. 예약 취소
-    // @PatchMapping("/{id}/cancel")
-    // public ResponseEntity<Void> cancelPurchase(@PathVariable Long id) {
-    // airPurchaseService.cancelPurchase(id);
-    // return ResponseEntity.ok().build();
-    // }
+        if (type.equals("air")) {
+            purchaseBase = purchaseAirRepo.findById(id).get();
+        } else if (type.equals("product")) {
+            purchaseBase = purchaseProductRepo.findById(id).get();
+        } else {
+            return "error";
+        }
 
-    // //5. 탑승객 정보 변경
-    // @PatchMapping("/{purchaseId}/passengers/{passengerId}")
-    // public ResponseEntity<Void> updatePassenger(
-    // @PathVariable Long purchaseId,
-    // @PathVariable Long passengerId,
-    // @RequestBody PassengerUpdateRequestDto dto) {
-    // airPurchaseService.updatePassenger(purchaseId, passengerId, dto);
-    // return ResponseEntity.ok().build();
-    // }
+        model.addAttribute("passengers", purchaseBase.getPassengers());
+        model.addAttribute("type", type);
+        model.addAttribute("purchaseBaseId", id);
+
+        return "fragments/purchase/passengerForm";
+    }
+
+    @PostMapping("/{type}/{id}/passport")
+    String postPurchasePassportForm(@PathVariable Long id, @RequestBody PassportUpdateRequest request, Model model) {
+
+        List<PassportDto> passengers = request.getPassengers();
+        boolean allChecked = true;
+        for (PassportDto dto : passengers) {
+            // 기존 Passenger 조회
+            Passenger passenger = passengerRepo.findById(dto.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("탑승객 ID가 유효하지 않습니다: " + dto.getId()));
+
+            // 여권정보 업데이트
+            passenger.setNationality(countryCodeRepo.findByCode(dto.getNationality()).get());
+            passenger.setPassportNum(dto.getPassportNum());
+            passenger.setLastName(dto.getLastName());
+            passenger.setFirstName(dto.getFirstName());
+            passenger.setExpire(dto.getExpire());
+            passenger.setSpecialRequests(dto.getSpecialRequests());
+
+            // 일반정보 업데이트
+            passenger.setName(dto.getName());
+            passenger.setBirth(dto.getBirth());
+            passenger.setSex(dto.getSex());
+            passenger.setNumber(dto.getNumber());
+            passenger.setEmail(dto.getEmail());
+            passenger.setAgeGroup(dto.getAgeGroup());
+
+            // 해당 탑승객 정보 null 체크
+            passenger.checkThisPassenger();
+            if (passenger.isCompleted() == false) {
+                allChecked = false;
+            }
+
+            passengerRepo.save(passenger);
+        }
+
+        PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
+        purchaseAir.setIsPassengerInfoComplete(allChecked);
+
+        model.addAttribute("purchaseAir", purchaseAir);
+        model.addAttribute("paymentInfo", "");
+
+        return "fragments/purchase/purchaseAirDetail";
+    }
 
 }

@@ -38,50 +38,6 @@
             margin: 10px 0;
             background: #fff;
         }
-
-        .modal-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            background: #f9f9f9;
-            z-index: 1000;
-        }
-
-        .modal-footer button {
-            flex: 1 1 100%;
-            padding: 12px 0;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .modal-footer button:nth-child(1) {
-            background: #4caf50;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(2) {
-            background: #f44336;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(3) {
-            background: #2196f3;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(4) {
-            background: #ff9800;
-            color: #fff;
-        }
     </style>
 
     <header class="section-header">
@@ -176,16 +132,10 @@
             <section>
                 <h3>탑승객 정보</h3>
 
-                <button class="btn" th:onclick="|addModal('/air/purchase/${purchaseAir.id}/passport')|">
+                <button class="btn" th:onclick="|addModal('/purchase/air/${purchaseAir.id}/passport')|">
                     여권 정보 입력하기
                 </button>
-
-                <div th:each="p : ${purchaseAir.passengers}" class="air-segment-box">
-                    <b th:text="${p.name}"></b><br>
-                    <span th:text="${p.birth}"></span> / <span th:text="${p.sex}"></span><br>
-                    여권정보 :
-                    <span th:text="${p.completed ? '등록완료' : '미등록'}"></span>
-                </div>
+                <h4 th:if="${purchaseAir.isPassengerInfoComplete}">탑승객 정보 입력이 완료되었습니다.</h4>
             </section>
 
             <!-- 결제 정보 -->
@@ -209,21 +159,10 @@
 
             <!-- 취소 요청 -->
             <section>
-                <button class="btn"
-                    style="background:#f44336;color:white;"
-                    th:onclick="'cancelAirReservation(' + ${purchaseAir.id} + ')'">
+                <button class="btn" th:onclick="'cancelAirReservation(' + ${purchaseAir.id} + ')'">
                     취소 요청
                 </button>
             </section>
-
-            <!-- 하단 고정 버튼 -->
-            <footer class="modal-footer">
-                <button th:if="${purchaseAir.purchaseStatus.ordinal() == 3}"
-                    type="button"
-                    th:onclick="'cancelAirReservation(' + ${purchaseAir.id} + ')'">
-                    예약취소
-                </button>
-            </footer>
         </div>
     </div>
 
