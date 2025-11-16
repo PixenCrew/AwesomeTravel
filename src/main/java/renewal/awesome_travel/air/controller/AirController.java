@@ -82,7 +82,8 @@ public class AirController {
             }
         }
 
-        System.out.println("===============Result=================" + resultList.toString());
+        // System.out.println("===============Result=================" +
+        // resultList.toString());
         model.addAttribute("airSearchRequestDto", searchRequest);
         model.addAttribute("searchResult", resultList);
         return "fragments/air/airResult";
@@ -180,16 +181,19 @@ public class AirController {
         PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
 
         model.addAttribute("purchaseAir", purchaseAir);
-        model.addAttribute("paymentInfo", "");
 
         return "fragments/purchase/purchaseAirDetail";
     }
 
-    // @PostMapping("/search")
-    // public ResponseEntity<Page<?>> searchFlights(@RequestBody AirSearchRequestDto
-    // req) {
-    // Page<?> result = airService.searchFlights(req);
-    // return ResponseEntity.ok(result);
-    // }
+    @PostMapping("/purchase/{id}/cancel")
+    ResponseEntity<?> cancelPurchase(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> dummyload) {
 
+        PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
+        purchaseAir.setPurchaseStatus(PurchaseStatus.CANCELLED);
+        purchaseAirRepo.save(purchaseAir);
+
+        return ResponseEntity.ok().build();
+    }
 }
