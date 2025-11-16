@@ -1,45 +1,66 @@
 <div th:fragment="mypageFragment">
-    <h1>마이페이지</h1>
-    <div>
-        <div>
-            <img th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}">
+
+    <header class="section-header">
+        <h1>마이페이지</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <div th:if="${currentUser != null}">
             <div>
-                <h2 th:text="${currentUser?.name}">신예은</h2>
-                <p th:text="${currentUser?.email}">shin@god.com</p>
-                <p th:text="${currentUser?.grade}">일반등급</p>
+                <img th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}">
+                <div>
+                    <h2 th:text="${currentUser?.name}">신예은</h2>
+                    <p th:text="${currentUser?.email}">shin@god.com</p>
+                    <p th:text="${currentUser?.grade}">일반등급</p>
+                </div>
+                <div>
+                    <button>🔔</button>
+                    <button>⚙️</button>
+                </div>
             </div>
+
             <div>
-                <button>🔔</button>
-                <button>⚙️</button>
+                <div>
+                    <span>💖찜한상품</span>
+                    <p th:text="${likedProductsCount} ?: 0">3</p>
+                </div>
+                <div>
+                    <span>🎟️보유 쿠폰 수</span>
+                    <p th:text="${userCouponsCount} ?: 0">3</p>
+                </div>
+                <div>
+                    <span>💰포인트</span>
+                    <p th:text="${currentUser?.point} ?: 0">3,000</p>
+                </div>
             </div>
+
+            <ul>
+                <li>최근 본 상품 <span>›</span></li>
+                <li onclick="fetchSection('/mypage/reservation')">예약내역 <span>›</span></li>
+                <li onclick="fetchSection('/mypage/inquiry')">나의 문의 <span>›</span></li>
+                <li>포인트 <span>›</span></li>
+                <li>쿠폰함 <span>›</span></li>
+                <li>고객문의 <span>›</span></li>
+                <li>공지사항 <span>›</span></li>
+                <li>FAQ <span>›</span></li>
+                <li>설정 <span>›</span></li>
+                <li><a href="/logout">로그아웃<span>›</span></a></li>
+            </ul>
         </div>
 
-        <div>
+        <!-- 비로그인 상태 -->
+        <div th:unless="${currentUser != null}">
             <div>
-                <span>💖찜한상품</span>
-                <p th:text="${likedProductsCount} ?: 0">3</p>
+                <img src="/images/profileDefault.png">
+                <div>
+                    <h2 onclick="openModal('login')">로그인 후 이용해주세요</h2>
+                </div>
             </div>
-            <div>
-                <span>🎟️보유 쿠폰 수</span>
-                <p th:text="${userCouponsCount} ?: 0">3</p>
-            </div>
-            <div>
-                <span>💰포인트</span>
-                <p th:text="${currentUser?.points} ?: 0">3,000</p>
-            </div>
+            <button onclick="openModal('login')">로그인하기</button>
         </div>
-
-        <ul>
-            <li>최근 본 상품 <span>›</span></li>
-            <li onclick="fetchSection('/mypage/reservation')">예약내역 <span>›</span></li>
-            <li onclick="fetchSection('/mypage/inquiry')">나의 문의 <span>›</span></li>
-            <li>포인트 <span>›</span></li>
-            <li>쿠폰함 <span>›</span></li>
-            <li>고객문의 <span>›</span></li>
-            <li>공지사항 <span>›</span></li>
-            <li>FAQ <span>›</span></li>
-            <li>설정 <span>›</span></li>
-            <li><a href="/logout">로그아웃<span>›</span></a></li>
-        </ul>
     </div>
+
 </div>

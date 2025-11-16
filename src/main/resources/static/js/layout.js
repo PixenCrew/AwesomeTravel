@@ -15,16 +15,11 @@ const sectionMap = {
     6: 'dynamicSection'
 };
 
-const loginRequiredSections = [4, 5];
 const sectionNavMaxLength = 3;
 
 function showSection(sectionIndex, push = true) {
     if (currentSection === sectionIndex) return;
     if (isAnimating) return;
-    if (loginRequiredSections.includes(sectionIndex) && !isLoggedIn) {
-        openModal('login');
-        return;
-    }
 
     isAnimating = true;
 

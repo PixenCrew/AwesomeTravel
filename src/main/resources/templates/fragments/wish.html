@@ -1,4 +1,60 @@
 <div th:fragment="wishFragment">
-    <h1>찜목록</h1>
-    <p>최근 본 상품, 찜 상품 목록</p>
+
+    <header class="section-header">
+        <h1>찜 / 최근 본 상품</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+
+        <section class="recent-products">
+            <h2>최근 본 상품</h2>
+
+            <div th:if="${#lists.isEmpty(recentProducts)}">
+                <p>최근 본 상품이 없습니다.</p>
+            </div>
+
+            <ul th:unless="${#lists.isEmpty(recentProducts)}">
+                <li th:each="item : ${recentProducts}">
+                    <div class="product-item" th:onclick="|openModal('/product/${item.id}')|">
+                        <span th:text="'상품 #' + ${item.id}"></span>
+                        <small th:text="${#temporals.format(item.viewedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+
+        <section class="liked-products" style="margin-top: 30px;">
+            <h2>찜한 상품</h2>
+
+            <div th:if="${currentUser != null}">
+
+                <div th:if="${#lists.isEmpty(likedProducts)}">
+                    <p>찜한 상품이 없습니다.</p>
+                </div>
+
+                <ul th:unless="${#lists.isEmpty(likedProducts)}">
+                    <li th:each="item : ${likedProducts}">
+                        <div class="product-item">
+                            <span th:text="'상품 #' + ${item.productId}"></span>
+                            <small th:text="${#temporals.format(item.viewedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div th:unless="${currentUser != null}"
+                style="text-align: center; padding: 20px 0;">
+                <p>찜한 상품을 보려면 로그인이 필요합니다.</p>
+                <button type="button" onclick="openModal('login')" class="btn-login">
+                    로그인하기
+                </button>
+            </div>
+        </section>
+
+    </div>
 </div>

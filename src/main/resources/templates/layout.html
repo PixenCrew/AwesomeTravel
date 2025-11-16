@@ -108,35 +108,12 @@
 
         <!-- ✅찜 섹션 -->
         <section id="wishSection">
-            <header class="section-header">
-                <div class="left">
-                    <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-                </div>
-                <h1 class="center">일반 헤더</h1>
-            </header>
-
-            <div class="section-body">
-                <div th:replace="~{fragments/wish :: wishFragment}">
-
-                </div>
-            </div>
+            <div th:replace="~{fragments/wish :: wishFragment}">
         </section>
 
         <!-- ✅ 마이이 섹션 -->
         <section id="mypageSection">
-            <header class="section-header">
-                <div class="left">
-                    <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-                </div>
-                <h1 class="center">일반 헤더</h1>
-            </header>
-
-
-            <div class="section-body">
-                <div th:replace="~{fragments/mypage :: mypageFragment}">
-
-                </div>
-            </div>
+            <div th:replace="~{fragments/mypage :: mypageFragment}">
         </section>
 
         <!-- ✅ 동적 섹션 -->
