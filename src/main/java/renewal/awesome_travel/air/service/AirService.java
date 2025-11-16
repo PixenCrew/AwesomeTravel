@@ -61,7 +61,7 @@ public class AirService {
             List<SeatClass> current = airRepository.searchSegment(seatCount, seatClassType, directOnly, depart,
                     arrive, departDate);
 
-            System.out.println("========current" + current);
+            // System.out.println("========current" + current);
 
             queryResult.add(current);
         }
