@@ -189,15 +189,15 @@
                 <h3>결제 정보</h3>
                 <ul>
                     <span>상품가격</span>
-                    <li>
+                    <li th:if="${purchaseProduct.adultCount > 0}">
                         <span th:text="${'성인 x ' + purchaseProduct.adultCount + '명'}"></span>
                         <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 'COMMA') + '원'}"></span>
                     </li>
-                    <li>
+                    <li th:if="${purchaseProduct.youthCount > 0}">
                         <span th:text="${'청소년 x ' + purchaseProduct.youthCount + '명'}"></span>
                         <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 'COMMA') + '원'}"></span>
                     </li>
-                    <li>
+                    <li th:if="${purchaseProduct.infantCount > 0}">
                         <span th:text="${'영유아 x ' + purchaseProduct.infantCount + '명'}"></span>
                         <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 'COMMA') + '원'}"></span>
                     </li>
@@ -221,9 +221,9 @@
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}"
                     type="button" th:onclick="'selectPayment(' + ${purchaseProduct.id} + ')'">결제하기</button>
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3 && purchaseProduct.purchaseStatus.ordinal() != 4 }"
-                    type="button" th:onclick="'cancelReservation(' + ${purchaseProduct.id} + ')'">결제취소</button>
+                    type="button" th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">결제취소</button>
                 <button th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}"
-                    type="button" th:onclick="'cancelReservation(' + ${purchaseProduct.id} + ')'">예약취소</button>
+                    type="button" th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">예약취소</button>
                 <button th:if="${purchaseProduct.handler != null}"
                     type="button" th:onclick="'sendInquiry(' + ${purchaseProduct.id} + ')'">1:1 문의하기</button>
             </footer>
@@ -238,7 +238,7 @@
                     addModal(`/product/purchase/${purchaseProductId}/inquiry`);
                 }
 
-                window.cancelReservation = async function (purchaseProductId) {
+                window.cancelProductReservation = async function (purchaseProductId) {
                     if (confirm("예약을 취소하시겠습니까?")) {
                         const dummyload = {};
                         try {

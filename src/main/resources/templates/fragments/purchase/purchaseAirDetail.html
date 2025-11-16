@@ -149,11 +149,6 @@
                     <p>결제자 :
                         <b th:text="${purchaseAir.name}"></b>
                     </p>
-
-                    <button class="btn"
-                        th:onclick="|addModal('/air/purchase/${purchaseAir.id}/receipt')|">
-                        영수증 보기
-                    </button>
                 </div>
             </section>
 
@@ -167,22 +162,30 @@
     </div>
 
     <script>
-        window.cancelAirReservation = async function (id) {
-            if (!confirm("예약을 취소하시겠습니까?")) return;
+        (function () {
+            window.cancelAirReservation = async function (purchaseAirId) {
+                if (confirm("예약을 취소하시겠습니까?")) {
+                    const dummyload = {};
+                    try {
+                        const response = await fetch(`/air/purchase/${purchaseAirId}/cancel`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dummyload)
+                        });
 
-            const response = await fetch(`/air/purchase/${id}/cancel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: '{}'
-            });
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(errorText || '예약 취소 실패');
+                        }
 
-            if (!response.ok) {
-                alert('취소 오류');
-                return;
+                        alert('예약이 취소되었습니다.');
+                        backModal();
+                    } catch (error) {
+                        console.error('예약 취소 실패:', error);
+                        alert('예약 취소중 오류가 발생했습니다.');
+                    }
+                }
             }
-
-            alert('예약이 취소되었습니다.');
-            backModal();
-        }
+        })(); 
     </script>
 </div>

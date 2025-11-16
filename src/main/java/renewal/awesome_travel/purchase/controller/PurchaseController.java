@@ -18,6 +18,7 @@ import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.common.entity.Passenger;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseBase;
+import renewal.common.entity.PurchaseProduct;
 import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PassengerRepository;
 
@@ -55,7 +56,11 @@ public class PurchaseController {
     }
 
     @PostMapping("/{type}/{id}/passport")
-    String postPurchasePassportForm(@PathVariable Long id, @RequestBody PassportUpdateRequest request, Model model) {
+    String postPurchasePassportForm(
+            @PathVariable String type,
+            @PathVariable Long id,
+            @RequestBody PassportUpdateRequest request,
+            Model model) {
 
         List<PassportDto> passengers = request.getPassengers();
         boolean allChecked = true;
@@ -89,13 +94,28 @@ public class PurchaseController {
             passengerRepo.save(passenger);
         }
 
-        PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
-        purchaseAir.setIsPassengerInfoComplete(allChecked);
+        if (type.equals("air")) {
+            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
 
-        model.addAttribute("purchaseAir", purchaseAir);
-        model.addAttribute("paymentInfo", "");
+            purchaseAir.setIsPassengerInfoComplete(allChecked);
+            purchaseAirRepo.save(purchaseAir);
 
-        return "fragments/purchase/purchaseAirDetail";
+            model.addAttribute("purchaseAir", purchaseAir);
+
+            return "fragments/purchase/purchaseAirDetail";
+
+        } else if (type.equals("product")) {
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
+
+            purchaseProduct.setIsPassengerInfoComplete(allChecked);
+            purchaseProductRepo.save(purchaseProduct);
+
+            model.addAttribute("purchaseProduct", purchaseProduct);
+
+            return "fragments/purchase/purchaseProductDetail";
+        } else {
+            return "error";
+        }
     }
 
 }
