@@ -3,8 +3,10 @@ package renewal.awesome_travel;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.hibernate.Hibernate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -12,12 +14,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
 import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
+import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.MenuCode;
@@ -25,6 +29,7 @@ import renewal.common.entity.Product;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
+import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.MenuCodeRepository;
 
 @RequiredArgsConstructor
@@ -32,6 +37,7 @@ import renewal.common.repository.MenuCodeRepository;
 public class MainController {
 
     private final UserService userService;
+    private final UserRepository userRepo;
     private final ProductService productService;
     private final MenuCodeRepository menuCodeRepo;
     private final PurchaseProductRepository purchaseProductRepo;
@@ -39,39 +45,36 @@ public class MainController {
     private final InquiryRepository inquiryRepo;
 
     @GetMapping
-    public String main(Model model, Principal principal) {
+    public String main(Principal principal, HttpServletRequest request, Model model) {
 
-        model.addAttribute("engineTest", "타임리프 테스트");
+        // ============로그인 한 경우=================
         if (principal != null) {
-            model.addAttribute("name", principal.getName());
-        }
-        return "layout";
-    }
+            User user = userRepo.findByEmail(principal.getName()).get();
+            Hibernate.initialize(user.getRecentProducts());
+            Hibernate.initialize(user.getLikedProducts());
 
-    @GetMapping("home")
-    public String homeFragment() {
-        // fragment만 반환
-        return "fragments/home :: homeFragment";
-    }
+            List<Product> actualRecentProducts = productService.convertToProducts(user.getRecentProducts());
+            List<Product> actualLikedProducts = productService.convertToProducts(user.getLikedProducts());
 
-    @GetMapping("wish")
-    public String wishFragment() {
-        return "fragments/wish :: wishFragment";
-    }
+            // 로그인 상태 → User의 element collections 사용
+            model.addAttribute("currentUser", user);
 
-    @GetMapping("mypage")
-    public String mypageFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
-
-        User user = principal.getUser(); // detached 상태
-
-        if (user != null) {
-            // 마이페이지에서만 컬렉션 조회
+            model.addAttribute("recentProducts", actualRecentProducts);
+            model.addAttribute("likedProducts", actualLikedProducts);
             model.addAttribute("likedProductsCount", userService.getLikedProducts(user).size());
             model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
+
+        } else {
+            // 비로그인 상태 → 쿠키에서 최근 본 상품만
+            List<RecentViewedItem> cookieRecent = productService.loadRecentViewProducts(request);
+
+            List<Product> actualRecentProducts = productService.convertToProducts(cookieRecent);
+
+            model.addAttribute("recentProducts", actualRecentProducts);
+            model.addAttribute("likedProducts", Collections.emptyList());
         }
 
-        // 로그인 되어 있으면 mypage fragment 반환
-        return "fragments/mypage :: mypageFragment";
+        return "layout";
     }
 
     @GetMapping("mypage/reservation")

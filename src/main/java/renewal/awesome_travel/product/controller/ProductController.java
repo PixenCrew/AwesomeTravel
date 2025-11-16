@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.inquiry.dto.request.InquiryRequestDto;
@@ -132,8 +134,12 @@ public class ProductController {
     @GetMapping("/detail/{id}")
     public String getProductDetail(
             @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate, Model model,
-            HttpSession session) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate,
+            Model model,
+            Principal principal,
+            HttpSession session,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         Product target = productRepo.findById(id).get();
         Product calcProduct = productService.calcSingleProduct(target, departDate);
@@ -147,6 +153,8 @@ public class ProductController {
 
         model.addAttribute("product", productDto);
         model.addAttribute("departDate", departDate); // 주문용 출발일 기록 (hidden)
+
+        productService.saveRecentView(principal, request, response, id, LocalDateTime.now());
 
         return "fragments/product/productDetail";
     }
@@ -314,7 +322,6 @@ public class ProductController {
 
         // PurchaseDetail 반환
         model.addAttribute("purchaseProduct", purchaseProduct);
-        model.addAttribute("paymentInfo", "");
 
         return "fragments/purchase/purchaseProductDetail";
     }
@@ -327,7 +334,6 @@ public class ProductController {
         PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
 
         model.addAttribute("purchaseProduct", purchaseProduct);
-        model.addAttribute("paymentInfo", "");
 
         return "fragments/purchase/purchaseProductDetail";
     }
