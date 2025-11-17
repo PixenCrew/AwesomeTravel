@@ -70,6 +70,7 @@ public class UserService {
                 .emailVerified(false)
                 .grade(MemberGrade.BRONZE)
                 .point(0L)
+                .terms(dto.getTerms())
                 // .createdAt(LocalDateTime.now()) // 생성시간은 JPA Auditing으로 지정
                 .build();
 

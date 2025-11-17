@@ -1,10 +1,11 @@
 package renewal.awesome_travel.user.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class EmailService {
     private String frontendUrl;
 
     public void sendVerificationMail(String toEmail, String token) {
-        String link = frontendUrl + "/api/auth/verify?token=" + token;
+        String link = frontendUrl + "/register/email?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
@@ -26,4 +27,3 @@ public class EmailService {
         mailSender.send(message);
     }
 }
-

@@ -30,6 +30,12 @@ public class SecurityConfig {
                                                 .loginPage("/login")
                                                 .defaultSuccessUrl("/", true) // 추후 메인페이지로 바꿔야함
                                                 .permitAll())
+                                .rememberMe(remember -> remember
+                                                .key("awesomeawesomeawesome")
+                                                .tokenValiditySeconds(60 * 60 * 24 * 7) // 7일
+                                                .rememberMeParameter("remember-me") // checkbox 이름
+                                                .rememberMeCookieName("remember-me-cookie") // 쿠키 이름
+                                                .userDetailsService(customUserDetailsService))
                                 .oauth2Login(oauth2 -> oauth2
                                                 .loginPage("/login") // 소셜 로그인도 동일한 로그인 페이지 사용
                                                 .userInfoEndpoint(userInfo -> userInfo
@@ -38,11 +44,10 @@ public class SecurityConfig {
                                                 .logoutUrl("/logout") // 로그아웃 URL
                                                 .logoutSuccessUrl("/") // 로그아웃 후 이동 경로
                                                 .invalidateHttpSession(true) // 세션 무효화
-                                                .deleteCookies("JSESSIONID") // 쿠키 삭제
+                                                .deleteCookies("JSESSIONID", "remember-me-cookie") // 쿠키 삭제
                                                 .permitAll())
                                 .authorizeHttpRequests(auth -> auth
                                                 .anyRequest().permitAll());
-
                 return http.build();
         }
 

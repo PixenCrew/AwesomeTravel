@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>이메일 인증</title>
+</head>
+
+<body>
+
+    <h1>이메일 인증 결과</h1>
+
+    <p th:text="${message}"></p>
+
+    <div th:if="${success}">
+        <a href="/login">로그인하러 가기</a>
+    </div>
+
+    <div th:if="${!success}">
+        <a href="/">홈으로 이동</a>
+    </div>
+
+</body>
+
+</html>

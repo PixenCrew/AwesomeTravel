@@ -1,0 +1,37 @@
+<div>
+    <header class="section-header">
+        <h1>회원가입</h1>
+        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+    </header>
+    <div class="section-body">
+        <div>약관 동의</div>
+        <section id="termSection">
+            <input type="checkbox" name="term1">필수1<br>
+            <input type="checkbox" name="term2">필수2<br>
+            <input type="checkbox" name="term3">선택3<br>
+        </section>
+        <button onclick="checkTerm()"> 회원가입 </button>
+    </div>
+
+    <script>
+        (function () {
+            window.checkTerm = function () {
+                const inputs = document.querySelectorAll("#termSection input[type='checkbox']");
+                const payload = {};
+
+                inputs.forEach(input => {
+                    payload[input.name] = input.checked;
+                });
+
+                // 필수 약관 체크 검사
+                if (!payload.term1 || !payload.term2) {
+                    alert("필수 약관에 모두 동의해주세요.");
+                    return;
+                }
+
+                // 전달
+                addModal('register/form', true, payload);
+            }
+        })();
+    </script>
+</div>

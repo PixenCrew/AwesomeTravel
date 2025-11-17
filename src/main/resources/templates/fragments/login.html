@@ -22,11 +22,15 @@
             </div>
         </div>
 
-        <form id="loginForm" action="/login" method="post">
-            <input type="text" name="username" placeholder="아이디" required>
+        <form id="loginForm" method="post" action="/login">
+            <input type="email" name="username" placeholder="아이디" required>
             <input type="password" name="password" placeholder="비밀번호" required>
+            <label><input type="checkbox" name="remember-me">자동 로그인</label>
             <button type="submit">로그인</button>
         </form>
+
+        <button onclick="addModal('register/terms')">회원가입</button>
+
     </div>
 
     <script>
@@ -50,33 +54,33 @@
             window.location.href = "/oauth2/authorization/" + provider;
         }
 
-        // 일반 로그인 Ajax
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // 기본 제출 막기
+        // // 일반 로그인 Ajax
+        // document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        //     e.preventDefault(); // 기본 제출 막기
 
-            const form = e.target;
-            const formData = new FormData(form);
+        //     const form = e.target;
+        //     const formData = new FormData(form);
 
-            try {
-                const res = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
+        //     try {
+        //         const res = await fetch(form.action, {
+        //             method: 'POST',
+        //             body: formData,
+        //             headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        //         });
 
-                if (!res.ok) throw new Error("로그인 실패");
-                window.isLoggedIn = true;
-                window.username = usernameValue ?? window.username ?? '회원';
+        //         if (!res.ok) throw new Error("로그인 실패");
+        //         window.isLoggedIn = true;
+        //         window.username = usernameValue ?? window.username ?? '회원';
 
-                // ✅ 로그인 성공 처리
-                await refreshSectionsAfterLogin();
-                backModal(); // 모달 닫기
+        //         // ✅ 로그인 성공 처리
+        //         await refreshSectionsAfterLogin();
+        //         backModal(); // 모달 닫기
 
-            } catch (err) {
-                console.error("로그인 오류:", err);
-                alert("아이디 또는 비밀번호를 확인하세요.");
-            }
-        });
+        //     } catch (err) {
+        //         console.error("로그인 오류:", err);
+        //         alert("아이디 또는 비밀번호를 확인하세요.");
+        //     }
+        // });
 
         // ✅ OAuth 로그인 후 돌아왔을 때 자동 실행
         document.addEventListener('DOMContentLoaded', () => {
