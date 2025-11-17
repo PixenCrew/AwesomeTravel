@@ -1,8 +1,16 @@
 package renewal.awesome_travel.purchase.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.air.dto.AirDetailResponseDto;
+import renewal.common.entity.PurchaseAir;
+import renewal.common.entity.PurchaseBase.ConfirmedSeatClass;
+import renewal.common.entity.PurchaseBase.PurchaseStatus;
+import renewal.common.entity.User;
 
 @Service
 @RequiredArgsConstructor
@@ -231,5 +239,54 @@ public class PurchaseAirService {
     // specialRequests.addAll(requests);
     // }
     // }
+    public PurchaseAir from(AirDetailResponseDto dto, User user) {
 
+        PurchaseAir purchase = new PurchaseAir();
+
+        // 기본 정보
+        purchase.setTitle("항공권 예약 (" +
+                dto.getSeatClasses().getFirst().getAir().getDepartAirport().getAirportKor() + "->"
+                + dto.getSeatClasses().getLast().getAir().getArriveAirport().getAirportKor() + ")");
+        purchase.setPurchaseStatus(PurchaseStatus.HOLDING);
+
+        // 가격 정보
+        purchase.setFinalPriceAdult(dto.getAdultTotal());
+        purchase.setFinalPriceYouth(dto.getYouthTotal());
+        purchase.setFinalPriceInfant(dto.getInfantTotal());
+
+        purchase.setAdultCount((long) dto.getDetailRequest().getAdultCount());
+        purchase.setYouthCount((long) dto.getDetailRequest().getYouthCount());
+        purchase.setInfantCount((long) dto.getDetailRequest().getInfantCount());
+
+        purchase.setPrice(dto.getPriceTotal());
+
+        // 구매자
+        purchase.setUser(user);
+        purchase.setName(user.getName());
+        purchase.setNumber(user.getPhone() != null ? user.getPhone() : "01000000000");
+        purchase.setEmail(user.getEmail());
+
+        // 구매 시간
+        purchase.setPurchaseDate(LocalDateTime.now());
+
+        purchase.setIsTransactionComplete(false);
+        purchase.setIsPassengerInfoComplete(false);
+
+        // 결제 기한 및 동승자 정보 기한 (원하면 수정 가능)
+        purchase.setPaymentDueDate(LocalDateTime.now().plusHours(2));
+        purchase.setPassengerInfoDeadline(LocalDateTime.now().plusDays(1));
+
+        // ------- 좌석 정보 매핑 -------
+        List<ConfirmedSeatClass> confirmed = dto.getSeatClasses().stream()
+                .map(sc -> new ConfirmedSeatClass(
+                        sc,
+                        purchase.getAdultCount(),
+                        purchase.getYouthCount(),
+                        purchase.getInfantCount()))
+                .toList();
+
+        purchase.setFinalSeatClasses(confirmed);
+
+        return purchase;
+    }
 }

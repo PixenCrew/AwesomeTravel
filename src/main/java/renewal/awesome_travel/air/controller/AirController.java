@@ -28,6 +28,7 @@ import renewal.awesome_travel.air.service.AirService;
 import renewal.awesome_travel.payment.dto.PaymentRequest;
 import renewal.awesome_travel.payment.repository.PaymentRepository;
 import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
+import renewal.awesome_travel.purchase.service.PurchaseAirService;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.common.entity.Passenger;
 import renewal.common.entity.Passenger.AgeGroup;
@@ -36,7 +37,6 @@ import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.User;
-import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PassengerRepository;
 
 @Controller
@@ -50,7 +50,7 @@ public class AirController {
     private final PurchaseAirRepository purchaseAirRepo;
     private final PaymentRepository paymentRepo;
     private final PassengerRepository passengerRepo;
-    private final CountryCodeRepository countryCodeRepo;
+    private final PurchaseAirService purchaseAirService;
 
     @GetMapping("/search")
     public String getAirSearch(Model model) {
@@ -108,7 +108,7 @@ public class AirController {
 
         AirDetailResponseDto detailResult = (AirDetailResponseDto) session.getAttribute("detailResult");
         User buyer = userRepo.findByEmail(principal.getName()).get();
-        PurchaseAir purchaseAir = PurchaseAir.from(detailResult, buyer);
+        PurchaseAir purchaseAir = purchaseAirService.from(detailResult, buyer);
 
         session.setAttribute("purchaseAir", purchaseAir);
 
