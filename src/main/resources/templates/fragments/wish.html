@@ -38,7 +38,7 @@
 
                 <ul th:unless="${#lists.isEmpty(likedProducts)}">
                     <li th:each="item : ${likedProducts}">
-                        <div class="product-item">
+                        <div class="product-item" th:onclick="|openModal('/product/${item.id}')|">
                             <span th:text="'상품 #' + ${item.id}"></span>
                             <small th:text="${#temporals.format(item.viewedAt, 'yyyy-MM-dd HH:mm')}"></small>
                         </div>
