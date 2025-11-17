@@ -3,7 +3,6 @@ package renewal.awesome_travel.product.service;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -21,8 +20,6 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -261,31 +258,7 @@ public class ProductService {
         return result;
     }
 
-    public void saveRecentView(
-            Principal pricipal,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Long productId,
-            LocalDateTime viewedAt) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        // 로그인 상태인지 체크
-        boolean isLoggedIn = auth != null &&
-                auth.isAuthenticated() &&
-                !"anonymousUser".equals(auth.getPrincipal());
-
-        if (isLoggedIn) {
-            // 로그인: DB 에 저장
-            User user = userRepo.findByEmail(pricipal.getName()).get();
-            saveRecentViewToDB(user, productId, viewedAt);
-        } else {
-            // 비로그인: 쿠키에 저장
-            saveRecentViewToCookie(request, response, productId, viewedAt);
-        }
-    }
-
-    private void saveRecentViewToDB(User user, Long productId, LocalDateTime viewedAt) {
+    public void saveRecentViewToDB(User user, Long productId, LocalDateTime viewedAt) {
 
         List<RecentViewedItem> list = user.getRecentProducts();
 
@@ -303,7 +276,7 @@ public class ProductService {
         userRepo.save(user);
     }
 
-    private void saveRecentViewToCookie(HttpServletRequest request,
+    public void saveRecentViewToCookie(HttpServletRequest request,
             HttpServletResponse response,
             Long productId,
             LocalDateTime viewedAt) {
@@ -411,7 +384,7 @@ public class ProductService {
                 .map(RecentViewedItem::getProductId)
                 .toList();
 
-        // ID 목록 기준 Product 조회 (정렬 유지 가능)
+        // ID 목록 기준 Product 조회
         Map<Long, Product> productMap = productRepo.findAllById(ids)
                 .stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
@@ -421,12 +394,16 @@ public class ProductService {
                 .map(item -> {
                     Product p = productMap.get(item.getProductId());
                     if (p != null) {
-                        p.setViewedAt(item.getViewedAt()); // ★ Transient 필드 주입
+                        p.setViewedAt(item.getViewedAt());
                     }
                     return p;
                 })
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    public boolean wished(User user, Long productId) {
+        return user.getLikedProducts().stream().anyMatch(p -> p.getProductId().equals(productId));
     }
 
 }

@@ -1,4 +1,13 @@
 <div>
+    <style>
+        .wish-btn.active i {
+            color: red;
+        }
+
+        .wish-btn i {
+            color: gray;
+        }
+    </style>
     <header class="section-header">
         <h1>상품 상세</h1>
         <div class="right">
@@ -129,6 +138,13 @@
     <footer id="footerSection">
         <nav>
             <ul>
+                <button id="wish-btn"
+                    class="wish-btn"
+                    th:data-product-id="${product.id}"
+                    th:classappend="${wished} ? ' active' : ''"
+                    onclick="toggleWish(this)">
+                    <i class="fas fa-heart"></i>
+                </button>
                 <li onclick="openHalfModal('halfModalContentBody')">예약하기</li>
             </ul>
         </nav>
@@ -343,6 +359,46 @@
                 }
                 alert(`별점: ${currentStar}점\n리뷰 내용: ${content}`);
                 closeCenterModal();
+            }
+
+            let wishLoading = false;
+
+            window.toggleWish = async function (btnElem) {
+
+                if (wishLoading) return;  // 이미 실행 중이면 무시
+                if (!isLoggedIn) {
+                    addModal('login');
+                    return;
+                }
+                wishLoading = true;       // 실행 중 표시
+
+                const productId = btnElem.dataset.productId;
+
+                try {
+                    const response = await fetch(`/product/detail/${productId}/wish`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error("서버 응답 오류");
+
+                    const result = await response.json();
+
+                    // 버튼 클래스 토글
+                    if (result.wished === true) {
+                        btnElem.classList.add("active");
+                    } else {
+                        btnElem.classList.remove("active");
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert("찜 처리 중 오류 발생");
+                } finally {
+                    wishLoading = false;
+                }
             }
 
         })();

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,6 +58,7 @@ import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
+import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.PassengerRepository;
 
 @Controller
@@ -141,7 +143,7 @@ public class ProductController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        Product target = productRepo.findById(id).get();
+        Product target = productRepo.findById(id).orElseThrow();
         Product calcProduct = productService.calcSingleProduct(target, departDate);
 
         // DTO 생성
@@ -154,9 +156,39 @@ public class ProductController {
         model.addAttribute("product", productDto);
         model.addAttribute("departDate", departDate); // 주문용 출발일 기록 (hidden)
 
-        productService.saveRecentView(principal, request, response, id, LocalDateTime.now());
+        if (principal != null) {
+            User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+
+            // 최근 본 상품 저장
+            productService.saveRecentViewToDB(user, id, LocalDateTime.now());
+
+            // 로그인한 사용자가 찜한 상품인지 여부 확인
+            boolean wished = productService.wished(user, id);
+            model.addAttribute("wished", wished);
+        } else {
+            // 비로그인: 쿠키에 저장
+            productService.saveRecentViewToCookie(request, response, id, LocalDateTime.now());
+        }
 
         return "fragments/product/productDetail";
+    }
+
+    @PostMapping("/detail/{id}/wish")
+    @ResponseBody
+    public Map<String, Boolean> toggleWish(
+            @PathVariable Long id,
+            Principal principal) {
+
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        List<RecentViewedItem> list = user.getLikedProducts();
+
+        boolean removed = list.removeIf(item -> id.equals(item.getProductId()));
+        if (!removed) {
+            list.add(new RecentViewedItem(id, LocalDateTime.now()));
+        }
+        userRepo.save(user);
+
+        return Map.of("wished", !removed);
     }
 
     @PostMapping("/reservation")
