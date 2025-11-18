@@ -23,11 +23,9 @@ import renewal.awesome_travel.air.dto.AirDetailRequestDto;
 import renewal.awesome_travel.air.dto.AirDetailResponseDto;
 import renewal.awesome_travel.air.dto.AirSearchRequestDto;
 import renewal.awesome_travel.air.dto.AirSearchResponseDto;
-import renewal.awesome_travel.air.repository.SeatClassRepository;
 import renewal.awesome_travel.air.service.AirService;
 import renewal.awesome_travel.payment.dto.PaymentRequest;
 import renewal.awesome_travel.payment.repository.PaymentRepository;
-import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
 import renewal.awesome_travel.purchase.service.PurchaseAirService;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.common.entity.Passenger;
@@ -38,6 +36,9 @@ import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.User;
 import renewal.common.repository.PassengerRepository;
+import renewal.common.repository.PurchaseAirRepository;
+import renewal.common.repository.SeatClassRepository;
+import renewal.common.service.AirServiceCommon;
 
 @Controller
 @RequiredArgsConstructor
@@ -45,6 +46,7 @@ import renewal.common.repository.PassengerRepository;
 public class AirController {
 
     private final AirService airService;
+    private final AirServiceCommon airServiceCommon;
     private final SeatClassRepository seatClassRepo;
     private final UserRepository userRepo;
     private final PurchaseAirRepository purchaseAirRepo;
@@ -188,12 +190,11 @@ public class AirController {
     @PostMapping("/purchase/{id}/cancel")
     ResponseEntity<?> cancelPurchase(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> dummyload) {
+            @RequestBody Map<String, Object> dummyload,
+            Principal principal) {
 
-        PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
-        purchaseAir.setPurchaseStatus(PurchaseStatus.CANCELLED);
-        purchaseAirRepo.save(purchaseAir);
+        // TODO Principal로 해당 id의 PurchaseProduct 취소 가능한지 체크
 
-        return ResponseEntity.ok().build();
+        return airServiceCommon.cancelPurchase(id);
     }
 }

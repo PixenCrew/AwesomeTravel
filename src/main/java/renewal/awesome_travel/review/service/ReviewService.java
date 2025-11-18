@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.awesome_travel.review.dto.request.ReviewRequestDto;
 import renewal.awesome_travel.review.dto.response.ReviewResponseDto;
 import renewal.awesome_travel.review.repository.ReviewRepository;
 import renewal.common.entity.Product;
 import renewal.common.entity.Review;
 import renewal.common.entity.User;
+import renewal.common.repository.ProductRepository;
 
 @Service
 @RequiredArgsConstructor

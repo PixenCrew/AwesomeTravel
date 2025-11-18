@@ -39,9 +39,7 @@ import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
 import renewal.awesome_travel.product.dto.ReservationFormDto;
 import renewal.awesome_travel.product.dto.ReservationRequestDto;
 import renewal.awesome_travel.product.dto.ReservationRequestDto.PassengerDto;
-import renewal.awesome_travel.product.repository.ProductRepository;
 import renewal.awesome_travel.product.service.ProductService;
-import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Inquiry.InquiryCategory;
@@ -60,6 +58,9 @@ import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
 import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.PassengerRepository;
+import renewal.common.repository.ProductRepository;
+import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.service.ProductServiceCommon;
 
 @Controller
 @RequiredArgsConstructor
@@ -67,6 +68,7 @@ import renewal.common.repository.PassengerRepository;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductServiceCommon productServiceCommon;
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
     private final PassengerRepository passengerRepo;
@@ -117,7 +119,7 @@ public class ProductController {
 
             Product productCopy = (Product) target.clone();
 
-            Product calcProduct = productService.calcSingleProduct(productCopy, targetDate);
+            Product calcProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
             if (calcProduct != null) {
                 ProductCalanderDto productDto = new ProductCalanderDto(calcProduct);
                 result.add(productDto);
@@ -144,7 +146,7 @@ public class ProductController {
             HttpServletResponse response) {
 
         Product target = productRepo.findById(id).orElseThrow();
-        Product calcProduct = productService.calcSingleProduct(target, departDate);
+        Product calcProduct = productServiceCommon.calcSingleProduct(target, departDate);
 
         // DTO 생성
         ProductDetailDto productDto = new ProductDetailDto(calcProduct);
@@ -337,7 +339,8 @@ public class ProductController {
         List<Passenger> passengers = new ArrayList<>();
         for (PassengerDto passengerDto : request.getPassengers()) {
             Passenger passenger = new Passenger();
-            passenger.setName(passengerDto.getName());
+            passenger.setLastNameKor(passengerDto.getLastNameKor());
+            passenger.setFirstNameKor(passengerDto.getFirstNameKor());
             passenger.setBirth(passengerDto.getBirth());
             passenger.setSex(passengerDto.getGender());
             passenger.setNumber(passengerDto.getPhone());
@@ -429,7 +432,7 @@ public class ProductController {
         User user = userRepo.findByEmail(principal.getName()).get();
         Inquiry inquiry = new Inquiry();
 
-        inquiry.setCategory(InquiryCategory.PRODUCT);
+        inquiry.setCategory(InquiryCategory.ORDER);
         inquiry.setUser(user);
         inquiry.setTitle(request.getTitle());
         inquiry.setContent(request.getContent());
@@ -444,42 +447,10 @@ public class ProductController {
     ResponseEntity<?> cancelPurchase(
             @PathVariable Long id,
             @RequestBody Map<String, Object> dummyload,
-            Principal principal,
-            Model model) {
+            Principal principal) {
+        // TODO Principal로 해당 id의 PurchaseProduct 취소 가능한지 체크
 
-        PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
-        purchaseProduct.setPurchaseStatus(PurchaseStatus.CANCELLED);
-        purchaseProduct.setWaiting(false);
-        purchaseProductRepo.save(purchaseProduct);
-
-        List<PurchaseProduct> candidate = purchaseProductRepo
-                .findByProductAndDepartDate(
-                        purchaseProduct.getProduct(),
-                        purchaseProduct.getDepartDateTime().toLocalDate());
-
-        Product product = productRepo.findById(purchaseProduct.getProduct().getId()).get();
-        Product calcedProduct = productService
-                .calcSingleProduct(product, purchaseProduct.getDepartDateTime().toLocalDate());
-
-        for (PurchaseProduct candidatePP : candidate) {
-            Long totalRequiredSeats = candidatePP.getAdultCount() + candidatePP.getYouthCount();
-            if (candidatePP.isWaiting() && candidatePP.getPurchaseStatus() != PurchaseStatus.CANCELLED) {
-                if (totalRequiredSeats <= calcedProduct.getAvailableSeats()) {
-
-                    calcedProduct.setAvailableSeats(calcedProduct.getAvailableSeats() + totalRequiredSeats);
-                    calcedProduct.UpdateProductStatus();
-                    productRepo.save(calcedProduct);
-
-                    candidatePP.setWaiting(false);
-                    purchaseProductRepo.save(candidatePP);
-                    // TODO candidatePP 해당 사용자 알람 보내기
-                } else {
-                    break; // 순번 건너뛰기 방지
-                }
-            }
-        }
-
-        return ResponseEntity.ok().build();
+        return productServiceCommon.cancelPurchase(id);
     }
 
 }
