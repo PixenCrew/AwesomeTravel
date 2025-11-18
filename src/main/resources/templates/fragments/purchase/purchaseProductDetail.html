@@ -122,7 +122,7 @@
                 <div></div>
                 <div th:each="passenger, iterStat : ${purchaseProduct.passengers}">
                     <ul>
-                        <li>이름: <span th:text="${passenger.name}"></span></li>
+                        <li>이름: <span th:text="${passenger.lastNameKor + ' ' + passenger.FirstNameKor}"></span></li>
                         <li>생년월일/성별: <span th:text="${passenger.birth} + ' / ' + ${passenger.sex}"></span></li>
                         <li>연령구분: <span th:text="${passenger.ageGroup.displayName()}"></span></li>
                         <li>여권정보: <span th:text="${passenger.completed ? '등록완료' : '미등록'}">

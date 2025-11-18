@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import lombok.RequiredArgsConstructor;
-import renewal.awesome_travel.passport.dto.request.PassportDto;
-import renewal.awesome_travel.passport.dto.request.PassportUpdateRequest;
-import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
-import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
+import renewal.awesome_travel.passport.dto.PassportDto;
+import renewal.awesome_travel.passport.dto.PassportUpdateRequest;
 import renewal.common.entity.Passenger;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseBase;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PassengerRepository;
+import renewal.common.repository.PurchaseAirRepository;
+import renewal.common.repository.PurchaseProductRepository;
 
 @Controller
 @RequestMapping("/purchase")
@@ -70,19 +70,24 @@ public class PurchaseController {
                     .orElseThrow(() -> new IllegalArgumentException("탑승객 ID가 유효하지 않습니다: " + dto.getId()));
 
             // 여권정보 업데이트
-            passenger.setNationality(countryCodeRepo.findByCode(dto.getNationality()).get());
+            passenger.setCountryCode(countryCodeRepo.findByCode(dto.getCountryCode()).get());
             passenger.setPassportNum(dto.getPassportNum());
             passenger.setLastName(dto.getLastName());
             passenger.setFirstName(dto.getFirstName());
-            passenger.setExpire(dto.getExpire());
-            passenger.setSpecialRequests(dto.getSpecialRequests());
-
-            // 일반정보 업데이트
-            passenger.setName(dto.getName());
+            passenger.setLastNameKor(dto.getLastNameKor());
+            passenger.setFirstNameKor(dto.getFirstNameKor());
             passenger.setBirth(dto.getBirth());
             passenger.setSex(dto.getSex());
+
+            passenger.setNationality(dto.getNationality());
+            passenger.setAuthority(dto.getAuthority());
+            passenger.setIssue(dto.getIssue());
+            passenger.setExpire(dto.getExpire());
+
+            // 일반정보 업데이트
             passenger.setNumber(dto.getNumber());
             passenger.setEmail(dto.getEmail());
+            passenger.setSpecialRequests(dto.getSpecialRequests());
             passenger.setAgeGroup(dto.getAgeGroup());
 
             // 해당 탑승객 정보 null 체크

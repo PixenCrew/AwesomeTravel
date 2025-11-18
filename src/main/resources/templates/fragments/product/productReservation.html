@@ -79,7 +79,8 @@
                     <h3>여행자 [[${iterStat.index + 1}]]</h3> (<span th:text="${passenger.ageGroup}"></span>) <!-- AgeGroup 표시 -->
                     <div>
                         <label>이름</label>
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].name'" placeholder="이름을 입력하세요." required />
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" placeholder="성을 입력하세요." required />
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" placeholder="이름을 입력하세요." required />
                     </div>
                     <div>
                         <label>생년월일</label>
@@ -147,7 +148,8 @@
 
                 // 여행자 정보
                 const passengers = Array.from(document.querySelectorAll('.passenger')).map((div, index) => ({
-                    name: div.querySelector(`input[name='passengers[${index}].name']`).value,
+                    lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`).value,
+                    firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`).value,
                     birth: div.querySelector(`input[name='passengers[${index}].birth']`).value,
                     gender: div.querySelector(`input[name='passengers[${index}].gender']`).value,
                     phone: div.querySelector(`input[name='passengers[${index}].phone']`).value,

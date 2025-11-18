@@ -7,35 +7,67 @@
         <div id="passportForm">
             <div th:each="passenger, iterStat : ${passengers}">
                 <section class="passenger-card p-3 border mb-3 rounded">
+
                     <h3 th:text="'탑승객 ' + ${iterStat.index + 1}"></h3>
+
                     <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
-                    <label>성명</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].name'" th:value="${passenger.name}" required /><br>
-                    <label>생년월일</label>
-                    <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required /><br>
-                    <label>연령구분</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" th:value="${passenger.ageGroup}" readonly /><br>
-                    <label>성별</label>
-                    <select th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
-                        <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
-                        <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
-                    </select><br>
-                    <label>전화번호</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" required /><br>
-                    <label>이메일</label>
-                    <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" required /><br>
-                    <label>국적</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].nationality'" th:value="${passenger.nationality != null ? passenger.nationality.countryCode : ''}" required /><br>
-                    <label>여권번호</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required /><br>
-                    <label>영문 성 (Last Name)</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required /><br>
-                    <label>영문 이름 (First Name)</label>
-                    <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required /><br>
-                    <label>여권 만료일</label>
-                    <input type="date" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required /><br>
-                    <label>특별 요구사항</label>
-                    <textarea th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}"></textarea><br>
+
+                    <label>여권번호
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required /><br>
+                    </label>
+                    <label>영문 성
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required /><br>
+                    </label>
+                    <label>영문 이름
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required /><br>
+                    </label>
+                    <label>국문 성
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" th:value="${passenger.lastNameKor}" required /><br>
+                    </label>
+                    <label>국문 이름
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" th:value="${passenger.firstNameKor}" required /><br>
+                    </label>
+                    <label>생년월일
+                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required /><br>
+                    </label>
+                    <label>연령구분
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" th:value="${passenger.ageGroup}" readonly /><br>
+                    </label>
+                    <label>성별
+                        <select th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
+                            <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
+                            <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
+                        </select><br>
+                    </label>
+
+
+                    <label>국가코드
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].countryCode'" th:value="${passenger.countryCode.code}" required /><br>
+                    </label>
+                    <label>국적
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].nationality'" th:value="${passenger.nationality}" required /><br>
+                    </label>
+                    <label>발급관청
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].authority'" th:value="${passenger.authority}" required /><br>
+                    </label>
+                    <label>여권 발급일
+                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].issue'" th:value="${passenger.issue}" required /><br>
+                    </label>
+                    <label>여권 만료일
+                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required /><br>
+                    </label>
+
+
+                    <label>이메일
+                        <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" required /><br>
+                    </label>
+                    <label>전화번호
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" required /><br>
+                    </label>
+                    <label>특별 요구사항
+                        <textarea th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}"></textarea><br>
+                    </label>
+
                 </section>
             </div>
             <div class="text-center mt-4">
@@ -60,22 +92,31 @@
                 console.log('purchaseBaseId :', purchaseBaseId);
                 console.log('type :', type);
 
-                const passengers = Array.from(document.querySelectorAll('.passenger-card')).map((div, index) => (
-                    {
-                        id: div.querySelector(`input[name='passengers[${index}].id']`)?.value || '',
-                        name: div.querySelector(`input[name='passengers[${index}].name']`)?.value || '',
-                        birth: div.querySelector(`input[name='passengers[${index}].birth']`)?.value || '',
-                        sex: div.querySelector(`select[name='passengers[${index}].sex']`)?.value || '',
-                        number: div.querySelector(`input[name='passengers[${index}].number']`)?.value || '',
-                        email: div.querySelector(`input[name='passengers[${index}].email']`)?.value || '',
-                        ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`)?.value || '',
-                        nationality: div.querySelector(`input[name='passengers[${index}].nationality']`)?.value || '',
-                        passportNum: div.querySelector(`input[name='passengers[${index}].passportNum']`)?.value || '',
-                        lastName: div.querySelector(`input[name='passengers[${index}].lastName']`)?.value || '',
-                        firstName: div.querySelector(`input[name='passengers[${index}].firstName']`)?.value || '',
-                        expire: div.querySelector(`input[name='passengers[${index}].expire']`)?.value || '',
-                        specialRequests: div.querySelector(`textarea[name='passengers[${index}].specialRequests']`)?.value || ''
-                    }));
+                const passengers = Array.from(document.querySelectorAll('.passenger-card')).map((div, index) => ({
+                    id: div.querySelector(`input[name='passengers[${index}].id']`)?.value || '',
+
+                    passportNum: div.querySelector(`input[name='passengers[${index}].passportNum']`)?.value || '',
+
+                    lastName: div.querySelector(`input[name='passengers[${index}].lastName']`)?.value || '',
+                    firstName: div.querySelector(`input[name='passengers[${index}].firstName']`)?.value || '',
+                    lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`)?.value || '',
+                    firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`)?.value || '',
+
+                    birth: div.querySelector(`input[name='passengers[${index}].birth']`)?.value || '',
+                    sex: div.querySelector(`select[name='passengers[${index}].sex']`)?.value || '',
+
+                    countryCode: div.querySelector(`input[name='passengers[${index}].countryCode']`)?.value || '',
+                    nationality: div.querySelector(`input[name='passengers[${index}].nationality']`)?.value || '',
+                    authority: div.querySelector(`input[name='passengers[${index}].authority']`)?.value || '',
+                    issue: div.querySelector(`input[name='passengers[${index}].issue']`)?.value || '',
+                    expire: div.querySelector(`input[name='passengers[${index}].expire']`)?.value || '',
+
+                    email: div.querySelector(`input[name='passengers[${index}].email']`)?.value || '',
+                    number: div.querySelector(`input[name='passengers[${index}].number']`)?.value || '',
+                    specialRequests: div.querySelector(`textarea[name='passengers[${index}].specialRequests']`)?.value || '',
+                    ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`)?.value || ''
+                }));
+
                 const payload = { passengers };
 
                 addModal(`/purchase/${type}/${purchaseBaseId}/passport`, true, payload);

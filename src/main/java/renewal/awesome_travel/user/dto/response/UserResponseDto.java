@@ -23,14 +23,6 @@ public class UserResponseDto {
     private String role;
     private String status;
 
-    // 여권 정보
-    private String passportNumber;
-    private LocalDate passportIssuedDate;
-    private LocalDate passportExpiryDate;
-    private String passportCountry;
-    private String englishFirstName;
-    private String englishLastName;
-
     // 기타 정보
     private Boolean emailVerified;
     private Boolean marketingConsent;
@@ -47,15 +39,5 @@ public class UserResponseDto {
 
         this.role = user.getRole().name();
         this.status = user.getStatus().name();
-
-        this.passportNumber = user.getPassportNumber();
-        this.passportIssuedDate = user.getPassportIssuedDate();
-        this.passportExpiryDate = user.getPassportExpiryDate();
-        this.passportCountry = user.getPassportCountry();
-        this.englishFirstName = user.getEnglishFirstName();
-        this.englishLastName = user.getEnglishLastName();
-
-        this.emailVerified = user.getEmailVerified();
-        this.marketingConsent = user.getMarketingConsent();
     }
 }

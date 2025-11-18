@@ -155,22 +155,6 @@ public class UserService {
             user.setPhone(dto.getPhone());
         if (dto.getBirthDate() != null)
             user.setBirthDate(dto.getBirthDate());
-
-        if (dto.getPassportNumber() != null)
-            user.setPassportNumber(dto.getPassportNumber());
-        if (dto.getPassportIssuedDate() != null)
-            user.setPassportIssuedDate(dto.getPassportIssuedDate());
-        if (dto.getPassportExpiryDate() != null)
-            user.setPassportExpiryDate(dto.getPassportExpiryDate());
-        if (dto.getPassportCountry() != null)
-            user.setPassportCountry(dto.getPassportCountry());
-        if (dto.getEnglishFirstName() != null)
-            user.setEnglishFirstName(dto.getEnglishFirstName());
-        if (dto.getEnglishLastName() != null)
-            user.setEnglishLastName(dto.getEnglishLastName());
-
-        if (dto.getMarketingConsent() != null)
-            user.setMarketingConsent(dto.getMarketingConsent());
     }
 
     @Transactional

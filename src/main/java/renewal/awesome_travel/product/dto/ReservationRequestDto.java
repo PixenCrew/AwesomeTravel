@@ -23,7 +23,8 @@ public class ReservationRequestDto {
     @Getter
     @Setter
     public static class PassengerDto {
-        private String name;
+        private String lastNameKor;
+        private String firstNameKor;
         private LocalDate birth;
         private Sex gender;
         private String phone;
