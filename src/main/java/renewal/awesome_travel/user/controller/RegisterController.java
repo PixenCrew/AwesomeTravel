@@ -103,6 +103,11 @@ public class RegisterController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @GetMapping("/done")
+    public String registerDone() {
+        return "fragments/register/registerDone";
+    }
+
     @GetMapping("/email")
     public String verifyEmail(@RequestParam String token, Model model) {
 

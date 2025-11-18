@@ -12,7 +12,7 @@
     <p th:text="${message}"></p>
 
     <div th:if="${success}">
-        <a href="/login">로그인하러 가기</a>
+        <button onclick="window.location.replace('/');">로그인하러 가기</button>
     </div>
 
     <div th:if="${!success}">

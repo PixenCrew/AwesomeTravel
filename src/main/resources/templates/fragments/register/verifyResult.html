@@ -1,0 +1,17 @@
+<div>
+    <header class="section-header">
+        <h1>회원가입</h1>
+    </header>
+
+    <div class="section-body">
+        <div th:if="${success}">
+            <h4>회원가입 완료</h4>
+            <div>회원가입 이메일 인증이 완료되었습니다.</div><br>
+        </div>
+        <div th:unless="${success}">
+            <div>이메일 인증에 오류가 발생했습니다.</div><br>
+            <div th:value="${message}"></div><br>
+        </div>
+        <button onclick="window.location.replace('/');">홈으로</button>
+    </div>
+</div>

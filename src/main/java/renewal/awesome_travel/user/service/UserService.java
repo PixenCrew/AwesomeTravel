@@ -66,19 +66,18 @@ public class UserService {
                 .name(dto.getName())
                 .role(UserRole.USER)
                 .provider(UserProvider.LOCAL)
-                .status(UserStatus.ACTIVE)
+                .status(UserStatus.INACTIVE) // 이메일 인증 완료 전까진 INACTIVE
                 .emailVerified(false)
                 .grade(MemberGrade.BRONZE)
                 .point(0L)
                 .terms(dto.getTerms())
                 // .createdAt(LocalDateTime.now()) // 생성시간은 JPA Auditing으로 지정
                 .build();
-
         userRepository.save(user);
 
+        // 이메일 발송
         EmailVerificationToken token = EmailVerificationToken.create(user);
         tokenRepository.save(token);
-
         emailService.sendVerificationMail(user.getEmail(), token.getToken());
 
         return user.getId();
@@ -95,6 +94,7 @@ public class UserService {
 
         User user = evt.getUser();
         user.setEmailVerified(true);
+        user.setStatus(UserStatus.ACTIVE);
         tokenRepository.delete(evt); // 인증 성공 시 토큰 제거
     }
 
