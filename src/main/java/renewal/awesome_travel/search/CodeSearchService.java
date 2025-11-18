@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.search.dto.CodeSearchResponse;
-import renewal.common.repository.CityCodeRepository;
+import renewal.awesome_travel.search.repository.CodeSearchRepository;
 
 @Service
 @RequiredArgsConstructor
 public class CodeSearchService {
 
-        private final CityCodeRepository cityRepo;
+        private final CodeSearchRepository codeSearchRepo;
 
         // 메모리 캐시
         private List<CodeSearchResponse> cachedList = new ArrayList<>();
@@ -23,7 +23,7 @@ public class CodeSearchService {
         @PostConstruct
         public void init() {
                 System.out.println(">>> 공항/도시 목록 캐싱 시작...");
-                cachedList = cityRepo.loadAllCodeSearchItems();
+                cachedList = codeSearchRepo.loadAllCodeSearchItems();
                 System.out.println(">>> 캐싱 완료. 총 " + cachedList.size() + " 건");
         }
 
