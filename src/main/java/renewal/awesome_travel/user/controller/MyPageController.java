@@ -29,6 +29,8 @@ import renewal.common.entity.Inquiry;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
+import renewal.common.entity.User.UserProvider;
+import renewal.common.entity.User.UserStatus;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
 
@@ -264,4 +266,69 @@ public class MyPageController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @GetMapping("/withdrawal")
+    public String withdrawalFragment(Principal principal) {
+
+        // 회원정보 수정 진행
+        String name = principal.getName();
+        User user = userRepo.findByEmail(name).orElseThrow();
+
+        if (user.getProvider() == UserProvider.LOCAL) {
+            return "fragments/mypage/withdrawal";
+        } else {
+            return "fragments/mypage/withdrawal2";
+        }
+    }
+
+    @PostMapping("/withdrawal")
+    public ResponseEntity<?> withdrawalUser(@RequestBody Map<String, String> payload, Principal principal) {
+
+        if (principal == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+        }
+
+        // 회원정보 수정 진행
+        String name = principal.getName();
+        User user = userRepo.findByEmail(name).orElseThrow();
+
+        // 1. 소셜로그인이면 비밀번호 체크 없이 진행
+        if (user.getProvider() != UserProvider.LOCAL) {
+            user.setStatus(UserStatus.WITHDRAWN);
+            userRepo.save(user);
+
+            return ResponseEntity.ok(Map.of("success", true));
+        }
+
+        // 2. 일반로그인이면 비밀번호 체크
+        String password = payload.get("password");
+
+        if (password == null || password.isBlank()) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "현재 비밀번호를 입력해주세요."));
+
+        } else if (!passwordEncoder.matches(password, user.getPassword())) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "기존 비밀번호가 맞지 않습니다."));
+
+        } else {
+
+            // 최종 탈퇴처리
+            user.setStatus(UserStatus.WITHDRAWN);
+            userRepo.save(user);
+        }
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @GetMapping("/withdrawal/done")
+    public String withdrawalDoneFragment() {
+
+        return "fragments/mypage/withdrawalDone";
+    }
 }

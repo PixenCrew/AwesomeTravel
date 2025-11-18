@@ -2,7 +2,7 @@
     <header class="section-header">
         <h1>계정 설정</h1>
         <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
     </header>
 
@@ -27,10 +27,12 @@
         </div>
 
         <!-- 비밀번호 -->
-        <label class="input-label">비밀번호</label>
-        <div class="phone-box">
-            <input type="text" value="******" disabled />
-            <button id="passwordChangeBtn" class="btn-black" onclick="addModal('/mypage/userInfo/password')">변경하기</button>
+        <div th:if="${provider == T(renewal.common.entity.User.UserProvider).LOCAL}">
+            <label class="input-label">비밀번호</label>
+            <div class="phone-box">
+                <input type="text" value="******" disabled />
+                <button id="passwordChangeBtn" class="btn-black" onclick="addModal('/mypage/userInfo/password')">변경하기</button>
+            </div>
         </div>
 
         <!-- 휴대폰 번호 -->
@@ -49,6 +51,8 @@
         <h4 id="errorMsg"></h4>
 
         <button id="registerBtn" class="btn-primary" onclick="submitRegister()">수정완료</button>
+        <button id="registerBtn" class="btn-primary" onclick="closeModal()">취소</button>
+        <button id="registerBtn" class="btn-primary" onclick="addModal('/mypage/withdrawal')">회원탈퇴</button>
     </div>
 
     <script th:inline="javascript">

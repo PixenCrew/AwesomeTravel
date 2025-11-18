@@ -1,0 +1,99 @@
+<div>
+    <header class="section-header">
+        <h1>회원탈퇴</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <div>
+            <h4>회원 탈퇴 안내 사항</h4>
+            <ul>
+                <li>탈퇴 시, 계정과 관련된 모든 권한이 삭제되며 복구가
+                    불가능합니다.</li>
+
+                <li>직접 작성한 콘텐츠(강의, 게시물, 댓글 등)는 자동으로
+                    삭제되지 않습니다. 삭제를 원하시는 경우 탈퇴 전 직
+                    접 삭제해주시기 바랍니다.</li>
+
+                <li>탈퇴 후에는 동일한 이메일 주소로 재가입이 가능하지
+                    만, 기존 계정의 데이터 및 기록은 연동되지 않습니다.</li>
+
+                <li>소셜 로그인(카카오, 네이버, 구글 등)으로 가입한 경
+                    우, 탈퇴 시 해당 소셜 계정과의 연결도 해제되며 이후
+                    소셜 로그인으로 기존 계정 접근이 불가합니다.</li>
+
+                <li>체크박스에 표시 후 탈퇴하시면, 위 사항에 모두 동의
+                    한 것으로 간주합니다.</li>
+            </ul>
+        </div>
+
+        <!-- 기존 암호 -->
+        <label>비밀번호 재입력</label>
+
+        <div>
+            <input type="password" id="password" />
+        </div>
+
+        <h4>탈퇴 시, 위 혜택이 모두 사라집니다. 내용을 모두 확인하셨나요?</h4>
+
+        <input type="checkbox" id="agree" />모두 동의하며, 회원탈퇴를 진행하겠습니다.
+
+        <button onclick="submitRegister()">탈퇴하기</button>
+    </div>
+
+    <script>
+        let isSubmitting = false;
+
+        (function () {
+
+            window.submitRegister = async function () {
+
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                const password = document.getElementById("password").value.trim();
+                const agree = document.getElementById("agree").checked;
+
+                if (!agree) {
+                    alert("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
+                    isSubmitting = false;
+                    return;
+                }
+
+                const payload = {
+                    password: password
+                }
+
+                try {
+                    // 서버 요청
+                    const response = await fetch("/mypage/withdrawal", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        alert(result.message || "회원탈퇴 중 오류가 발생했습니다.");
+                        isSubmitting = false;
+                        return;
+                    }
+
+                    alert('회원탈퇴가 완료되었습니다.');
+                    addModal('/mypage/withdrawal/done', true);
+
+                } catch (err) {
+
+                    console.error(err);
+                    alert("회원탈퇴 중 오류가 발생했습니다.");
+
+                } finally {
+                    isSubmitting = false;
+                }
+            }
+        })();
+
+    </script>
+</div>
