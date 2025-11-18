@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.hibernate.Hibernate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,33 +15,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import renewal.awesome_travel.config.security.CustomUserDetails;
-import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.product.service.ProductService;
-import renewal.awesome_travel.purchase.repository.PurchaseAirRepository;
-import renewal.awesome_travel.purchase.repository.PurchaseProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
-import renewal.common.entity.Inquiry;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
-import renewal.common.entity.PurchaseAir;
-import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
 import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.MenuCodeRepository;
+import renewal.common.service.ProductServiceCommon;
 
 @RequiredArgsConstructor
 @Controller(value = "/")
 public class MainController {
 
+    private final ProductServiceCommon productServiceCommon;
     private final UserService userService;
     private final UserRepository userRepo;
     private final ProductService productService;
     private final MenuCodeRepository menuCodeRepo;
-    private final PurchaseProductRepository purchaseProductRepo;
-    private final PurchaseAirRepository purchaseAirRepo;
-    private final InquiryRepository inquiryRepo;
 
     @GetMapping
     public String main(Principal principal, HttpServletRequest request, Model model) {
@@ -75,32 +66,6 @@ public class MainController {
         }
 
         return "layout";
-    }
-
-    @GetMapping("mypage/reservation")
-    public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
-
-        User user = principal.getUser(); // detached 상태
-        List<PurchaseProduct> purchaseProducts = purchaseProductRepo.findByUserId(user.getId());
-        List<PurchaseAir> purchaseAirs = purchaseAirRepo.findByUserId(user.getId());
-
-        model.addAttribute("purchaseProducts", purchaseProducts);
-        model.addAttribute("purchaseAirs", purchaseAirs);
-
-        // 로그인 되어 있으면 mypage fragment 반환
-        return "fragments/purchase/purchaseList";
-    }
-
-    @GetMapping("mypage/inquiry")
-    public String mypageInquiryFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
-
-        User user = principal.getUser(); // detached 상태
-        List<Inquiry> inquiries = inquiryRepo.findByUserId(user.getId());
-
-        model.addAttribute("inquiries", inquiries);
-
-        // 로그인 되어 있으면 mypage fragment 반환
-        return "fragments/inquiry/inquiryList";
     }
 
     @GetMapping("login")
@@ -143,7 +108,7 @@ public class MainController {
             int maxPlusDays = product.getCutoffDays().intValue() + 30;
 
             while (calcedProduct == null && plusDays < maxPlusDays) {
-                calcedProduct = productService.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
                 plusDays++;
             }
 
