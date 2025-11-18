@@ -1,5 +1,7 @@
 package renewal.awesome_travel.inquiry.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,13 @@ import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.notification.repository.NotificationRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.common.entity.Inquiry;
+import renewal.common.entity.Inquiry.InquiryStage;
 import renewal.common.entity.InquiryAnswer;
 import renewal.common.entity.Notification;
+import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
+import renewal.common.repository.ProductRepository;
+import renewal.common.repository.PurchaseProductRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +34,49 @@ public class InquiryService {
         private final InquiryAnswerRepository inquiryAnswerRepository;
         private final NotificationRepository notificationRepository;
         private final UserRepository userRepository;
+        private final PurchaseProductRepository purchaseProductRepo;
+        private final ProductRepository productRepo;
 
         // 문의 작성
         public Long createInquiry(Long userId, InquiryRequestDto dto) {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
-                Inquiry inquiry = Inquiry.create(user, dto.getTitle(), dto.getContent(), dto.getCategory());
+                Inquiry inquiry = new Inquiry(
+                                user,
+                                dto.getTitle(),
+                                dto.getContent(),
+                                dto.getCategory(),
+                                dto.getProductId(),
+                                dto.getPurchaseId(),
+                                InquiryStage.GENERAL);
+                if (dto.getProductId() != null && productRepo.findById(dto.getProductId()).isPresent()) {
+                        inquiry.setStage(InquiryStage.BEFORE_PURCHASE);
+                }
+                if (dto.getPurchaseId() != null) {
+                        PurchaseProduct purchase = purchaseProductRepo.findById(dto.getPurchaseId()).orElseThrow();
+                        switch (purchase.getPurchaseStatus()) {
+                                case RESERVED:
+                                        inquiry.setStage(InquiryStage.AFTER_BOOKING);
+                                        break;
+                                case CONFIRMED:
+                                        inquiry.setStage(InquiryStage.AFTER_BOOKING);
+                                        break;
+                                case HOLDING:
+                                        inquiry.setStage(InquiryStage.AFTER_BOOKING);
+                                        break;
+                                case PAID:
+                                        if (LocalDateTime.now().isBefore(purchase.getDepartDateTime())) {
+                                                inquiry.setStage(InquiryStage.AFTER_BOOKING);
+                                        } else {
+                                                inquiry.setStage(InquiryStage.AFTER_TRAVEL);
+                                        }
+                                        break;
+                                case CANCELLED:
+
+                                        break;
+                        }
+                }
+
                 return inquiryRepository.save(inquiry).getId();
         }
 
