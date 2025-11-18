@@ -104,10 +104,9 @@
     </footer>
 
     <script th:inline="javascript">
-
-        let paymentType = /*[[${ paymentType }]]*/'';
-
         (function () {
+            let paymentType = /*[[${ paymentType }]]*/'';
+
             window.proceedPay = async function (purchaseBaseId) {
                 if (confirm('[TEST] 테스트 결제 진행')) {
 
