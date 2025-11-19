@@ -1,36 +1,50 @@
 package renewal.awesome_travel.user.controller;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.passport.entity.Passport;
+import renewal.awesome_travel.passport.entity.PassportAccessConsent;
 import renewal.awesome_travel.passport.repository.PassportAccessConsentRepository;
 import renewal.awesome_travel.passport.repository.PassportRepository;
+import renewal.awesome_travel.user.dto.request.MatePassportRequestDto;
+import renewal.awesome_travel.user.dto.request.PassportRequestDto;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
+import renewal.awesome_travel.user.entity.MateVerificationToken;
+import renewal.awesome_travel.user.repository.MateVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.awesome_travel.user.service.EmailService;
+import renewal.common.entity.CountryCode;
 import renewal.common.entity.Inquiry;
+import renewal.common.entity.Passenger.Sex;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
 import renewal.common.entity.User.UserProvider;
 import renewal.common.entity.User.UserStatus;
+import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
 
@@ -42,10 +56,13 @@ public class MyPageController {
     private final UserRepository userRepo;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PurchaseAirRepository purchaseAirRepo;
+    private final CountryCodeRepository countryCodeRepo;
     private final InquiryRepository inquiryRepo;
     private final PassportRepository passportRepo;
     private final PassportAccessConsentRepository passportAccessConsentRepo;
     private final PasswordEncoder passwordEncoder;
+    private final MateVerificationTokenRepository mateTokenRepository;
+    private final EmailService emailService;
 
     @GetMapping("/reservation")
     public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
@@ -86,7 +103,7 @@ public class MyPageController {
     public String myPassportFragment(Principal principal, Model model) {
 
         User user = userRepo.findByEmail(principal.getName()).get();
-        Passport myPassport = passportRepo.findByUser(user).orElseThrow();
+        Passport myPassport = passportRepo.findByUser(user).orElseGet(Passport::new);
 
         model.addAttribute("myPassport", myPassport);
 
@@ -94,19 +111,161 @@ public class MyPageController {
     }
 
     @PostMapping("/myPassport")
-    public String myPassportPost(@RequestBody Passport myNewPassport, Principal principal) {
+    public ResponseEntity<?> myPassportPost(@RequestBody PassportRequestDto myPassport, Principal principal) {
 
         User user = userRepo.findByEmail(principal.getName()).get();
-        myNewPassport.setUser(user);
-        passportRepo.save(myNewPassport);
 
-        return "fragments/mypage";
+        Passport passport = passportRepo.findByUser(user)
+                .orElse(new Passport());
+
+        // 새로 생성된 passport라면 user 연결
+        if (passport.getId() == null) {
+            passport.setUser(user);
+        }
+
+        // CountryCode 엔티티 변환
+        CountryCode countryCode = countryCodeRepo.findById(myPassport.getCountryCode())
+                .orElseThrow(() -> new IllegalArgumentException("국가코드 없음"));
+
+        passport.setCountryCode(countryCode);
+        passport.setPassportNum(myPassport.getPassportNum());
+        passport.setLastName(myPassport.getLastName());
+        passport.setFirstName(myPassport.getFirstName());
+        passport.setLastNameKor(myPassport.getLastNameKor());
+        passport.setFirstNameKor(myPassport.getFirstNameKor());
+
+        passport.setBirth(LocalDate.parse(myPassport.getBirth()));
+        passport.setSex(Sex.valueOf(myPassport.getSex()));
+
+        passport.setNationality(myPassport.getNationality());
+        passport.setAuthority(myPassport.getAuthority());
+
+        passport.setIssue(LocalDate.parse(myPassport.getIssue()));
+        passport.setExpire(LocalDate.parse(myPassport.getExpire()));
+
+        passportRepo.save(passport);
+
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @GetMapping("/mateList")
     public String mateListFragment(Principal principal, Model model) {
 
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        List<PassportAccessConsent> mateList = passportAccessConsentRepo.findByUser(user);
+
+        model.addAttribute("mateList", mateList);
+
         return "fragments/mypage/mateList";
+    }
+
+    // 새 메이트 폼
+    @GetMapping("/matePassport/new")
+    public String newMateFragment(Principal principal, Model model) {
+
+        PassportAccessConsent matePassport = new PassportAccessConsent();
+        model.addAttribute("matePassport", matePassport);
+
+        return "fragments/mypage/matePassport";
+    }
+
+    // 특정 메이트 조회
+    @GetMapping("/matePassport/{id}")
+    public String getMateFragment(@PathVariable Long id, Principal principal, Model model) {
+
+        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).orElseThrow();
+        model.addAttribute("matePassport", matePassport);
+
+        return "fragments/mypage/matePassport";
+    }
+
+    // 메이트 등록 ( 신규 / 수정 )
+    @PostMapping("/matePassport")
+    public ResponseEntity<?> saveMatePassport(@RequestBody MatePassportRequestDto req,
+            Principal principal) {
+
+        User user = userRepo.findByEmail(principal.getName())
+                .orElseThrow();
+
+        PassportAccessConsent matePassport = (req.getId() != null)
+                ? passportAccessConsentRepo.findById(req.getId()).orElse(new PassportAccessConsent())
+                : new PassportAccessConsent();
+
+        matePassport.setUser(user);
+        matePassport.setEmail(req.getEmail());
+        matePassport.setNumber(req.getNumber());
+        matePassport.getPassport().setPassportNum(req.getPassportNum());
+        matePassport.getPassport().setLastName(req.getLastName());
+        matePassport.getPassport().setFirstName(req.getFirstName());
+        matePassport.getPassport().setLastNameKor(req.getLastNameKor());
+        matePassport.getPassport().setFirstNameKor(req.getFirstNameKor());
+        matePassport.getPassport().setBirth(LocalDate.parse(req.getBirth()));
+        matePassport.getPassport().setSex(Sex.valueOf(req.getSex()));
+        matePassport.getPassport().setNationality(req.getNationality());
+        matePassport.getPassport().setAuthority(req.getAuthority());
+        matePassport.getPassport().setIssue(LocalDate.parse(req.getIssue()));
+        matePassport.getPassport().setExpire(LocalDate.parse(req.getExpire()));
+
+        // 국가코드
+        CountryCode code = countryCodeRepo.findByCode(req.getCountryCode())
+                .orElseThrow();
+        matePassport.getPassport().setCountryCode(code);
+
+        passportRepo.save(matePassport.getPassport());
+        passportAccessConsentRepo.save(matePassport);
+
+        // 새 등록이면 이메일 발송
+        if (req.getId() == null) {
+            MateVerificationToken token = MateVerificationToken.create(user, matePassport);
+            matePassport.setRequestedAt(LocalDateTime.now());
+            mateTokenRepository.save(token);
+            emailService.sendMateMail(req.getEmail(), token.getToken(), "/mypage/matePassport/accept?token="); // 비동기
+        }
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    // 특정 메이트 승낙
+    @GetMapping("/matePassport/accept")
+    public String acceptMateFragment(@RequestParam String token, Model model) {
+
+        MateVerificationToken token2 = mateTokenRepository.findById(token).orElseThrow();
+
+        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(token2.getMatePassport().getId())
+                .orElseThrow();
+        matePassport.setApprovedAt(LocalDateTime.now());
+        passportAccessConsentRepo.save(matePassport);
+        mateTokenRepository.delete(token2);
+        model.addAttribute("username", matePassport.getUser().getName());
+
+        return "fragments/mypage/matePassportAccepted";
+    }
+
+    // 특정 메이트 삭제
+    @PostMapping("/matePassport/{id}/delete")
+    public ResponseEntity<?> deleteMate(@PathVariable @NonNull Long id) {
+        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).get();
+        if (matePassport != null) {
+            Passport passport = matePassport.getPassport();
+            MateVerificationToken token = mateTokenRepository.findByMatePassport(matePassport).orElse(null);
+
+            // token 있으면 삭제
+            if (token != null) {
+                mateTokenRepository.delete(token);
+            }
+
+            // mate 삭제
+            passportAccessConsentRepo.delete(matePassport);
+
+            // passport 삭제
+            if (passport != null) {
+                passportRepo.delete(passport);
+            }
+            return ResponseEntity.ok(Map.of("success", true));
+
+        }
+        return ResponseEntity.ok(Map.of("success", false));
+
     }
 
     @GetMapping("/userInfo")

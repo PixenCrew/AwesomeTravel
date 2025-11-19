@@ -2,11 +2,11 @@ package renewal.awesome_travel.passport.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -21,7 +21,7 @@ import renewal.common.entity.User;
 public class PassportAccessConsent {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -30,13 +30,10 @@ public class PassportAccessConsent {
 
     // 접근하고자 하는 여권
     @OneToOne
-    private Passport passport;
+    private Passport passport = new Passport();
 
-    // SMS 링크에 포함될 승인 토큰
-    @Column(unique = true)
-    private String approvalToken;
-    private String ownerName;
-    private String ownerPhone;
+    private String email;
+    private String number;
 
     @Enumerated(EnumType.STRING)
     private ConsentStatus status;

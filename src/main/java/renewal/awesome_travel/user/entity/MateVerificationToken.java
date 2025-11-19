@@ -10,12 +10,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import renewal.awesome_travel.passport.entity.PassportAccessConsent;
 import renewal.common.entity.User;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
-public class EmailVerificationToken {
+public class MateVerificationToken {
 
     @Id
     private String token;
@@ -24,15 +27,21 @@ public class EmailVerificationToken {
     @JoinColumn(name = "user_id")
     private User user;
 
+    // 어떤 메이트(여권 동의)와 연결된 토큰인지
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passport_access_consent_id")
+    private PassportAccessConsent matePassport;
+
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
 
-    public static EmailVerificationToken create(User user) {
-        EmailVerificationToken evt = new EmailVerificationToken();
+    public static MateVerificationToken create(User user, PassportAccessConsent matePassport) {
+        MateVerificationToken evt = new MateVerificationToken();
         evt.token = UUID.randomUUID().toString();
         evt.user = user;
+        evt.matePassport = matePassport;
         evt.createdAt = LocalDateTime.now();
-        evt.expiresAt = evt.createdAt.plusHours(24); // 유효기간 24시간
+        evt.expiresAt = evt.createdAt.plusHours(24);
         return evt;
     }
 

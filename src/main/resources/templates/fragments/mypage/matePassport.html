@@ -1,26 +1,204 @@
 <div>
     <header class="section-header">
-        <h1>설정</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
+        <h1>여행메이트 등록</h1>
+        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
     </header>
 
     <div class="section-body">
-        <div>
-            <img th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}">
+        <div id="matePassportForm">
+            <section>
 
-            <div>
-                <h2 th:text="${currentUser?.name}">신예은</h2>
-                <p th:text="${currentUser?.email}">shin@god.com</p>
-                <p th:text="${currentUser?.grade}">일반등급</p>
-            </div>
+                <input type="hidden" id="id"
+                    th:value="${matePassport != null ? matePassport.id : ''}" />
 
-            <ul>
-                <li onclick="fetchSection('/mypage/myPassport')">내 여권정보 <span>›</span></li>
-                <li onclick="fetchSection('/mypage/mateList')">여행메이트 정보<span>›</span></li>
-            </ul>
+                <label>여권번호
+                    <input type="text" id="passportNum"
+                        th:value="${matePassport != null ? matePassport.passport.passportNum : ''}" required>
+                </label><br>
 
+                <label>영문 성
+                    <input type="text" id="lastName"
+                        th:value="${matePassport != null ? matePassport.passport.lastName : ''}" required>
+                </label><br>
+
+                <label>영문 이름
+                    <input type="text" id="firstName"
+                        th:value="${matePassport != null ? matePassport.passport.firstName : ''}" required>
+                </label><br>
+
+                <label>국문 성
+                    <input type="text" id="lastNameKor"
+                        th:value="${matePassport != null ? matePassport.passport.lastNameKor : ''}" required>
+                </label><br>
+
+                <label>국문 이름
+                    <input type="text" id="firstNameKor"
+                        th:value="${matePassport != null ? matePassport.passport.firstNameKor : ''}" required>
+                </label><br>
+
+                <label>생년월일
+                    <input type="date" id="birth"
+                        th:value="${matePassport != null ? matePassport.passport.birth : ''}" required>
+                </label><br>
+
+                <label>성별
+                    <select id="sex" required>
+                        <option value="MALE"
+                            th:selected="${matePassport != null and matePassport.passport.sex == T(renewal.common.entity.Passenger.Sex).MALE}">
+                            남성
+                        </option>
+                        <option value="FEMALE"
+                            th:selected="${matePassport != null and matePassport.passport.sex == T(renewal.common.entity.Passenger.Sex).FEMALE}">
+                            여성
+                        </option>
+                    </select>
+                </label><br>
+
+                <label>국가코드
+                    <input type="text" id="countryCode"
+                        th:value="${matePassport != null ? matePassport.passport.countryCode.code : ''}" required>
+                </label><br>
+
+                <label>국적
+                    <input type="text" id="nationality"
+                        th:value="${matePassport != null ? matePassport.passport.nationality : ''}" required>
+                </label><br>
+
+                <label>발급관청
+                    <input type="text" id="authority"
+                        th:value="${matePassport != null ? matePassport.passport.authority : ''}" required>
+                </label><br>
+
+                <label>여권 발급일
+                    <input type="date" id="issue"
+                        th:value="${matePassport != null ? matePassport.passport.issue : ''}" required>
+                </label><br>
+
+                <label>여권 만료일
+                    <input type="date" id="expire"
+                        th:value="${matePassport != null ? matePassport.passport.expire : ''}" required>
+                </label><br>
+
+                <label>이메일
+                    <input type="email" id="email"
+                        th:value="${matePassport != null ? matePassport.email : ''}">
+                </label><br>
+
+                <label>전화번호
+                    <input type="text" id="number"
+                        th:value="${matePassport != null ? matePassport.number : ''}">
+                </label><br>
+
+                <hr>
+
+                <label th:if="${matePassport.requestedAt != null }">요청일
+                    <input type="datetime"
+                        th:value="${matePassport.requestedAt}">
+                </label><br>
+
+                <label th:if="${matePassport.approvedAt != null }">승인일
+                    <input type="datetime"
+                        th:value="${matePassport.approvedAt}">
+                </label><br>
+
+            </section>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary" onclick="submitMatePassportForm()">
+                제출
+            </button>
+            <button type="button"
+                class="btn btn-danger ms-2"
+                th:if="${matePassport.id != null}"
+                th:onclick="|deleteMatePassport(${matePassport.id})|">
+                여행메이트 삭제
+            </button>
         </div>
     </div>
+
+
+    <script>
+        (function () {
+
+            window.submitMatePassportForm = async function () {
+
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                const f = document.getElementById('matePassportForm');
+
+                const payload = {
+                    id: f.querySelector("#id").value || null,
+                    passportNum: f.querySelector("#passportNum").value.trim(),
+                    lastName: f.querySelector("#lastName").value.trim(),
+                    firstName: f.querySelector("#firstName").value.trim(),
+                    lastNameKor: f.querySelector("#lastNameKor").value.trim(),
+                    firstNameKor: f.querySelector("#firstNameKor").value.trim(),
+                    birth: f.querySelector("#birth").value.trim(),
+                    sex: f.querySelector("#sex").value.trim(),
+                    countryCode: f.querySelector("#countryCode").value.trim(),
+                    nationality: f.querySelector("#nationality").value.trim(),
+                    authority: f.querySelector("#authority").value.trim(),
+                    issue: f.querySelector("#issue").value.trim(),
+                    expire: f.querySelector("#expire").value.trim(),
+                    email: f.querySelector("#email").value.trim(),
+                    number: f.querySelector("#number").value.trim()
+                };
+
+                try {
+                    const response = await fetch("/mypage/matePassport", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        alert(result.message || "오류가 발생했습니다.");
+                        return;
+                    }
+
+                    alert("여행메이트 정보가 저장되었습니다.");
+                    closeModal();
+
+                } catch (err) {
+                    console.error(err);
+                    alert("네트워크 오류가 발생했습니다.");
+                } finally {
+                    isSubmitting = false;
+                }
+            }
+
+            window.deleteMatePassport = async function (id) {
+                if (!confirm("정말 삭제하시겠습니까?")) return;
+
+                try {
+                    const response = await fetch(`/mypage/matePassport/${id}/delete`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        alert(result.message || "오류가 발생했습니다.");
+                        return;
+                    }
+
+                    alert("여행메이트 정보가 삭제되었습니다.");
+                    closeModal();
+
+                } catch (err) {
+                    console.error(err);
+                    alert("네트워크 오류가 발생했습니다.");
+                } finally {
+                    isSubmitting = false;
+                }
+            }
+
+        })();
+    </script>
+
 </div>

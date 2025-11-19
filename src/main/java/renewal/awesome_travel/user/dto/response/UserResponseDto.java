@@ -17,7 +17,7 @@ public class UserResponseDto {
     private String phone;
     private LocalDate birthDate;
 
-    private Long points;
+    private Long point;
     private String grade;
 
     private String role;
@@ -34,7 +34,7 @@ public class UserResponseDto {
         this.profileImage = user.getProfileImage();
         this.phone = user.getPhone();
         this.birthDate = user.getBirthDate();
-        this.points = user.getPoint();
+        this.point = user.getPoint();
         this.grade = user.getGrade().name();
 
         this.role = user.getRole().name();

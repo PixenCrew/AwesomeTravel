@@ -4,33 +4,30 @@
         <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
     </header>
     <div class="section-body">
-        <div id="passportForm">
+        <div id="myPassportForm">
             <section>
-                <input type="hidden" th:name="myPassport.id" th:value="${myPassport.id}" readonly />
+                <input type="hidden" id="id" th:value="${myPassport.id}" readonly />
 
                 <label>여권번호
-                    <input type="text" th:name="myPassport.passportNum" th:value="${myPassport.passportNum}" required /><br>
+                    <input type="text" id="passportNum" th:value="${myPassport.passportNum}" required /><br>
                 </label>
                 <label>영문 성
-                    <input type="text" th:name="myPassport.lastName" th:value="${myPassport.lastName}" required /><br>
+                    <input type="text" id="lastName" th:value="${myPassport.lastName}" required /><br>
                 </label>
                 <label>영문 이름
-                    <input type="text" th:name="myPassport.firstName" th:value="${myPassport.firstName}" required /><br>
+                    <input type="text" id="firstName" th:value="${myPassport.firstName}" required /><br>
                 </label>
                 <label>국문 성
-                    <input type="text" th:name="myPassport.lastNameKor" th:value="${myPassport.lastNameKor}" required /><br>
+                    <input type="text" id="lastNameKor" th:value="${myPassport.lastNameKor}" required /><br>
                 </label>
                 <label>국문 이름
-                    <input type="text" th:name="myPassport.firstNameKor" th:value="${myPassport.firstNameKor}" required /><br>
+                    <input type="text" id="firstNameKor" th:value="${myPassport.firstNameKor}" required /><br>
                 </label>
                 <label>생년월일
-                    <input type="date" th:name="myPassport.birth" th:value="${myPassport.birth}" required /><br>
-                </label>
-                <label>연령구분
-                    <input type="text" th:name="myPassport.ageGroup" th:value="${myPassport.ageGroup}" readonly /><br>
+                    <input type="date" id="birth" th:value="${myPassport.birth}" required /><br>
                 </label>
                 <label>성별
-                    <select th:name="myPassport.sex" required>
+                    <select id="sex" required>
                         <option value="MALE" th:selected="${myPassport.sex?.name() == 'MALE' or myPassport.sex == 'MALE'}">남성</option>
                         <option value="FEMALE" th:selected="${myPassport.sex?.name() == 'FEMALE' or myPassport.sex == 'FEMALE'}">여성</option>
                     </select><br>
@@ -38,82 +35,92 @@
 
 
                 <label>국가코드
-                    <input type="text" th:name="myPassport.countryCode" th:value="${myPassport.countryCode.code}" required /><br>
+                    <input type="text" id="countryCode" th:value="${myPassport.countryCode.code}" required /><br>
                 </label>
                 <label>국적
-                    <input type="text" th:name="myPassport.nationality" th:value="${myPassport.nationality}" required /><br>
+                    <input type="text" id="nationality" th:value="${myPassport.nationality}" required /><br>
                 </label>
                 <label>발급관청
-                    <input type="text" th:name="myPassport.authority" th:value="${myPassport.authority}" required /><br>
+                    <input type="text" id="authority" th:value="${myPassport.authority}" required /><br>
                 </label>
                 <label>여권 발급일
-                    <input type="date" th:name="myPassport.issue" th:value="${myPassport.issue}" required /><br>
+                    <input type="date" id="issue" th:value="${myPassport.issue}" required /><br>
                 </label>
                 <label>여권 만료일
-                    <input type="date" th:name="myPassport.expire" th:value="${myPassport.expire}" required /><br>
+                    <input type="date" id="expire" th:value="${myPassport.expire}" required /><br>
                 </label>
-
-
-                <label>이메일
-                    <input type="email" th:name="myPassport.email" th:value="${myPassport.email}" required /><br>
-                </label>
-                <label>전화번호
-                    <input type="text" th:name="myPassport.number" th:value="${myPassport.number}" required /><br>
-                </label>
-                <label>특별 요구사항
-                    <textarea th:name="myPassport.specialRequests" th:text="${myPassport.specialRequests}"></textarea><br>
-                </label>
-
             </section>
         </div>
         <div class="text-center mt-4">
             <button type="button"
                 class="btn btn-primary"
-                onclick="submitPassportForm(this)">
+                onclick="submitMyPassportForm()">
                 제출
             </button>
         </div>
     </div>
-</div>
-<script>
 
-    (function () {
-        window.submitPassportForm = function (button) {
+    <script>
 
-            const purchaseBaseId = button.dataset.purchase;
-            const type = button.dataset.type;
+        (function () {
+            window.submitMyPassportForm = async function () {
 
-            console.log('purchaseBaseId :', purchaseBaseId);
-            console.log('type :', type);
+                if (isSubmitting) return;
+                isSubmitting = true;
 
-            const passengers = Array.from(document.querySelectorAll('.passenger-card')).map((div, index) => ({
-                id: div.querySelector(`input[name='passengers[${index}].id']`)?.value || '',
+                const myPassportForm = document.getElementById('myPassportForm');
 
-                passportNum: div.querySelector(`input[name='passengers[${index}].passportNum']`)?.value || '',
+                const id = myPassportForm.querySelector("#id").value.trim();
+                const passportNum = myPassportForm.querySelector("#passportNum").value.trim();
+                const lastName = myPassportForm.querySelector("#lastName").value.trim();
+                const firstName = myPassportForm.querySelector("#firstName").value.trim();
+                const lastNameKor = myPassportForm.querySelector("#lastNameKor").value.trim();
+                const firstNameKor = myPassportForm.querySelector("#firstNameKor").value.trim();
+                const birth = myPassportForm.querySelector("#birth").value.trim();
+                const sex = myPassportForm.querySelector("#sex").value.trim();
+                const countryCode = myPassportForm.querySelector("#countryCode").value.trim();
+                const nationality = myPassportForm.querySelector("#nationality").value.trim();
+                const authority = myPassportForm.querySelector("#authority").value.trim();
+                const issue = myPassportForm.querySelector("#issue").value.trim();
+                const expire = myPassportForm.querySelector("#expire").value.trim();
 
-                lastName: div.querySelector(`input[name='passengers[${index}].lastName']`)?.value || '',
-                firstName: div.querySelector(`input[name='passengers[${index}].firstName']`)?.value || '',
-                lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`)?.value || '',
-                firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`)?.value || '',
+                const payload = {
+                    id: id,
+                    passportNum: passportNum,
+                    lastName: lastName,
+                    firstName: firstName,
+                    lastNameKor: lastNameKor,
+                    firstNameKor: firstNameKor,
+                    birth: birth,
+                    sex: sex,
+                    countryCode: countryCode,
+                    nationality: nationality,
+                    authority: authority,
+                    issue: issue,
+                    expire: expire
+                };
 
-                birth: div.querySelector(`input[name='passengers[${index}].birth']`)?.value || '',
-                sex: div.querySelector(`select[name='passengers[${index}].sex']`)?.value || '',
+                try {
+                    // 서버 요청
+                    const response = await fetch("/mypage/myPassport", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        alert(result.message || "여권정보 수정 중 오류가 발생했습니다.");
+                        return;
+                    }
 
-                countryCode: div.querySelector(`input[name='passengers[${index}].countryCode']`)?.value || '',
-                nationality: div.querySelector(`input[name='passengers[${index}].nationality']`)?.value || '',
-                authority: div.querySelector(`input[name='passengers[${index}].authority']`)?.value || '',
-                issue: div.querySelector(`input[name='passengers[${index}].issue']`)?.value || '',
-                expire: div.querySelector(`input[name='passengers[${index}].expire']`)?.value || '',
-
-                email: div.querySelector(`input[name='passengers[${index}].email']`)?.value || '',
-                number: div.querySelector(`input[name='passengers[${index}].number']`)?.value || '',
-                specialRequests: div.querySelector(`textarea[name='passengers[${index}].specialRequests']`)?.value || '',
-                ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`)?.value || ''
-            }));
-
-            const payload = { passengers };
-
-            addModal(`/purchase/${type}/${purchaseBaseId}/passport`, true, payload);
-        }
-    })(); </script>
+                    alert('여권정보 수정이 완료되었습니다.');
+                    closeModal();
+                } catch (err) {
+                    console.error(err);
+                    alert("여권정보 수정 중 오류가 발생했습니다.");
+                } finally {
+                    isSubmitting = false;
+                }
+            }
+        })(); 
+    </script>
 </div>

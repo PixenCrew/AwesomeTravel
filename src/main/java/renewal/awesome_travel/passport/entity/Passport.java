@@ -36,7 +36,7 @@ public class Passport {
 
     // ======== 여권 내용 ================
     @ManyToOne
-    private CountryCode countryCode; // 국적 REPUBLIC OF KOREA
+    private CountryCode countryCode = new CountryCode(); // 국적 REPUBLIC OF KOREA
     private String passportNum; // 여권번호
     private String lastName; // 영문 성
     private String firstName; // 영문 이름

@@ -1,26 +1,36 @@
 <div>
     <header class="section-header">
-        <h1>설정</h1>
+        <h1>내 여행메이트</h1>
         <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
     </header>
 
     <div class="section-body">
         <div>
-            <img th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}">
-
-            <div>
-                <h2 th:text="${currentUser?.name}">신예은</h2>
-                <p th:text="${currentUser?.email}">shin@god.com</p>
-                <p th:text="${currentUser?.grade}">일반등급</p>
-            </div>
-
             <ul>
-                <li onclick="fetchSection('/mypage/myPassport')">내 여권정보 <span>›</span></li>
-                <li onclick="fetchSection('/mypage/mateList')">여행메이트 정보<span>›</span></li>
+                <li th:each="matePassport : ${mateList}">
+                    <div class="matePassport-item" th:onclick="|addModal('/mypage/matePassport/${matePassport.id}')|">
+                        <span th:text='${matePassport.passport.lastName + matePassport.passport.firstName + "님"}'>
+
+                        </span>
+                        <!-- 승인 여부 아이콘 -->
+                        <span class="status-icon">
+                            <!-- approvedAt != null → 체크 아이콘 -->
+                            <i class="fas fa-check-circle approved"
+                                th:if="${matePassport.approvedAt != null}"></i>
+
+                            <!-- approvedAt == null → 대기 아이콘 -->
+                            <i class="fas fa-hourglass-half pending"
+                                th:if="${matePassport.approvedAt == null}"></i>
+                        </span>
+                    </div>
+                </li>
             </ul>
 
+            <ul>
+                <li onclick="addModal('/mypage/matePassport/new')">여행메이트 추가<span> ›</span></li>
+            </ul>
         </div>
     </div>
 </div>

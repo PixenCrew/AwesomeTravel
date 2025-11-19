@@ -28,4 +28,16 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    @Async
+    public void sendMateMail(String toEmail, String token, String endPoint) {
+        String link = frontendUrl + endPoint + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("[여행메이트 등록] AwesomeTravel 이메일 인증");
+        message.setText("아래 링크를 클릭해 여행메이트 등록 승인해주세요:\n" + link);
+
+        mailSender.send(message);
+    }
 }
