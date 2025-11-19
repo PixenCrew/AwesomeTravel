@@ -1,17 +1,282 @@
 <div>
+    <style>
+        .compare-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            padding: 16px;
+            box-shadow: 0 -3px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 18px 18px 0 0;
+            z-index: 9998;
+        }
+
+        .compare-sheet .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .compare-list li {
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .compare-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background: black;
+            color: white;
+            border-radius: 10px;
+        }
+
+        .compare-btn.disabled {
+            background: #ccc;
+            pointer-events: none;
+        }
+    </style>
     <header class="section-header">
-        <h1> 코드선택 결과 </h1>
+        <h1>코드선택 결과</h1>
         <div class="right">
             <i class="fas fa-chevron-left" onclick="prevSection()"></i>
         </div>
     </header>
-    <ul th:each="product : ${products}" style="border: 2px solid black;" th:onclick="|openModal('/product/${product.id}')|">
-        <li style="margin-right: 10px;">
-            <img th:src="${product.thumbnail}" alt="썸네일" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;" />
+
+    <ul class="product-list">
+        <li th:each="product : ${products}" class="product-item">
+
+            <div class="left-area" th:onclick="|openProductModal(${product.id})|">
+                <img th:src="${product.thumbnail}" alt="썸네일"
+                    class="thumb" />
+
+                <div class="info">
+                    <div class="title" th:text="${product.title}"></div>
+                    <div class="type" th:text="${product.productType}"></div>
+                    <div class="price" th:text="${#numbers.formatInteger(product.finalPriceAdult,3,'COMMA') + '원'}"></div>
+                    <div class="depart" th:text="${product.departTimeType}"></div>
+                </div>
+            </div>
+
+            <!-- 비교 체크박스 -->
+            <div class="compare-box">
+                <input type="checkbox"
+                    th:id="'compare-' + ${product.id}"
+                    th:value="${product.id}"
+                    onchange="toggleCompare(this)">
+                <label th:for="'compare-' + ${product.id}">비교하기</label>
+            </div>
+
         </li>
-        <li th:text="${product.title}"></li>
-        <li th:text="${product.productType}"></li>
-        <li th:text="${product.finalPriceAdult}"></li>
-        <li th:text="${product.departTimeType}"></li>
     </ul>
+
+    <!-- 비교하기 Bottom Sheet -->
+    <template id="compare-sheet-template">
+        <div class="compare-sheet">
+
+            <div class="sheet-header">
+                <strong>비교할 상품을 선택해주세요.</strong>
+                <i class="fas fa-times close-sheet"></i>
+            </div>
+
+            <ul class="compare-list">
+                <!-- 선택된 상품명이 JS로 채워짐 -->
+            </ul>
+
+            <button class="compare-btn disabled">비교하기</button>
+        </div>
+    </template>
+
+    <!-- 비교 Full Modal -->
+    <template id="compare-modal-template">
+        <div class="compare-modal">
+            <div class="modal-content">
+
+                <header class="modal-header">
+                    <h2>상품비교</h2>
+                    <i class="fas fa-times close-btn"></i>
+                </header>
+
+                <div class="compare-body">
+                    <div class="compare-detail-area"></div>
+                </div>
+
+                <button class="confirm-btn">확인</button>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        let compareSelected = [];               // { id, title }
+        let compareSheetEl = null;              // 현재 활성 compare-sheet DOM
+
+        // =========================
+        // Compare Sheet 생성 함수
+        // =========================
+        function createCompareSheet() {
+            if (compareSheetEl) return; // 이미 존재하면 생성하지 않음
+
+            const template = document.getElementById("compare-sheet-template");
+            const clone = template.content.cloneNode(true);
+
+            compareSheetEl = clone.querySelector(".compare-sheet");
+
+            // 이벤트 연결
+            compareSheetEl.querySelector(".close-sheet").onclick = closeCompareSheet;
+            compareSheetEl.querySelector(".compare-btn").onclick = openCompareModal;
+
+            document.body.appendChild(compareSheetEl);
+        }
+
+
+        // =========================
+        // Compare Sheet 제거
+        // =========================
+        function closeCompareSheet() {
+            if (compareSheetEl) {
+                compareSheetEl.remove();
+                compareSheetEl = null;
+            }
+            compareSelected = [];
+            document.querySelectorAll(".compare-box input").forEach(cb => cb.checked = false);
+        }
+
+
+        // =========================
+        // Compare Sheet 갱신
+        // =========================
+        function updateCompareSheet() {
+
+            // 0개면 sheet 제거
+            if (compareSelected.length === 0) {
+                closeCompareSheet();
+                return;
+            }
+
+            // sheet 없으면 생성
+            if (!compareSheetEl) {
+                createCompareSheet();
+            }
+
+            const listEl = compareSheetEl.querySelector(".compare-list");
+            const compareBtn = compareSheetEl.querySelector(".compare-btn");
+
+            // list 렌더링
+            listEl.innerHTML = compareSelected
+                .map(p => `
+            <li>
+                ${p.title}
+                <span onclick="removeCompare('${p.id}')">삭제</span>
+            </li>
+        `)
+                .join("");
+
+            // compare 버튼 활성화 / 비활성
+            if (compareSelected.length === 2) {
+                compareBtn.classList.remove("disabled");
+            } else {
+                compareBtn.classList.add("disabled");
+            }
+        }
+
+
+        // =========================
+        // 상품 선택 토글 (최대 2개 제한)
+        // =========================
+        function toggleCompare(box) {
+            const id = box.value;
+            const title = box.closest("li").querySelector(".title").innerText;
+
+            if (box.checked && compareSelected.length >= 2) {
+                alert("비교는 최대 2개까지만 선택 가능합니다.");
+                box.checked = false;
+                return;
+            }
+
+            if (box.checked) {
+                compareSelected.push({ id, title });
+            } else {
+                compareSelected = compareSelected.filter(p => p.id !== id);
+            }
+
+            updateCompareSheet();
+        }
+
+
+        // =========================
+        // 비교항목 삭제
+        // =========================
+        function removeCompare(id) {
+            compareSelected = compareSelected.filter(p => p.id !== id);
+
+            const checkbox = document.getElementById(`compare-${id}`);
+            if (checkbox) checkbox.checked = false;
+
+            updateCompareSheet();
+        }
+
+
+        // =========================
+        // Compare Modal (Template 기반)
+        // =========================
+        async function openCompareModal() {
+
+            if (compareSelected.length !== 2) {
+                alert("상품 2개를 선택해야 비교할 수 있습니다.");
+                return;
+            }
+
+            const ids = compareSelected.map(v => v.id).join(",");
+
+            const template = document.getElementById("compare-modal-template");
+            const clone = template.content.cloneNode(true);
+
+            const modal = clone.querySelector(".compare-modal");
+            const detailArea = clone.querySelector(".compare-detail-area");
+
+            // Ajax 불러오기
+            const html = await fetch(`/product/compare?ids=${ids}`).then(r => r.text());
+            detailArea.innerHTML = html;
+
+            // 닫기 이벤트
+            clone.querySelector(".close-btn").onclick = () => modal.remove();
+            clone.querySelector(".confirm-btn").onclick = () => modal.remove();
+
+            document.body.appendChild(modal);
+        }
+
+        function openProductModal(productId) {
+
+            // ================================
+            // 1) 비교 체크박스 초기화
+            // ================================
+            document.querySelectorAll(".compare-box input").forEach(cb => {
+                cb.checked = false;
+            });
+
+            // 선택 배열 초기화
+            compareSelected = [];
+
+            // ================================
+            // 2) compare-sheet 제거
+            // ================================
+            if (compareSheetEl) {
+                compareSheetEl.remove();
+                compareSheetEl = null;
+            }
+
+            // ================================
+            // 3) compare-modal 제거
+            // ================================
+            document.querySelectorAll(".compare-modal").forEach(modal => modal.remove());
+
+            // ================================
+            // 4) 실제 상품 페이지 모달 열기
+            // ================================
+            openModal(`/product/${productId}`);
+        }
+
+    </script>
 </div>

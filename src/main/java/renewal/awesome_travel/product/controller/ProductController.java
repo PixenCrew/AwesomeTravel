@@ -453,4 +453,11 @@ public class ProductController {
         return productServiceCommon.cancelPurchase(id);
     }
 
+    // 상품 비교정보 요청
+    @GetMapping("/compare")
+    public String compareProducts(@RequestParam List<Long> ids, Model model) {
+        List<Product> list = productRepo.findAllById(ids);
+        model.addAttribute("list", list);
+        return "fragments/product/compareDetail"; // 위 modal inner HTML
+    }
 }
