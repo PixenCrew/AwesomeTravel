@@ -3,6 +3,7 @@ package renewal.awesome_travel.user.controller;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -157,6 +158,74 @@ public class MyPageController {
         model.addAttribute("mateList", mateList);
 
         return "fragments/mypage/mateList";
+    }
+
+    // 여권입력시 조회용
+    @GetMapping("/mateList/select")
+    public String mateListSelect(Principal principal, Model model) {
+
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        Passport myPassport = passportRepo.findByUser(user).orElse(null);
+        if (myPassport != null) {
+            model.addAttribute("myPassport", myPassport);
+        }
+
+        List<PassportAccessConsent> mateList = passportAccessConsentRepo.findByUser(user);
+
+        model.addAttribute("mateList", mateList);
+
+        return "fragments/mypage/mateListSelect";
+    }
+
+    @GetMapping("/api/myPassport")
+    public ResponseEntity<?> getMyPassport(Principal principal) {
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        Passport passport = passportRepo.findByUser(user).orElseThrow();
+
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("passportNum", passport.getPassportNum());
+        dto.put("lastName", passport.getLastName());
+        dto.put("firstName", passport.getFirstName());
+        dto.put("lastNameKor", passport.getLastNameKor());
+        dto.put("firstNameKor", passport.getFirstNameKor());
+        dto.put("birth", passport.getBirth().toString());
+        dto.put("sex", passport.getSex().name());
+        dto.put("countryCode", passport.getCountryCode().getCode());
+        dto.put("nationality", passport.getNationality());
+        dto.put("authority", passport.getAuthority());
+        dto.put("issue", passport.getIssue().toString());
+        dto.put("expire", passport.getExpire().toString());
+        dto.put("email", user.getEmail());
+        dto.put("number", user.getPhone());
+
+        return ResponseEntity.ok(dto);
+    }
+
+    // 여권입력시 특정 여행메이트 정보 API
+    @GetMapping("/api/matePassport/{id}")
+    public ResponseEntity<?> getMateInfo(@PathVariable Long id) {
+
+        PassportAccessConsent mate = passportAccessConsentRepo.findById(id).orElseThrow();
+
+        Passport p = mate.getPassport();
+
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("passportNum", p.getPassportNum());
+        dto.put("lastName", p.getLastName());
+        dto.put("firstName", p.getFirstName());
+        dto.put("lastNameKor", p.getLastNameKor());
+        dto.put("firstNameKor", p.getFirstNameKor());
+        dto.put("birth", p.getBirth().toString());
+        dto.put("sex", p.getSex().name());
+        dto.put("countryCode", p.getCountryCode().getCode());
+        dto.put("nationality", p.getNationality());
+        dto.put("authority", p.getAuthority());
+        dto.put("issue", p.getIssue().toString());
+        dto.put("expire", p.getExpire().toString());
+        dto.put("email", mate.getEmail());
+        dto.put("number", mate.getNumber());
+
+        return ResponseEntity.ok(dto);
     }
 
     // 새 메이트 폼

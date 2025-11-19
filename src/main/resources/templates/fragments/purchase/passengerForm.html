@@ -9,6 +9,10 @@
                 <section class="passenger-card p-3 border mb-3 rounded">
 
                     <h3 th:text="'탑승객 ' + ${iterStat.index + 1}"></h3>
+                    <button type="button" class="btn btn-secondary mt-2"
+                        onclick="openMateSelectModal(this)">
+                        여행메이트 입력
+                    </button>
 
                     <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
 
@@ -42,7 +46,7 @@
 
 
                     <label>국가코드
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].countryCode'" th:value="${passenger.countryCode.code}" required /><br>
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].countryCode'" th:value="${passenger.countryCode?.code}" required /><br>
                     </label>
                     <label>국적
                         <input type="text" th:name="'passengers[' + ${iterStat.index} + '].nationality'" th:value="${passenger.nationality}" required /><br>
@@ -121,5 +125,56 @@
 
                 addModal(`/purchase/${type}/${purchaseBaseId}/passport`, true, payload);
             }
-        })(); </script>
+
+            // 여행메이트 팝업 열기
+            window.openMateSelectModal = function (button) {
+                // 어떤 passenger-card 에서 눌렀는지 저장
+                window.selectedPassengerCard = button.closest('.passenger-card');
+
+                addModal('/mypage/mateList/select');
+            }
+
+            // 메이트 선택 결과 받기
+            window.addEventListener("message", function (event) {
+                if (event.data?.type === "mateSelected") {
+                    const mateId = event.data.id;
+
+                    if (mateId === 0) {
+                        // 내 여권 정보를 자동 입력
+                        fetch(`/mypage/api/myPassport`)
+                            .then(res => res.json())
+                            .then(data => fillMateData(data));
+                        return;
+                    }
+
+                    fetch(`/mypage/api/matePassport/${mateId}`)
+                        .then(res => res.json())
+                        .then(data => fillMateData(data));
+                }
+            });
+
+            // 선택한 메이트 정보를 passenger-card에 입력
+            function fillMateData(mate) {
+                if (!window.selectedPassengerCard) return;
+
+                const card = window.selectedPassengerCard;
+
+                card.querySelector(`input[name$='.passportNum']`).value = mate.passportNum;
+                card.querySelector(`input[name$='.lastName']`).value = mate.lastName;
+                card.querySelector(`input[name$='.firstName']`).value = mate.firstName;
+                card.querySelector(`input[name$='.lastNameKor']`).value = mate.lastNameKor;
+                card.querySelector(`input[name$='.firstNameKor']`).value = mate.firstNameKor;
+                card.querySelector(`input[name$='.birth']`).value = mate.birth;
+                card.querySelector(`select[name$='.sex']`).value = mate.sex;
+                card.querySelector(`input[name$='.countryCode']`).value = mate.countryCode;
+                card.querySelector(`input[name$='.nationality']`).value = mate.nationality;
+                card.querySelector(`input[name$='.authority']`).value = mate.authority;
+                card.querySelector(`input[name$='.issue']`).value = mate.issue;
+                card.querySelector(`input[name$='.expire']`).value = mate.expire;
+                card.querySelector(`input[name$='.email']`).value = mate.email;
+                card.querySelector(`input[name$='.number']`).value = mate.number;
+            }
+
+        })(); 
+    </script>
 </div>

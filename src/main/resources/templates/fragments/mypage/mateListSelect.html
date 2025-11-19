@@ -1,0 +1,54 @@
+<div>
+    <header class="section-header">
+        <h1>여행메이트 선택</h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+
+        <ul th:if="${myPassport != null}">
+            <li onclick="selectMyPassport()">
+                내 여권 정보 입력 ›
+            </li>
+        </ul>
+
+        <hr>
+
+        <ul>
+            <li th:each="mate : ${mateList}">
+                <div class="matePassport-item"
+                    th:onclick="|selectMate(${mate.id})|">
+
+                    <span th:text="${mate.passport.lastName + mate.passport.firstName + '님'}"></span>
+
+                    <i class="fas fa-check-circle approved"
+                        th:if="${mate.approvedAt != null}"></i>
+
+                    <i class="fas fa-hourglass-half pending"
+                        th:if="${mate.approvedAt == null}"></i>
+                </div>
+            </li>
+        </ul>
+
+        <ul>
+            <li onclick="addModal('/mypage/matePassport/new')">
+                여행메이트 추가 ›
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        function selectMate(id) {
+            // 선택된 mate ID 를 상위 모달로 전달
+            window.parent.postMessage({ type: "mateSelected", id: id }, "*");
+            backModal();
+        }
+
+        function selectMyPassport() {
+            window.parent.postMessage({ type: "mateSelected", id: 0 }, "*");
+            backModal();
+        }
+    </script>
+</div>
