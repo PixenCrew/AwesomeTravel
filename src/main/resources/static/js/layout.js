@@ -5,6 +5,7 @@ let sectionStack = [];
 // {type : "dynamic", header: html, content : html}
 let currentSection = 1;
 let isAnimating = false;
+let isSubmitting = false;
 
 const sectionMap = {
     1: 'homeSection',

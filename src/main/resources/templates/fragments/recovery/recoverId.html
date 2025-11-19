@@ -28,16 +28,16 @@
         </div>
         <h4 id="errorMsg"></h4>
 
-        <button id="registerBtn" class="btn-primary" onclick="submitRegister()" disabled>아이디 찾기</button>
+        <button id="registerBtn" class="btn-primary" onclick="submitRecoverId()" disabled>아이디 찾기</button>
 
     </div>
 
     <script>
         (function () {
             let isRequested = false;
-            let isSubmitting = false;
+            isSubmitting = false;
 
-            window.submitRegister = async function () {
+            window.submitRecoverId = async function () {
 
                 if (isSubmitting) return;
                 isSubmitting = true;

@@ -50,14 +50,13 @@
         </div>
         <h4 id="errorMsg"></h4>
 
-        <button id="registerBtn" class="btn-primary" onclick="submitRegister()">수정완료</button>
+        <button id="registerBtn" class="btn-primary" onclick="submitUserInfoRegister()">수정완료</button>
         <button id="registerBtn" class="btn-primary" onclick="closeModal()">취소</button>
         <button id="registerBtn" class="btn-primary" onclick="addModal('/mypage/withdrawal')">회원탈퇴</button>
     </div>
 
     <script th:inline="javascript">
         let isRequested = false;
-        let isSubmitting = false;
 
         const originalNumber = /*[[${number}]]*/'';
         let numberChanged = false;
@@ -65,7 +64,9 @@
 
         (function () {
 
-            window.submitRegister = async function () {
+            isSubmitting = false;
+
+            window.submitUserInfoRegister = async function () {
 
                 if (isSubmitting) return;
                 isSubmitting = true;

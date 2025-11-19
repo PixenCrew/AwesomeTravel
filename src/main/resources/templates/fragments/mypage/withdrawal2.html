@@ -33,15 +33,16 @@
 
         <input type="checkbox" id="agree" />모두 동의하며, 회원탈퇴를 진행하겠습니다.
 
-        <button onclick="submitRegister()">탈퇴하기</button>
+        <button onclick="submitWithdrawal2()">탈퇴하기</button>
     </div>
 
     <script>
-        let isSubmitting = false;
 
         (function () {
 
-            window.submitRegister = async function () {
+            isSubmitting = false;
+
+            window.submitWithdrawal2 = async function () {
 
                 if (isSubmitting) return;
                 isSubmitting = true;
