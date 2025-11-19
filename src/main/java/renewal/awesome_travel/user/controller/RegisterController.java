@@ -115,8 +115,7 @@ public class RegisterController {
         String message = "";
 
         try {
-            userService.verifyEmail(token); // 성공하면 success = true
-            success = true;
+            success = userService.verifyEmail(token); // 성공하면 success = true
             message = "이메일 인증이 완료되었습니다.";
         } catch (IllegalArgumentException e) {
             message = "잘못된 인증 링크입니다.";

@@ -78,24 +78,34 @@ public class UserService {
         // 이메일 발송
         EmailVerificationToken token = EmailVerificationToken.create(user);
         tokenRepository.save(token);
-        emailService.sendVerificationMail(user.getEmail(), token.getToken());
+        emailService.sendVerificationMail(user.getEmail(), token.getToken(), "/register/email?token=");
 
         return user.getId();
     }
 
     @Transactional
-    public void verifyEmail(String token) {
-        EmailVerificationToken evt = tokenRepository.findById(token)
-                .orElseThrow(() -> new IllegalArgumentException("잘못된 인증 링크입니다."));
+    public boolean verifyEmail(String token) {
+        try {
+            EmailVerificationToken evt = tokenRepository.findById(token)
+                    .orElseThrow(() -> new IllegalArgumentException("잘못된 인증 링크입니다."));
 
-        if (evt.isExpired()) {
-            throw new IllegalStateException("인증 링크가 만료되었습니다.");
+            if (evt.isExpired()) {
+                // 만료시 토큰 제거
+                tokenRepository.delete(evt);
+                return false;
+            }
+
+            User user = evt.getUser();
+            user.setEmailVerified(true);
+            user.setStatus(UserStatus.ACTIVE);
+            tokenRepository.delete(evt); // 인증 성공 시 토큰 제거
+
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("[verifyEmail] error: " + e.getMessage());
+            return false;
         }
-
-        User user = evt.getUser();
-        user.setEmailVerified(true);
-        user.setStatus(UserStatus.ACTIVE);
-        tokenRepository.delete(evt); // 인증 성공 시 토큰 제거
     }
 
     // 이메일 중복 확인

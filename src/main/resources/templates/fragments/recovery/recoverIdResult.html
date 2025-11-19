@@ -1,0 +1,13 @@
+<div>
+    <header class="section-header">
+        <h1>아이디 찾기</h1>
+    </header>
+
+    <div class="section-body">
+        <h4>아이디 찾기 완료</h4>
+        <div>이 계정을 이용해, 로그인을 수행해 주세요.</div>
+        <h4 th:text="${emailResult}"></h4>
+        <button onclick="addModal('/login',true);">로그인</button>
+        <button onclick="addModal('/recovery/password',true);">비밀번호 찾기</button>
+    </div>
+</div>

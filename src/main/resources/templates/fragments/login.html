@@ -1,5 +1,4 @@
 <div>
-
     <header class="section-header">
         <h1>로그인</h1>
         <div class="right">
@@ -28,8 +27,10 @@
             <label><input type="checkbox" name="remember-me">자동 로그인</label>
             <button type="submit">로그인</button>
         </form>
+        <div onclick="addModal('/recovery/id')">아이디/</div>
+        <div onclick="addModal('/recovery/password')">비밀번호 찾기</div>
 
-        <button onclick="addModal('register/terms')">회원가입</button>
+        <button onclick="addModal('/register/terms')">회원가입</button>
 
     </div>
 

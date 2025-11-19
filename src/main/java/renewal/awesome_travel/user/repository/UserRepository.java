@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findById(@Param("id") Long id);
 
+    User findByPhone(String number);
+
 }
