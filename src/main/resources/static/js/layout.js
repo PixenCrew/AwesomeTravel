@@ -576,3 +576,10 @@ function updateAutoSaveText() {
         el.textContent = "자동저장 켜기";
     }
 }
+function clearSearchInput() {
+    const input = document.querySelector('#searchSection input[name="keyword"]');
+    if (!input) return;
+
+    input.value = "";
+    input.focus();
+}
