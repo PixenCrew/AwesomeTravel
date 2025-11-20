@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,23 +75,23 @@ public class ProductController {
     private final PaymentRepository paymentRepo;
     private final InquiryRepository inquiryRepo;
 
-    @GetMapping
-    public String getProductSearch(Model model) {
+    // @GetMapping
+    // public String getProductSearch(Model model) {
 
-        model.addAttribute("searchRequest", new ProductSearchRequestDto());
+    // model.addAttribute("searchRequest", new ProductSearchRequestDto());
 
-        List<Product> products = productRepo.findAll(); // 전체 상품들
-        LocalDate today = LocalDate.now();
+    // List<Product> products = productRepo.findAll(); // 전체 상품들
+    // LocalDate today = LocalDate.now();
 
-        List<Product> availProducts = productService.calcProduct(products, today);
+    // List<Product> availProducts = productService.calcProduct(products, today);
 
-        model.addAttribute("products", availProducts);
+    // model.addAttribute("products", availProducts);
 
-        return "product/productSearch";
-    }
+    // return "product/productSearch";
+    // }
 
     @PostMapping("/search")
-    public String postProductSearch(@ModelAttribute ProductSearchRequestDto searchRequest, Model model) {
+    public String postProductSearch(@RequestBody ProductSearchRequestDto searchRequest, Model model) {
         Sort sort = Sort.by("id").ascending();
         Pageable pageable = PageRequest.of(searchRequest.getPage(), 50, sort);
 
@@ -102,7 +101,8 @@ public class ProductController {
         }
 
         model.addAttribute("searchResult", result);
-        return "product/productResult";
+        model.addAttribute("title", searchRequest.getKeyword() + " 검색결과");
+        return "fragments/product/productResult";
     }
 
     @GetMapping("/{id}")

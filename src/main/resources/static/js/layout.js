@@ -18,6 +18,12 @@ const sectionMap = {
 
 const sectionNavMaxLength = 3;
 
+document.addEventListener('DOMContentLoaded', () => {
+    loadRecentSearches();
+    initSearchForm();
+    updateAutoSaveText();
+});
+
 function showSection(sectionIndex, push = true) {
     if (currentSection === sectionIndex) return;
     if (isAnimating) return;
@@ -429,4 +435,144 @@ function getModalContent(depth) {
 <button onclick="backModal()">뒤로</button>
 </div>
 `;
+}
+
+/* -------------------------------
+   최근 검색 로딩
+-------------------------------- */
+function loadRecentSearches() {
+    const listEl = document.querySelector('.recent-list');
+    listEl.innerHTML = "";  // 초기화
+
+    const data = JSON.parse(localStorage.getItem('recentSearches') || "[]");
+
+    data.forEach(keyword => {
+        // <li>
+        const li = document.createElement('li');
+
+        // <span class="keyword-text">키워드</span>
+        const span = document.createElement('span');
+        span.classList.add('keyword-text');
+        span.textContent = keyword;
+
+        // <i class="fas fa-times remove-icon"></i>
+        const icon = document.createElement('i');
+        icon.classList.add('fas', 'fa-times', 'remove-icon');
+
+        // 검색어 클릭 시 검색 실행
+        span.addEventListener('click', () => {
+            const payload = { keyword };
+            console.log("payload.keyword =", payload.keyword);
+            openModal('/product/search', payload);
+        });
+
+        // 삭제 버튼
+        icon.addEventListener('click', (e) => {
+            e.stopPropagation();  // li 또는 span 클릭 이벤트 방지
+            removeRecent(keyword);
+        });
+
+        // li 조립
+        li.appendChild(span);
+        li.appendChild(icon);
+
+        // 리스트에 삽입
+        listEl.appendChild(li);
+    });
+}
+
+
+/* -------------------------------
+   검색어 최근 목록 저장
+-------------------------------- */
+function saveRecentSearch(keyword) {
+    if (!keyword.trim()) return;
+
+    // 자동저장 OFF이면 저장하지 않음
+    const auto = localStorage.getItem('searchAutoSave') || "on";
+    if (auto === "off") return;
+
+    let data = JSON.parse(localStorage.getItem('recentSearches') || "[]");
+
+    data = data.filter(item => item !== keyword);
+    data.unshift(keyword);
+    if (data.length > 10) data.pop();
+
+    localStorage.setItem('recentSearches', JSON.stringify(data));
+}
+
+/* -------------------------------
+   특정 검색어 제거
+-------------------------------- */
+function removeRecent(keyword) {
+    let data = JSON.parse(localStorage.getItem('recentSearches') || "[]");
+    data = data.filter(item => item !== keyword);
+    localStorage.setItem('recentSearches', JSON.stringify(data));
+    loadRecentSearches();
+}
+
+/* -------------------------------
+   전체 삭제
+-------------------------------- */
+function clearAllRecent() {
+    localStorage.removeItem('recentSearches');
+    loadRecentSearches();
+}
+
+/* -------------------------------
+   검색 실행
+-------------------------------- */
+function initSearchForm() {
+    const form = document.querySelector('#searchSection form');
+    const input = form.querySelector('input[name="keyword"]');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const keyword = input.value.trim();
+        if (!keyword) return;
+
+        // 최근 검색 저장
+        saveRecentSearch(keyword);
+
+        const payload = {
+            keyword: keyword
+        }
+        console.log("payload" + payload.keyword);
+
+        // 모달 열기
+        openModal('/product/search', payload);
+
+        // UI 갱신
+        loadRecentSearches();
+    });
+}
+/* ---------------------------------------
+   자동저장 토글
+--------------------------------------- */
+function toggleAutoSave() {
+    let status = localStorage.getItem('searchAutoSave') || "on";
+
+    if (status === "on") {
+        localStorage.setItem('searchAutoSave', 'off');
+    } else {
+        localStorage.setItem('searchAutoSave', 'on');
+    }
+
+    // UI 갱신
+    updateAutoSaveText();
+}
+/* ---------------------------------------
+   자동저장 버튼 텍스트 반영
+--------------------------------------- */
+function updateAutoSaveText() {
+    const el = document.querySelector('.options span:last-child');
+
+    const status = localStorage.getItem('searchAutoSave') || "on";
+
+    if (status === "on") {
+        el.textContent = "자동저장 끄기";
+    } else {
+        el.textContent = "자동저장 켜기";
+    }
 }

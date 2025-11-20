@@ -39,9 +39,10 @@
         }
     </style>
     <header class="section-header">
-        <h1>코드선택 결과</h1>
+        <h1 th:if="${title != null}" th:text="${title}"></h1>
+        <h1 th:if="${title == null}">코드선택 결과</h1>
         <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
         </div>
     </header>
 
@@ -109,8 +110,8 @@
     </template>
 
     <script>
-        let compareSelected = [];               // { id, title }
-        let compareSheetEl = null;              // 현재 활성 compare-sheet DOM
+        var compareSelected = [];               // { id, title }
+        var compareSheetEl = null;              // 현재 활성 compare-sheet DOM
 
         // =========================
         // Compare Sheet 생성 함수
