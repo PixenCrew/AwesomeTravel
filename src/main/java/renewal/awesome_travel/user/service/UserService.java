@@ -28,6 +28,7 @@ import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.UserProvider;
 import renewal.common.entity.User.UserRole;
 import renewal.common.entity.User.UserStatus;
+import renewal.common.service.EmailService;
 
 @Service
 @RequiredArgsConstructor

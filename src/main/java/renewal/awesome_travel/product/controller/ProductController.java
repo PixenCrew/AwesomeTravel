@@ -203,6 +203,12 @@ public class ProductController {
         Long youth = request.getYouth();
         Long infant = request.getInfant();
 
+        if (calcedProduct.getAvailableSeats() < adult + youth) {
+            model.addAttribute("isWaiting", true);
+        } else {
+            model.addAttribute("isWaiting", false);
+        }
+
         List<Passenger> passengers = new ArrayList<>();
 
         for (int i = 0; i < adult; i++) {
@@ -298,6 +304,9 @@ public class ProductController {
         purchaseProduct.setAdultCount(adult);
         purchaseProduct.setYouthCount(youth);
         purchaseProduct.setInfantCount(infant);
+
+        purchaseProduct.setWaiterEmail(request.getWaiterEmail());
+        purchaseProduct.setWaiterNumber(request.getWaiterNumber());
 
         List<ConfirmedSeatClass> finalSeatClasses = new ArrayList<>();
         for (Schedule schedule : calcedProduct.getTour().getSchedules()) {

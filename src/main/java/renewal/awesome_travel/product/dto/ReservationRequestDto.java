@@ -20,6 +20,9 @@ public class ReservationRequestDto {
     private String bookerEmail;
     private List<PassengerDto> passengers;
 
+    private String waiterEmail; // 예약대기자 이메일
+    private String waiterNumber; // 예약대기자 번호
+
     @Getter
     @Setter
     public static class PassengerDto {

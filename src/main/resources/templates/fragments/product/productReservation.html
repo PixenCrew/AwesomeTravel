@@ -117,10 +117,57 @@
             </section>
 
             <footer class="modal-footer">
-                <button type="button" onclick="submitReservationModal()">예약신청</button>
+                <button type="button"
+                    th:onclick="${isWaiting} ? 'openWaiterForm()' : 'submitReservationModal()'">
+                    예약신청
+                </button>
             </footer>
         </div>
     </div>
+
+    <!-- 예약대기 추가정보 입력 모달 -->
+    <template id="waiting-extra-template">
+        <div class="waiting-extra-modal">
+            <header class="section-header">
+                <h1>예약대기 추가정보</h1>
+                <div class="right">
+                    <i class="fas fa-times" onclick="backModal()"></i>
+                </div>
+            </header>
+
+            <div class="section-body">
+
+                <p class="desc">
+                    현재 상품은 예약대기 상태입니다.<br>
+                    예약 가능 시 연락받을 정보를 입력해주세요.
+                </p>
+
+                <h3>연락받을 수단</h3>
+
+                <div class="button-group waiting-type">
+                    <label class="btn selected" onclick="selectWaitType('phone')">
+                        <input type="radio" name="waitType" value="phone" checked hidden>
+                        휴대폰
+                    </label>
+
+                    <label class="btn" onclick="selectWaitType('email')">
+                        <input type="radio" name="waitType" value="email" hidden>
+                        이메일
+                    </label>
+                </div>
+
+                <div id="wait-phone-box">
+                    <input name="waiterNumber" type="text" placeholder="휴대폰 번호(ex.01012341234)">
+                </div>
+
+                <div id="wait-email-box" style="display:none">
+                    <input name="waiterEmail" type="email" placeholder="이메일(ex.abc@astravel.kr)">
+                </div>
+
+                <button class="submit-btn" onclick="submitReservationModal()">제출하기</button>
+            </div>
+        </div>
+    </template>
 
     <script>
         (function () {
@@ -157,6 +204,9 @@
                     ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`).value
                 }));
 
+                const waiterEmail = document.querySelector('input[name="waiterEmail"]')?.value;
+                const waiterNumber = document.querySelector('input[name="waiterNumber"]')?.value;
+
                 // payload 생성
                 const payload = {
                     productId,
@@ -166,11 +216,33 @@
                     bookerGender,
                     bookerPhone,
                     bookerEmail,
-                    passengers
+                    passengers,
+                    waiterEmail,
+                    waiterNumber
                 };
 
                 // addModal 호출 (POST)
                 addModal('/product/purchase', true, payload);
+            }
+
+            window.openWaiterForm = function () {
+                const tpl = document.querySelector('#waiting-extra-template').innerHTML;
+                openModalHtml(tpl); // 모달 내부에 삽입 (당신 프로젝트용)
+            }
+
+            window.selectWaitType = function (type) {
+                document.querySelectorAll('.waiting-type .btn')
+                    .forEach(btn => btn.classList.remove('selected'));
+
+                if (type === 'phone') {
+                    document.querySelector('.waiting-type .btn:nth-child(1)').classList.add('selected');
+                    document.getElementById("wait-phone-box").style.display = "";
+                    document.getElementById("wait-email-box").style.display = "none";
+                } else {
+                    document.querySelector('.waiting-type .btn:nth-child(2)').classList.add('selected');
+                    document.getElementById("wait-phone-box").style.display = "none";
+                    document.getElementById("wait-email-box").style.display = "";
+                }
             }
 
         })();

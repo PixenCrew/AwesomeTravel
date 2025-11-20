@@ -19,9 +19,9 @@ import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
 import renewal.awesome_travel.user.entity.EmailVerificationToken;
 import renewal.awesome_travel.user.repository.EmailVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.awesome_travel.user.service.EmailService;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.User;
+import renewal.common.service.EmailService;
 
 @Controller
 @RequiredArgsConstructor

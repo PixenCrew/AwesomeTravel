@@ -36,7 +36,6 @@ import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
 import renewal.awesome_travel.user.entity.MateVerificationToken;
 import renewal.awesome_travel.user.repository.MateVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.awesome_travel.user.service.EmailService;
 import renewal.common.entity.CountryCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Passenger.Sex;
@@ -48,6 +47,7 @@ import renewal.common.entity.User.UserStatus;
 import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.service.EmailService;
 
 @Controller
 @RequiredArgsConstructor
