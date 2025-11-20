@@ -91,7 +91,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .role(UserRole.USER)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(true)
-                .grade(MemberGrade.BRONZE)
+                .grade(MemberGrade.BASIC)
                 .build();
 
         return userRepository.save(user);

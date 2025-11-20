@@ -14,7 +14,7 @@
                 <div>
                     <h2 th:text="${currentUser?.name}">신예은</h2>
                     <p th:text="${currentUser?.email}">shin@god.com</p>
-                    <p th:text="${currentUser?.grade}">일반등급</p>
+                    <p th:text="${currentUser?.grade}" onclick="openModal('/mypage/grade')">일반등급</p>
                 </div>
                 <div>
                     <button>🔔</button>

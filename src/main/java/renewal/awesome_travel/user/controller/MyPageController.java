@@ -30,12 +30,15 @@ import renewal.awesome_travel.passport.entity.Passport;
 import renewal.awesome_travel.passport.entity.PassportAccessConsent;
 import renewal.awesome_travel.passport.repository.PassportAccessConsentRepository;
 import renewal.awesome_travel.passport.repository.PassportRepository;
+import renewal.awesome_travel.payment.repository.PaymentRepository;
+import renewal.awesome_travel.user.dto.MemberGradeStatsDto;
 import renewal.awesome_travel.user.dto.request.MatePassportRequestDto;
 import renewal.awesome_travel.user.dto.request.PassportRequestDto;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
 import renewal.awesome_travel.user.entity.MateVerificationToken;
 import renewal.awesome_travel.user.repository.MateVerificationTokenRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.CountryCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Passenger.Sex;
@@ -55,8 +58,10 @@ import renewal.common.service.EmailService;
 public class MyPageController {
 
     private final UserRepository userRepo;
+    private final UserService userService;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PurchaseAirRepository purchaseAirRepo;
+    private final PaymentRepository paymentRepo;
     private final CountryCodeRepository countryCodeRepo;
     private final InquiryRepository inquiryRepo;
     private final PassportRepository passportRepo;
@@ -558,5 +563,27 @@ public class MyPageController {
     public String withdrawalDoneFragment() {
 
         return "fragments/mypage/withdrawalDone";
+    }
+
+    @GetMapping("/grade")
+    public String gradeFragment(Principal principal, Model model) {
+
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        User user = userRepo.findByEmail(principal.getName())
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
+
+        MemberGradeStatsDto stats = userService.evaluate(user);
+
+        model.addAttribute("user", user);
+        model.addAttribute("memberGrade", stats.getGrade());
+        model.addAttribute("count1Year", stats.getCount1Year());
+        model.addAttribute("count5Years", stats.getCount5Years());
+        model.addAttribute("maxPrice", stats.getMaxPrice());
+        model.addAttribute("totalPrice5Years", stats.getTotalPrice5Years());
+
+        return "fragments/mypage/grade";
     }
 }

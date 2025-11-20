@@ -1,0 +1,55 @@
+<div>
+    <header class="section-header">
+        <h1>멤버십</h1>
+
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+
+        <!-- 1. 이름님의 등급은 ~입니다 -->
+        <div class="grade-summary">
+
+            <p class="grade-greeting">
+                <span th:text="${user.name}"></span>님의 등급은
+                <strong class="grade-grade" th:text="${memberGrade}"></strong>
+                입니다.
+            </p> <!-- 등급 배지 이미지 -->
+
+            <div class="grade-badge">
+                <img th:src="@{'/images/grade/' + ${memberGrade} + '.png'}" />
+            </div>
+
+        </div>
+
+        <!-- 2. 결제 현황 -->
+
+        <div class="grade-stats">
+            <h2>결제 현황</h2>
+
+            <ul>
+                <li>
+                    <span>최근 1년 결제 완료 건수</span>
+                    <strong th:text="${count1Year}"></strong>
+                </li>
+
+                <li>
+                    <span>최근 5년 결제 완료 건수</span>
+                    <strong th:text="${count5Years}"></strong>
+                </li>
+
+                <li>
+                    <span>최근 5년 결제금액 중 가장 큰 금액</span>
+                    <strong th:text="${#numbers.formatInteger(maxPrice, 3, 'COMMA')} + '원'"></strong>
+                </li>
+
+                <li>
+                    <span>최근 5년 총 결제 금액</span>
+                    <strong th:text="${#numbers.formatInteger(totalPrice5Years, 3, 'COMMA')} + '원'"></strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.payment.repository.PaymentRepository;
+import renewal.awesome_travel.user.dto.MemberGradeStatsDto;
 import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
 import renewal.awesome_travel.user.dto.request.UserUpdateRequestDto;
@@ -23,11 +25,14 @@ import renewal.awesome_travel.user.repository.UserCouponRepository;
 import renewal.awesome_travel.user.repository.UserLikedProductRepository;
 import renewal.awesome_travel.user.repository.UserRecentProductRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.common.entity.MemberGradeRule;
+import renewal.common.entity.Payment;
 import renewal.common.entity.User;
 import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.UserProvider;
 import renewal.common.entity.User.UserRole;
 import renewal.common.entity.User.UserStatus;
+import renewal.common.repository.MemberGradeRuleRepository;
 import renewal.common.service.EmailService;
 
 @Service
@@ -69,7 +74,7 @@ public class UserService {
                 .provider(UserProvider.LOCAL)
                 .status(UserStatus.INACTIVE) // 이메일 인증 완료 전까진 INACTIVE
                 .emailVerified(false)
-                .grade(MemberGrade.BRONZE)
+                .grade(MemberGrade.BASIC)
                 .point(0L)
                 .terms(dto.getTerms())
                 // .createdAt(LocalDateTime.now()) // 생성시간은 JPA Auditing으로 지정
@@ -190,6 +195,77 @@ public class UserService {
     // 사용 가능한 쿠폰
     public List<UserCoupon> getAvailableCoupons(User user) {
         return userCouponRepo.findByUserAndUsedFalseAndCoupon_ValidUntilAfter(user, LocalDateTime.now());
+    }
+
+    private final MemberGradeRuleRepository ruleRepo;
+    private final PaymentRepository paymentRepo;
+
+    public MemberGradeStatsDto evaluate(User user) {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime oneYearAgo = now.minusYears(1);
+        LocalDateTime fiveYearsAgo = now.minusYears(5);
+
+        // 결제 목록 2개만 조회 (최적화)
+        List<Payment> paymentsLast1Year = paymentRepo.findByUserAndPurchaseStatusAndPurchaseDateBetween(
+                user, Payment.PaymentStatus.PAID, oneYearAgo, now);
+
+        List<Payment> paymentsLast5Years = paymentRepo.findByUserAndPurchaseStatusAndPurchaseDateBetween(
+                user, Payment.PaymentStatus.PAID, fiveYearsAgo, now);
+
+        int count1Year = paymentsLast1Year.size();
+        int count5Years = paymentsLast5Years.size();
+
+        int maxPrice = paymentsLast5Years.stream()
+                .mapToInt(p -> p.getPrice().intValue())
+                .max().orElse(0);
+
+        int totalPrice5Years = paymentsLast5Years.stream()
+                .mapToInt(p -> p.getPrice().intValue())
+                .sum();
+
+        // 등급 계산
+        MemberGrade grade = applyRules(count1Year, count5Years, maxPrice, totalPrice5Years);
+
+        return new MemberGradeStatsDto(grade, count1Year, count5Years, maxPrice, totalPrice5Years);
+    }
+
+    private MemberGrade applyRules(int count1, int count5, int maxPrice, int totalPrice) {
+
+        List<MemberGradeRule> rules = ruleRepo.findAllByOrderByPriorityAsc();
+
+        for (MemberGradeRule rule : rules) {
+            if (matches(rule, count1, count5, maxPrice, totalPrice)) {
+                return rule.getGrade();
+            }
+        }
+
+        return MemberGrade.BASIC;
+    }
+
+    private boolean matches(MemberGradeRule rule,
+            int count1Year,
+            int count5Years,
+            int maxPrice,
+            int totalPrice5Years) {
+
+        if (rule.getMinUseCountLast1Year() != null &&
+                count1Year < rule.getMinUseCountLast1Year())
+            return false;
+
+        if (rule.getMinUseCountLast5Years() != null &&
+                count5Years < rule.getMinUseCountLast5Years())
+            return false;
+
+        if (rule.getMinMaxPrice() != null &&
+                maxPrice < rule.getMinMaxPrice())
+            return false;
+
+        if (rule.getMinTotalPriceLast5Years() != null &&
+                totalPrice5Years < rule.getMinTotalPriceLast5Years())
+            return false;
+
+        return true;
     }
 
 }

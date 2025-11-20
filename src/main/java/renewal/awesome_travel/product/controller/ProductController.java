@@ -40,6 +40,7 @@ import renewal.awesome_travel.product.dto.ReservationRequestDto;
 import renewal.awesome_travel.product.dto.ReservationRequestDto.PassengerDto;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.user.repository.UserRepository;
+import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Inquiry.InquiryCategory;
 import renewal.common.entity.Inquiry.InquiryStatus;
@@ -55,10 +56,12 @@ import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
+import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.PassengerRepository;
 import renewal.common.repository.ProductRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.service.EmailService;
 import renewal.common.service.ProductServiceCommon;
 
 @Controller
@@ -70,10 +73,12 @@ public class ProductController {
     private final ProductServiceCommon productServiceCommon;
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
+    private final UserService userService;
     private final PassengerRepository passengerRepo;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PaymentRepository paymentRepo;
     private final InquiryRepository inquiryRepo;
+    private final EmailService emailService;
 
     // @GetMapping
     // public String getProductSearch(Model model) {
@@ -413,6 +418,14 @@ public class ProductController {
         payment.setPurchaseDate(LocalDateTime.now());
 
         paymentRepo.save(payment);
+
+        // 등급 변화 감지
+        MemberGrade newGrade = userService.evaluate(buyer).getGrade();
+        if (buyer.getGrade() != newGrade) {
+            buyer.setGrade(newGrade);
+            userRepo.save(buyer);
+            emailService.sendGradeMail(buyer.getEmail(), newGrade);
+        }
 
         // 구매 상태 업데이트
         purchaseProduct.setPurchaseStatus(PurchaseStatus.PAID);
