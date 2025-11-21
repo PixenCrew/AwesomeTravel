@@ -37,7 +37,6 @@ import renewal.awesome_travel.product.dto.ProductDetailDto;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
 import renewal.awesome_travel.product.dto.ReservationFormDto;
 import renewal.awesome_travel.product.dto.ReservationRequestDto;
-import renewal.awesome_travel.product.dto.ReservationRequestDto.PassengerDto;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
@@ -46,8 +45,8 @@ import renewal.common.entity.Inquiry.InquiryCategory;
 import renewal.common.entity.Inquiry.InquiryStatus;
 import renewal.common.entity.Location;
 import renewal.common.entity.Location.LocationType;
-import renewal.common.entity.Passenger;
 import renewal.common.entity.Passenger.AgeGroup;
+import renewal.common.entity.PassengerProduct;
 import renewal.common.entity.Payment;
 import renewal.common.entity.Product;
 import renewal.common.entity.Product.ProductStatus;
@@ -58,10 +57,10 @@ import renewal.common.entity.Schedule;
 import renewal.common.entity.User;
 import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.RecentViewedItem;
-import renewal.common.repository.PassengerRepository;
 import renewal.common.repository.ProductRepository;
 import renewal.common.repository.PurchaseProductRepository;
 import renewal.common.service.EmailService;
+import renewal.common.service.PassengerServiceCommon;
 import renewal.common.service.ProductServiceCommon;
 
 @Controller
@@ -74,7 +73,7 @@ public class ProductController {
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
     private final UserService userService;
-    private final PassengerRepository passengerRepo;
+    private final PassengerServiceCommon passengerServiceCommon;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PaymentRepository paymentRepo;
     private final InquiryRepository inquiryRepo;
@@ -214,23 +213,11 @@ public class ProductController {
             model.addAttribute("isWaiting", false);
         }
 
-        List<Passenger> passengers = new ArrayList<>();
-
-        for (int i = 0; i < adult; i++) {
-            Passenger adultPassenger = new Passenger();
-            adultPassenger.setAgeGroup(AgeGroup.ADULT);
-            passengers.add(adultPassenger);
-        }
-        for (int i = 0; i < youth; i++) {
-            Passenger youthPassenger = new Passenger();
-            youthPassenger.setAgeGroup(AgeGroup.YOUTH);
-            passengers.add(youthPassenger);
-        }
-        for (int i = 0; i < infant; i++) {
-            Passenger infantPassenger = new Passenger();
-            infantPassenger.setAgeGroup(AgeGroup.INFANT);
-            passengers.add(infantPassenger);
-        }
+        // 빈 PassengerProduct들 생성
+        List<PassengerProduct> passengers = passengerServiceCommon.createBlankPassengersProduct(
+                adult.intValue(),
+                youth.intValue(),
+                infant.intValue());
 
         // bak (HOTEL 숙박 횟수 계산)
         Long il;
@@ -350,20 +337,8 @@ public class ProductController {
         purchaseProduct.setPaymentDueDate(calcedProduct.getDepartDateTime().minusDays(5)); // 출발 5일전까지
         purchaseProduct.setPassengerInfoDeadline(calcedProduct.getDepartDateTime().minusDays(5));
 
-        List<Passenger> passengers = new ArrayList<>();
-        for (PassengerDto passengerDto : request.getPassengers()) {
-            Passenger passenger = new Passenger();
-            passenger.setLastNameKor(passengerDto.getLastNameKor());
-            passenger.setFirstNameKor(passengerDto.getFirstNameKor());
-            passenger.setBirth(passengerDto.getBirth());
-            passenger.setSex(passengerDto.getGender());
-            passenger.setNumber(passengerDto.getPhone());
-            passenger.setEmail(passengerDto.getEmail());
-            passenger.setAgeGroup(passengerDto.getAgeGroup());
-            passengerRepo.save(passenger);
-
-            passengers.add(passenger);
-        }
+        // PassengerDto 리스트로부터 PassengerProduct 엔티티 리스트 생성
+        List<PassengerProduct> passengers = passengerServiceCommon.createPassengersFromDto(request.getPassengers());
 
         purchaseProduct.setPassengers(passengers);
 
@@ -472,7 +447,8 @@ public class ProductController {
             Principal principal) {
         // TODO Principal로 해당 id의 PurchaseProduct 취소 가능한지 체크
 
-        return productServiceCommon.cancelPurchase(id);
+        productServiceCommon.cancelPurchase(id);
+        return ResponseEntity.ok().build();
     }
 
     // 상품 비교정보 요청
