@@ -95,28 +95,82 @@
                     center: 'title'
                 },
 
+                // eventContent: function (arg) {
+                //     const price = arg.event.extendedProps.price;
+                //     const status = arg.event.extendedProps.status;
+
+                //     let displayText = '';
+                //     let priceClass = '';
+
+                //     if (status === 'CONFIRMED') {
+                //         displayText = `${price.toLocaleString()}~ <span class="fc-event-status-confirmed">출발확정</span>`;
+                //         priceClass = 'fc-event-price-confirmed';
+                //     } else if (status === 'WAITING') {
+                //         displayText = '<span class="fc-event-status-wait">예약대기</span>';
+                //         priceClass = 'fc-event-price-wait';
+                //     } else {
+                //         // 기본 형식 (AVAILABLE)
+                //         displayText = `${price.toLocaleString()}~`;
+                //         priceClass = 'fc-event-price-available';
+                //     }
+
+                //     return {
+                //         html: `<div class="${priceClass}">${displayText}</div>`
+                //     };
+                // },
+
                 eventContent: function (arg) {
                     const price = arg.event.extendedProps.price;
+                    const originalPrice = arg.event.extendedProps.originalPrice;
+                    const discountType = arg.event.extendedProps.discountType;
+                    const discountValue = arg.event.extendedProps.discountValue;
                     const status = arg.event.extendedProps.status;
+                    const hasTimeDeal = arg.event.extendedProps.hasTimeDeal;
 
-                    let displayText = '';
-                    let priceClass = '';
+                    let html = "";
 
-                    if (status === 'CONFIRMED') {
-                        displayText = `${price.toLocaleString()}~ <span class="fc-event-status-confirmed">출발확정</span>`;
-                        priceClass = 'fc-event-price-confirmed';
-                    } else if (status === 'WAITING') {
-                        displayText = '<span class="fc-event-status-wait">예약대기</span>';
-                        priceClass = 'fc-event-price-wait';
+                    if (hasTimeDeal) {
+                        // 기존가 취소선
+                        html += `
+                                    <div class="fc-old-price" style="text-decoration:line-through;color:#999;font-size:10px;">
+                                        ${originalPrice.toLocaleString()}원
+                                    </div><br>
+                                `;
+
+                        // 할인 정보
+                        if (discountType === 'PERCENT') {
+                            html += `
+                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;">
+                                            🔥 ${discountValue}%↓
+                                        </div><br>
+                                    `;
+                        } else {
+                            html += `
+                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;">
+                                            🔥 ${discountValue.toLocaleString()}원↓
+                                        </div><br>
+                                    `;
+                        }
+
+                        // 최종가격
+                        html += `
+                                    <div class="fc-final-price" style="font-weight:bold;font-size:13px;">
+                                        ${price.toLocaleString()}원~
+                                    </div><br>
+                                `;
                     } else {
-                        // 기본 형식 (AVAILABLE)
-                        displayText = `${price.toLocaleString()}~`;
-                        priceClass = 'fc-event-price-available';
+                        // 일반가
+                        html += `<div class="fc-price">${price.toLocaleString()}원~</div>`;
                     }
 
-                    return {
-                        html: `<div class="${priceClass}">${displayText}</div>`
-                    };
+                    // 상태 표시
+                    if (status === 'CONFIRMED') {
+                        html += `<span class="fc-event-status-confirmed">출발확정</span>`;
+                    } else if (status === 'WAITING') {
+                        html += `<span class="fc-event-status-wait">예약대기</span>`;
+                    }
+
+                    return { html: html };
                 },
 
                 // 클릭 시 동작
@@ -146,9 +200,46 @@
                             clone.querySelector('.product-title').textContent = `Title: ${p.title}`;
                             clone.querySelector('.product-depart').textContent = `Depart: ${p.departDateTime}`;
                             clone.querySelector('.product-return').textContent = `Return: ${p.returnDateTime}`;
-                            clone.querySelector('.product-price').textContent = `Price: ${p.price}`;
+                            // clone.querySelector('.product-price').textContent = `Price: ${p.price}`;
                             clone.querySelector('.product-remainSeats').textContent = `Remain Seats: ${p.remainSeats}`;
                             clone.querySelector('.product-status').textContent = `Status: ${p.status}`;
+                            let priceHtml = "";
+
+                            // 타임딜 여부
+                            if (p.originalPrice != null) {
+                                priceHtml += `
+                                                <div style="text-decoration:line-through;color:#999;">
+                                                    기존가: ${p.originalPrice.toLocaleString()}원
+                                                </div>
+                                            `;
+
+                                if (p.discountType === "PERCENT") {
+                                    priceHtml += `
+                                                    <div style="color:#d93025;font-weight:bold;">
+                                                        🔥 ${p.discountValue}%↓
+                                                    </div>
+                                                `;
+                                } else {
+                                    priceHtml += `
+                                                    <div style="color:#d93025;font-weight:bold;">
+                                                        🔥 ${p.discountValue.toLocaleString()}원↓
+                                                    </div>
+                                                `;
+                                }
+
+                                priceHtml += `
+                                                <div style="font-weight:bold;">
+                                                    최종가: ${p.price.toLocaleString()}원
+                                                </div>
+                                            `;
+                            } else {
+                                priceHtml += `
+                                                <div>가격: ${p.price.toLocaleString()}원</div>
+                                            `;
+                            }
+
+                            // 반영
+                            clone.querySelector('.product-price').innerHTML = priceHtml;
 
                             // fetchTarget
                             const departDate = p.departDateTime.split('T')[0];
@@ -176,10 +267,15 @@
                     extendedProps: {
                         id: e.id,
                         departDate: e.departDateTime,
-                        price: e.price,
-                        status: e.status
+                        price: e.price,                 // 최종가
+                        originalPrice: e.originalPrice, // 기존가
+                        discountType: e.discountType,
+                        discountValue: e.discountValue,
+                        status: e.status,
+                        hasTimeDeal: e.originalPrice != null
                     }
                 }))
+
             });
 
             calendar.render();

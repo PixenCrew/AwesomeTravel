@@ -54,9 +54,44 @@
                     class="thumb" />
 
                 <div class="info">
+
                     <div class="title" th:text="${product.title}"></div>
                     <div class="type" th:text="${product.productType}"></div>
-                    <div class="price" th:text="${#numbers.formatInteger(product.finalPriceAdult,3,'COMMA') + '원'}"></div>
+
+                    <!-- 타임딜이 있을 경우 -->
+                    <div th:if="${product.timeDeal != null and product.timeDeal.active}">
+
+                        <!-- 기존 가격 (취소선) -->
+                        <div class="old-price">
+                            <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                        </div>
+
+                        <!-- 할인 표시 -->
+                        <div class="discount-info">
+                            <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
+                                th:text="${product.timeDeal.value + '%↓'}"></span>
+                            <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
+                                th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
+                        </div>
+
+                        <!-- 최종 가격 -->
+                        <div class="price final-price">
+                            <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                        </div>
+
+                        <!-- 남은 시간 -->
+                        <div class="time-left"
+                            th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
+                                        ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
+                                        : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                        </div>
+                    </div>
+
+                    <!-- 타임딜이 없을 경우 일반 가격 -->
+                    <div th:if="${product.timeDeal == null or !product.timeDeal.active}">
+                        <div class="price" th:text="${#numbers.formatInteger(product.finalPriceAdult,3,'COMMA') + '원'}"></div>
+                    </div>
+
                     <div class="depart" th:text="${product.departTimeType}"></div>
                 </div>
             </div>

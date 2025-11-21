@@ -9,6 +9,7 @@ import lombok.Setter;
 import renewal.common.entity.Product;
 import renewal.common.entity.Product.DepartTimeType;
 import renewal.common.entity.Product.ProductStatus;
+import renewal.common.entity.TimeDeal.DiscountType;
 
 @Getter
 @Setter
@@ -28,6 +29,13 @@ public class ProductCalanderDto {
     private Long remainSeats;
     private ProductStatus status;
 
+    // 타임딜 정보
+    private Long originalPrice;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private DiscountType discountType;
+    private Long discountValue;
+
     public ProductCalanderDto(Product product) {
         this.id = product.getId();
         this.title = product.getTitle();
@@ -37,6 +45,15 @@ public class ProductCalanderDto {
         this.price = product.getFinalPriceAdult();
         this.remainSeats = product.getAvailableSeats();
         this.status = product.getProductStatus();
+
+        // 타임딜 해당 상품인경우 할인가격
+        if (product.getTimeDeal() != null && product.getTimeDeal().isActive()) {
+            this.originalPrice = product.getTimeDeal().getOriginalPriceAdult();
+            this.discountType = product.getTimeDeal().getDiscountType();
+            this.discountValue = product.getTimeDeal().getValue();
+            this.startTime = product.getTimeDeal().getStartTime();
+            this.endTime = product.getTimeDeal().getEndTime();
+        }
     }
 
 }

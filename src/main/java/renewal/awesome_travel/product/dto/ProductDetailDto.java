@@ -14,6 +14,7 @@ import renewal.common.entity.Product.Info;
 import renewal.common.entity.Product.ProductStatus;
 import renewal.common.entity.Review;
 import renewal.common.entity.Schedule;
+import renewal.common.entity.TimeDeal.DiscountType;
 
 @Getter
 @Setter
@@ -35,6 +36,15 @@ public class ProductDetailDto {
     private Long priceAdult;
     private Long priceYouth;
     private Long priceInfant;
+
+    // 타임딜 정보
+    private Long originalPriceAdult;
+    private Long originalPriceYouth;
+    private Long originalPriceInfant;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private DiscountType discountType;
+    private Long discountValue;
 
     // 중간 정보 섹션
     private ProductStatus productStatus;
@@ -112,6 +122,16 @@ public class ProductDetailDto {
 
         this.reviews = null;
 
+        // 타임딜 해당 상품인경우 할인가격
+        if (product.getTimeDeal() != null && product.getTimeDeal().isActive()) {
+            this.originalPriceAdult = product.getTimeDeal().getOriginalPriceAdult();
+            this.originalPriceYouth = product.getTimeDeal().getOriginalPriceYouth();
+            this.originalPriceInfant = product.getTimeDeal().getOriginalPriceInfant();
+            this.discountType = product.getTimeDeal().getDiscountType();
+            this.discountValue = product.getTimeDeal().getValue();
+            this.startTime = product.getTimeDeal().getStartTime();
+            this.endTime = product.getTimeDeal().getEndTime();
+        }
     }
 
 }

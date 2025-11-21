@@ -31,11 +31,105 @@
                     <span th:text="'출발일: ' + ${#temporals.format(product.departDateTime, 'yyyy-MM-dd HH:mm')}"></span><br />
                     <span th:text="'항공사: ' + ${product.airline}"></span>
                 </p>
-                <p class="price">
-                    <b>성인</b>: <span th:text="${#numbers.formatInteger(product.priceAdult, 3, 'COMMA')} + '원'"></span><br />
-                    <b>청소년</b>: <span th:text="${#numbers.formatInteger(product.priceYouth, 3, 'COMMA')} + '원'"></span><br />
-                    <b>유아</b>: <span th:text="${#numbers.formatInteger(product.priceInfant, 3, 'COMMA')} + '원'"></span>
-                </p>
+
+                <div class="price">
+                    <div>
+                        <b>성인</b>:
+                        <span th:if="${product.originalPriceAdult != null}">
+                            <span style="text-decoration: line-through; color:#999;">
+                                [[${#numbers.formatInteger(product.originalPriceAdult, 3, 'COMMA')}]]원
+                            </span>
+                            <br>
+
+                            <!-- 퍼센트 할인 -->
+                            <span th:if="${product.discountType.name() == 'PERCENT'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${product.discountValue}]]% ↓
+                            </span>
+
+                            <!-- 고정액 할인 -->
+                            <span th:if="${product.discountType.name() == 'ABSOLUTE'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${#numbers.formatInteger(product.discountValue, 3, 'COMMA')}]]원 ↓
+                            </span>
+                            <br>
+
+                            <span style="font-weight:bold; color:#111; font-size:18px;">
+                                [[${#numbers.formatInteger(product.priceAdult, 3, 'COMMA')}]]원
+                            </span>
+                        </span>
+
+                        <!-- 타임딜 없을 때 -->
+                        <span th:if="${product.originalPriceAdult == null}">
+                            [[${#numbers.formatInteger(product.priceAdult, 3, 'COMMA')}]]원
+                        </span>
+                    </div>
+
+                    <br>
+
+                    <!-- 청소년 가격 -->
+                    <div>
+                        <b>청소년</b>:
+                        <span th:if="${product.originalPriceYouth != null}">
+                            <span style="text-decoration: line-through; color:#999;">
+                                [[${#numbers.formatInteger(product.originalPriceYouth, 3, 'COMMA')}]]원
+                            </span>
+                            <br>
+
+                            <span th:if="${product.discountType.name() == 'PERCENT'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${product.discountValue}]]% ↓
+                            </span>
+
+                            <span th:if="${product.discountType.name() == 'ABSOLUTE'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${#numbers.formatInteger(product.discountValue, 3, 'COMMA')}]]원 ↓
+                            </span>
+                            <br>
+
+                            <span style="font-weight:bold; color:#111; font-size:18px;">
+                                [[${#numbers.formatInteger(product.priceYouth, 3, 'COMMA')}]]원
+                            </span>
+                        </span>
+
+                        <span th:if="${product.originalPriceYouth == null}">
+                            [[${#numbers.formatInteger(product.priceYouth, 3, 'COMMA')}]]원
+                        </span>
+                    </div>
+
+                    <br>
+
+                    <!-- 유아 가격 -->
+                    <div>
+                        <b>유아</b>:
+                        <span th:if="${product.originalPriceInfant != null}">
+                            <span style="text-decoration: line-through; color:#999;">
+                                [[${#numbers.formatInteger(product.originalPriceInfant, 3, 'COMMA')}]]원
+                            </span>
+                            <br>
+
+                            <span th:if="${product.discountType.name() == 'PERCENT'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${product.discountValue}]]% ↓
+                            </span>
+
+                            <span th:if="${product.discountType.name() == 'ABSOLUTE'}"
+                                style="color:#d93025; font-weight:700;">
+                                🔥 [[${#numbers.formatInteger(product.discountValue, 3, 'COMMA')}]]원 ↓
+                            </span>
+                            <br>
+
+                            <span style="font-weight:bold; color:#111; font-size:18px;">
+                                [[${#numbers.formatInteger(product.priceInfant, 3, 'COMMA')}]]원
+                            </span>
+                        </span>
+
+                        <span th:if="${product.originalPriceInfant == null}">
+                            [[${#numbers.formatInteger(product.priceInfant, 3, 'COMMA')}]]원
+                        </span>
+                    </div>
+                </div>
+
 
                 <div class="product-status">
                     <span th:text="'상태: ' + ${product.productStatus}"></span><br />
