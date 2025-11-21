@@ -2,7 +2,6 @@ package renewal.awesome_travel.air.controller;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -28,17 +27,16 @@ import renewal.awesome_travel.payment.dto.PaymentRequest;
 import renewal.awesome_travel.payment.repository.PaymentRepository;
 import renewal.awesome_travel.purchase.service.PurchaseAirService;
 import renewal.awesome_travel.user.repository.UserRepository;
-import renewal.common.entity.Passenger;
-import renewal.common.entity.Passenger.AgeGroup;
+import renewal.common.entity.PassengerAir;
 import renewal.common.entity.Payment;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.SeatClass;
 import renewal.common.entity.User;
-import renewal.common.repository.PassengerRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.SeatClassRepository;
 import renewal.common.service.AirServiceCommon;
+import renewal.common.service.PassengerServiceCommon;
 
 @Controller
 @RequiredArgsConstructor
@@ -51,7 +49,7 @@ public class AirController {
     private final UserRepository userRepo;
     private final PurchaseAirRepository purchaseAirRepo;
     private final PaymentRepository paymentRepo;
-    private final PassengerRepository passengerRepo;
+    private final PassengerServiceCommon passengerServiceCommon;
     private final PurchaseAirService purchaseAirService;
 
     @GetMapping("/search")
@@ -130,27 +128,11 @@ public class AirController {
         PurchaseAir purchaseAir = (PurchaseAir) session.getAttribute("purchaseAir");
         User buyer = userRepo.findByEmail(principal.getName()).get();
 
-        // 빈 Passenger들 생성
-        List<Passenger> blankPassengers = new ArrayList<>();
-
-        for (int i = 0; i < purchaseAir.getAdultCount(); i++) {
-            Passenger adultPassenger = new Passenger();
-            adultPassenger.setAgeGroup(AgeGroup.ADULT);
-            blankPassengers.add(adultPassenger);
-            passengerRepo.save(adultPassenger);
-        }
-        for (int i = 0; i < purchaseAir.getYouthCount(); i++) {
-            Passenger youthPassenger = new Passenger();
-            youthPassenger.setAgeGroup(AgeGroup.YOUTH);
-            blankPassengers.add(youthPassenger);
-            passengerRepo.save(youthPassenger);
-        }
-        for (int i = 0; i < purchaseAir.getInfantCount(); i++) {
-            Passenger infantPassenger = new Passenger();
-            infantPassenger.setAgeGroup(AgeGroup.INFANT);
-            blankPassengers.add(infantPassenger);
-            passengerRepo.save(infantPassenger);
-        }
+        // 빈 PassengerAir들 생성
+        List<PassengerAir> blankPassengers = passengerServiceCommon.createBlankPassengersAir(
+                purchaseAir.getAdultCount().intValue(),
+                purchaseAir.getYouthCount().intValue(),
+                purchaseAir.getInfantCount().intValue());
 
         purchaseAir.setPassengers(blankPassengers);
 
@@ -195,6 +177,7 @@ public class AirController {
 
         // TODO Principal로 해당 id의 PurchaseProduct 취소 가능한지 체크
 
-        return airServiceCommon.cancelPurchase(id);
+        airServiceCommon.cancelPurchase(id);
+        return ResponseEntity.ok().build();
     }
 }
