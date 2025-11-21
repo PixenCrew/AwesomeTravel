@@ -1,6 +1,5 @@
 package renewal.awesome_travel.purchase.controller;
 
-import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,16 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import lombok.RequiredArgsConstructor;
-import renewal.awesome_travel.passport.dto.PassportDto;
 import renewal.awesome_travel.passport.dto.PassportUpdateRequest;
-import renewal.common.entity.Passenger;
 import renewal.common.entity.PurchaseAir;
-import renewal.common.entity.PurchaseBase;
 import renewal.common.entity.PurchaseProduct;
-import renewal.common.repository.CountryCodeRepository;
-import renewal.common.repository.PassengerRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.service.PassengerServiceCommon;
 
 @Controller
 @RequestMapping("/purchase")
@@ -29,8 +24,7 @@ public class PurchaseController {
 
     private final PurchaseAirRepository purchaseAirRepo;
     private final PurchaseProductRepository purchaseProductRepo;
-    private final CountryCodeRepository countryCodeRepo;
-    private final PassengerRepository passengerRepo;
+    private final PassengerServiceCommon passengerServiceCommon;
 
     @GetMapping("/{type}/{id}/passport")
     public String getPassportForm(
@@ -38,17 +32,15 @@ public class PurchaseController {
             @PathVariable Long id,
             Model model) {
 
-        PurchaseBase purchaseBase;
-
         if (type.equals("air")) {
-            purchaseBase = purchaseAirRepo.findById(id).get();
+            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
+            model.addAttribute("passengers", purchaseAir.getPassengers());
         } else if (type.equals("product")) {
-            purchaseBase = purchaseProductRepo.findById(id).get();
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
+            model.addAttribute("passengers", purchaseProduct.getPassengers());
         } else {
             return "error";
         }
-
-        model.addAttribute("passengers", purchaseBase.getPassengers());
         model.addAttribute("type", type);
         model.addAttribute("purchaseBaseId", id);
 
@@ -62,42 +54,8 @@ public class PurchaseController {
             @RequestBody PassportUpdateRequest request,
             Model model) {
 
-        List<PassportDto> passengers = request.getPassengers();
-        boolean allChecked = true;
-        for (PassportDto dto : passengers) {
-            // 기존 Passenger 조회
-            Passenger passenger = passengerRepo.findById(dto.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("탑승객 ID가 유효하지 않습니다: " + dto.getId()));
-
-            // 여권정보 업데이트
-            passenger.setCountryCode(countryCodeRepo.findByCode(dto.getCountryCode()).get());
-            passenger.setPassportNum(dto.getPassportNum());
-            passenger.setLastName(dto.getLastName());
-            passenger.setFirstName(dto.getFirstName());
-            passenger.setLastNameKor(dto.getLastNameKor());
-            passenger.setFirstNameKor(dto.getFirstNameKor());
-            passenger.setBirth(dto.getBirth());
-            passenger.setSex(dto.getSex());
-
-            passenger.setNationality(dto.getNationality());
-            passenger.setAuthority(dto.getAuthority());
-            passenger.setIssue(dto.getIssue());
-            passenger.setExpire(dto.getExpire());
-
-            // 일반정보 업데이트
-            passenger.setNumber(dto.getNumber());
-            passenger.setEmail(dto.getEmail());
-            passenger.setSpecialRequests(dto.getSpecialRequests());
-            passenger.setAgeGroup(dto.getAgeGroup());
-
-            // 해당 탑승객 정보 null 체크
-            passenger.checkThisPassenger();
-            if (passenger.isCompleted() == false) {
-                allChecked = false;
-            }
-
-            passengerRepo.save(passenger);
-        }
+        // PassportDto 리스트로부터 Passenger 업데이트 및 완료 여부 확인
+        boolean allChecked = passengerServiceCommon.updatePassengersFromDto(request.getPassengers());
 
         if (type.equals("air")) {
             PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
