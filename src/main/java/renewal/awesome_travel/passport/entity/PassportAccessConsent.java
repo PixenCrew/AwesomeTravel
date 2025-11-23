@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
+import renewal.common.entity.Passport;
 import renewal.common.entity.User;
 
 @Entity
