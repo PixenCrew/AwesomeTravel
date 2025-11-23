@@ -189,6 +189,7 @@ public class MainController {
             }
         }
         model.addAttribute("title", "타임딜");
+        model.addAttribute("image", "/images/timedeal/banner.png");
         model.addAttribute("products", resulProducts);
 
         return "fragments/product/productResult";

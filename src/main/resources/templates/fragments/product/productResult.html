@@ -46,6 +46,10 @@
         </div>
     </header>
 
+    <div th:if="${image != null}">
+        <img th:src=${image}>
+    </div>
+
     <ul class="product-list">
         <li th:each="product : ${products}" class="product-item">
 
