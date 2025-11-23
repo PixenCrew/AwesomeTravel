@@ -4,6 +4,30 @@
     <br>
     <br>
     <br>
+
+    <div>
+        <h4>타임딜</h4>
+        <div onclick="openModal('/timedeal')">더보기></div>
+        <ul>
+            <li th:each="product : ${timeDealProducts}"
+                th:onclick="|openModal('/product/${product.id}')|">
+                <img th:src="${product.thumbnail}">
+                <div th:text="${product.title}"></div>
+            </li>
+        </ul>
+    </div>
+
+    <div>
+        <h4>기획전</h4>
+        <div onclick="openModal('/promotion')">더보기></div>
+        <ul>
+            <li th:each="promotion : ${promotions}">
+                <img th:src="${promotion.thumnailImg}">
+                <div th:text="${promotion.title}"></div>
+            </li>
+        </ul>
+    </div>
+
     <br>
     <br>
     <br>
