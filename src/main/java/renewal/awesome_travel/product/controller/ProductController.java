@@ -394,9 +394,11 @@ public class ProductController {
 
         paymentRepo.save(payment);
 
-        // 등급 변화 감지
+        MemberGrade oldGrade = buyer.getGrade();
         MemberGrade newGrade = userService.evaluate(buyer).getGrade();
-        if (buyer.getGrade() != newGrade) {
+
+        // 등급이 상승했는지 확인 (ordinal 비교)
+        if (oldGrade.ordinal() < newGrade.ordinal()) {
             buyer.setGrade(newGrade);
             userRepo.save(buyer);
             emailService.sendGradeMail(buyer.getEmail(), newGrade);
