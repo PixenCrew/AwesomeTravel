@@ -19,7 +19,7 @@
     <ul class="product-list">
         <li th:each="product : ${products}" class="product-item">
 
-            <div class="left-area" th:onclick="|openProductModal(${product.id})|">
+            <div class="left-area" th:onclick="|addModal('/product/${product.id}')|">
                 <img th:src="${product.thumbnail}" alt="썸네일"
                     class="thumb" />
 
