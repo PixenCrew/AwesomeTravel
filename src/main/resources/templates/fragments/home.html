@@ -21,7 +21,8 @@
         <h4>기획전</h4>
         <div onclick="openModal('/promotion')">더보기></div>
         <ul>
-            <li th:each="promotion : ${promotions}">
+            <li th:each="promotion : ${promotions}"
+                th:onclick="|openModal('/promotion/${promotion.id}')|">
                 <img th:src="${promotion.thumnailImg}">
                 <div th:text="${promotion.title}"></div>
             </li>
