@@ -1,41 +1,7 @@
 <div>
     <style>
         .compare-sheet {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #fff;
-            padding: 16px;
-            box-shadow: 0 -3px 20px rgba(0, 0, 0, 0.2);
-            border-radius: 18px 18px 0 0;
-            z-index: 9998;
-        }
-
-        .compare-sheet .sheet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .compare-list li {
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .compare-btn {
-            width: 100%;
-            margin-top: 15px;
-            padding: 12px;
-            background: black;
-            color: white;
-            border-radius: 10px;
-        }
-
-        .compare-btn.disabled {
-            background: #ccc;
-            pointer-events: none;
+            z-index: 10 !important;
         }
     </style>
     <header class="section-header">
@@ -122,31 +88,12 @@
             </div>
 
             <ul class="compare-list">
-                <!-- 선택된 상품명이 JS로 채워짐 -->
             </ul>
 
             <button class="compare-btn disabled">비교하기</button>
         </div>
     </template>
 
-    <!-- 비교 Full Modal -->
-    <template id="compare-modal-template">
-        <div class="compare-modal">
-            <div class="modal-content">
-
-                <header class="modal-header">
-                    <h2>상품비교</h2>
-                    <i class="fas fa-times close-btn"></i>
-                </header>
-
-                <div class="compare-body">
-                    <div class="compare-detail-area"></div>
-                </div>
-
-                <button class="confirm-btn">확인</button>
-            </div>
-        </div>
-    </template>
 
     <script>
         var compareSelected = [];               // { id, title }
@@ -156,32 +103,49 @@
         // Compare Sheet 생성 함수
         // =========================
         function createCompareSheet() {
-            if (compareSheetEl) return; // 이미 존재하면 생성하지 않음
+            if (compareSheetEl) return; // 이미 존재하면 생성 안 함
 
             const template = document.getElementById("compare-sheet-template");
             const clone = template.content.cloneNode(true);
 
             compareSheetEl = clone.querySelector(".compare-sheet");
 
-            // 이벤트 연결
+            // 이벤트 바인딩
             compareSheetEl.querySelector(".close-sheet").onclick = closeCompareSheet;
             compareSheetEl.querySelector(".compare-btn").onclick = openCompareModal;
 
-            document.body.appendChild(compareSheetEl);
+            // ⬇⬇ 여기만 변경됨
+            document.querySelector("#halfModalBody").appendChild(compareSheetEl);
+
+            // 하프 모달 보이게
+            document.getElementById("halfModal").classList.remove("hide");
         }
+
 
 
         // =========================
         // Compare Sheet 제거
         // =========================
         function closeCompareSheet() {
+
+            // 1) Compare sheet DOM 제거
             if (compareSheetEl) {
                 compareSheetEl.remove();
                 compareSheetEl = null;
             }
+
+            // 2) 선택 배열 초기화
             compareSelected = [];
-            document.querySelectorAll(".compare-box input").forEach(cb => cb.checked = false);
+
+            // 3) 모든 체크박스 해제
+            document.querySelectorAll(".compare-box input").forEach(cb => {
+                cb.checked = false;
+            });
+
+            // 4) 하프 모달 닫기
+            document.getElementById("halfModal").classList.add("hide");
         }
+
 
 
         // =========================
@@ -195,29 +159,35 @@
                 return;
             }
 
-            // sheet 없으면 생성
-            if (!compareSheetEl) {
-                createCompareSheet();
+            // 1개 선택된 경우 → sheet는 보이면 안됨
+            if (compareSelected.length === 1) {
+                // sheet가 떠 있었다면 닫기
+                if (compareSheetEl) closeCompareSheet();
+                return;
             }
 
-            const listEl = compareSheetEl.querySelector(".compare-list");
-            const compareBtn = compareSheetEl.querySelector(".compare-btn");
-
-            // list 렌더링
-            listEl.innerHTML = compareSelected
-                .map(p => `
-            <li>
-                ${p.title}
-                <span onclick="removeCompare('${p.id}')">삭제</span>
-            </li>
-        `)
-                .join("");
-
-            // compare 버튼 활성화 / 비활성
+            // sheet 없으면 생성
             if (compareSelected.length === 2) {
+
+                // sheet 없으면 생성
+                if (!compareSheetEl) {
+                    createCompareSheet();
+                }
+
+                // 리스트 렌더링
+                const listEl = compareSheetEl.querySelector(".compare-list");
+                const compareBtn = compareSheetEl.querySelector(".compare-btn");
+
+                listEl.innerHTML = compareSelected
+                    .map(p => `
+                <li>
+                    ${p.title}
+                    <span onclick="removeCompare('${p.id}')">삭제</span>
+                </li>
+            `)
+                    .join("");
+
                 compareBtn.classList.remove("disabled");
-            } else {
-                compareBtn.classList.add("disabled");
             }
         }
 
@@ -249,18 +219,27 @@
         // 비교항목 삭제
         // =========================
         function removeCompare(id) {
-            compareSelected = compareSelected.filter(p => p.id !== id);
 
             const checkbox = document.getElementById(`compare-${id}`);
-            if (checkbox) checkbox.checked = false;
+
+            if (checkbox && checkbox.checked) {
+                checkbox.checked = false;
+
+                // toggleCompare가 compareSelected와 시트를 모두 갱신함
+                toggleCompare(checkbox);
+                return; // 여기서 종료 → 중복 updateCompareSheet() 방지
+            }
+
+            // 체크박스가 이미 해제된 경우만 직접 제거
+            compareSelected = compareSelected.filter(p => p.id !== id);
 
             updateCompareSheet();
         }
 
 
-        // =========================
-        // Compare Modal (Template 기반)
-        // =========================
+
+
+        // Compare Modal 
         async function openCompareModal() {
 
             if (compareSelected.length !== 2) {
@@ -269,54 +248,8 @@
             }
 
             const ids = compareSelected.map(v => v.id).join(",");
-
-            const template = document.getElementById("compare-modal-template");
-            const clone = template.content.cloneNode(true);
-
-            const modal = clone.querySelector(".compare-modal");
-            const detailArea = clone.querySelector(".compare-detail-area");
-
-            // Ajax 불러오기
-            const html = await fetch(`/product/compare?ids=${ids}`).then(r => r.text());
-            detailArea.innerHTML = html;
-
-            // 닫기 이벤트
-            clone.querySelector(".close-btn").onclick = () => modal.remove();
-            clone.querySelector(".confirm-btn").onclick = () => modal.remove();
-
-            document.body.appendChild(modal);
+            closeCompareSheet()
+            addModal(`/product/compare?ids=${ids}`);
         }
-
-        function openProductModal(productId) {
-
-            // ================================
-            // 1) 비교 체크박스 초기화
-            // ================================
-            document.querySelectorAll(".compare-box input").forEach(cb => {
-                cb.checked = false;
-            });
-
-            // 선택 배열 초기화
-            compareSelected = [];
-
-            // ================================
-            // 2) compare-sheet 제거
-            // ================================
-            if (compareSheetEl) {
-                compareSheetEl.remove();
-                compareSheetEl = null;
-            }
-
-            // ================================
-            // 3) compare-modal 제거
-            // ================================
-            document.querySelectorAll(".compare-modal").forEach(modal => modal.remove());
-
-            // ================================
-            // 4) 실제 상품 페이지 모달 열기
-            // ================================
-            openModal(`/product/${productId}`);
-        }
-
     </script>
 </div>

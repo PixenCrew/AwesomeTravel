@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -40,6 +36,7 @@ import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.dto.ReservationRequestDto;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Inquiry.InquiryCategory;
 import renewal.common.entity.Inquiry.InquiryStatus;
@@ -96,15 +93,31 @@ public class ProductController {
 
     @PostMapping("/search")
     public String postProductSearch(@RequestBody ProductSearchRequestDto searchRequest, Model model) {
-        Sort sort = Sort.by("id").ascending();
-        Pageable pageable = PageRequest.of(searchRequest.getPage(), 50, sort);
 
-        Page<Product> result = null;
+        List<Product> result = null;
         if (searchRequest.getKeyword() != null) {
-            result = productService.searchProducts(searchRequest, pageable);
+            result = productService.searchProducts(searchRequest);
         }
 
-        model.addAttribute("searchResult", result);
+        List<Product> calcedResult = new ArrayList<>();
+        if (result != null) {
+            for (Product product : result) {
+
+                Product calcedProduct = null;
+                int plusDays = product.getCutoffDays().intValue();
+                int maxPlusDays = product.getCutoffDays().intValue() + 100;
+
+                while (calcedProduct == null && plusDays < maxPlusDays) {
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                }
+
+                if (calcedProduct != null) {
+                    calcedResult.add(calcedProduct);
+                }
+            }
+        }
+
+        model.addAttribute("products", calcedResult);
         model.addAttribute("title", searchRequest.getKeyword() + " 검색결과");
         return "fragments/product/productResult";
     }
@@ -455,9 +468,79 @@ public class ProductController {
 
     // 상품 비교정보 요청
     @GetMapping("/compare")
-    public String compareProducts(@RequestParam List<Long> ids, Model model) {
+    public String compare(@RequestParam List<Long> ids, Model model) {
+        if (ids.size() != 2) {
+            return "error/error";
+        }
+
         List<Product> list = productRepo.findAllById(ids);
-        model.addAttribute("list", list);
-        return "fragments/product/compareDetail"; // 위 modal inner HTML
+        Product a = list.get(0);
+        Product b = list.get(1);
+
+        Product calcedProductA = null;
+        Product calcedProductB = null;
+        int cutOffDays = Math.max(a.getCutoffDays().intValue(), b.getCutoffDays().intValue());
+        int plusDays = cutOffDays;
+        int maxPlusDays = cutOffDays + 30;
+
+        while ((calcedProductA == null || calcedProductB == null) && plusDays < maxPlusDays) {
+            calcedProductA = productServiceCommon.calcSingleProduct(a, LocalDate.now().plusDays(plusDays));
+            calcedProductB = productServiceCommon.calcSingleProduct(b, LocalDate.now().plusDays(plusDays));
+            plusDays++;
+        }
+
+        AirportCode aDepart = null;
+        AirportCode aArrive = null;
+        String aHotel = null;
+
+        for (Schedule schedule : a.getTour().getSchedules()) {
+            for (Location location : schedule.getLocations()) {
+
+                LocationType type = location.getLocationType();
+
+                if (type == LocationType.AIR) {
+                    if (aDepart == null) {
+                        aDepart = location.getDepartAirport();
+                    }
+                    aArrive = location.getArriveAirport();
+                }
+                if (aHotel == null && type == LocationType.HOTEL) {
+                    aHotel = location.getHotel().getName();
+                }
+            }
+        }
+
+        AirportCode bDepart = null;
+        AirportCode bArrive = null;
+        String bHotel = null;
+
+        for (Schedule schedule : b.getTour().getSchedules()) {
+            for (Location location : schedule.getLocations()) {
+
+                LocationType type = location.getLocationType();
+
+                if (type == LocationType.AIR) {
+                    if (bDepart == null) {
+                        bDepart = location.getDepartAirport();
+                    }
+                    bArrive = location.getArriveAirport();
+                }
+                if (bHotel == null && type == LocationType.HOTEL) {
+                    bHotel = location.getHotel().getName();
+                }
+            }
+        }
+
+        model.addAttribute("productA", calcedProductA);
+        model.addAttribute("aDepart", aDepart.getAirportKor());
+        model.addAttribute("aArrive", aArrive.getAirportKor());
+        model.addAttribute("aHotel", aHotel);
+
+        model.addAttribute("productB", calcedProductB);
+        model.addAttribute("bDepart", bDepart.getAirportKor());
+        model.addAttribute("bArrive", bArrive.getAirportKor());
+        model.addAttribute("bHotel", bHotel);
+
+        return "fragments/product/productCompare";
     }
 }
