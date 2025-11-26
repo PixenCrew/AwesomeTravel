@@ -11,7 +11,7 @@
         <ul>
             <li th:each="menuCode : ${menuCodes}"
                 th:text="${menuCode.name}"
-                th:attr="onclick=|fetchSection('/menu/' + ${menuCode.code2})|">
+                th:attr="onclick=|openModal('/menu/' + ${menuCode.code2})|">
             </li>
         </ul>
     </div>
