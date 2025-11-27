@@ -1,0 +1,97 @@
+<div class="mate-complete-modal">
+    <style>
+        .mate-complete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .mate-complete-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .mate-complete-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mate-complete-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .mate-complete-close {
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mate-complete-body {
+            padding: 24px 20px;
+        }
+
+        .mate-complete-message {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .mate-complete-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mate-complete-btn:hover {
+            background: #555;
+        }
+    </style>
+
+    <div class="mate-complete-content">
+        <div class="mate-complete-header">
+            <h2 class="mate-complete-title">여행메이트 등록 신청 완료</h2>
+            <button class="mate-complete-close" onclick="backModal()">×</button>
+        </div>
+        <div class="mate-complete-body">
+            <p class="mate-complete-message">
+                등록하신 휴대폰 번호로, 여행메이트에게 승낙 동의 문자가 전송되었습니다.<br>
+                메이트의 동의 후 등록이 완료됩니다.
+            </p>
+            <button class="mate-complete-btn" onclick="fetchSection('/mypage/mateList')">목록으로</button>
+        </div>
+    </div>
+</div>
+
+

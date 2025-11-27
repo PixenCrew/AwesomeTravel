@@ -24,4 +24,6 @@ public class PassportRequestDto {
 
     private String issue;
     private String expire;
+    
+    private String phone; // 전화번호 (User 엔티티 업데이트용)
 }
