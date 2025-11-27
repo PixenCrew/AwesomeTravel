@@ -1,0 +1,133 @@
+<div class="data-error-container">
+    <style>
+        .data-error-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-error-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-error-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .data-error-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .data-error-body {
+            flex: 1;
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .data-error-icon {
+            font-size: 56px;
+            color: #d0d0d0;
+        }
+
+        .data-error-message-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-error-message {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .data-error-action {
+            margin-top: 24px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .data-error-button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+
+    <header class="data-error-header">
+        <i class="fas fa-chevron-left data-error-back" onclick="closeDataError()"></i>
+        <h1 class="data-error-title">알림</h1>
+        <div style="width: 26px;"></div>
+    </header>
+
+    <div class="data-error-body">
+        <div class="data-error-icon">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="data-error-message-title" th:text="${errorTitle ?: '정보를 불러올 수 없습니다.'}">
+            정보를 불러올 수 없습니다.
+        </div>
+        <div class="data-error-message" th:text="${errorMessage ?: '잠시 후 다시 시도해 주세요.'}">
+            잠시 후 다시 시도해 주세요.
+        </div>
+
+        <div class="data-error-action">
+            <button type="button" class="data-error-button" onclick="closeDataError()">돌아가기</button>
+        </div>
+    </div>
+
+    <script>
+        function closeDataError() {
+            try {
+                if (typeof fullModal !== 'undefined' && fullModal && !fullModal.classList.contains('hide')
+                        && typeof backModal === 'function' && typeof currentModal !== 'undefined' && currentModal) {
+                    backModal();
+                    return;
+                }
+            } catch (err) {
+                console.warn('모달 상태 확인 실패:', err);
+            }
+
+            if (typeof prevSection === 'function') {
+                prevSection();
+                return;
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</div>
+
