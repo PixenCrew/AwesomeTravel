@@ -20,67 +20,61 @@
     <main id="mainSection">
         <!-- ✅ 홈 섹션 -->
         <section id="homeSection" class="active">
-
-            <header class="section-header">
-                <div class="left">
-                    <img src="/images/logo.png">
-                </div>
-
-                <div class="right">
-                    <img src="/images/logo.png" onclick="showSection(3)">
-                </div>
-            </header>
-
             <div class="section-body">
                 <div th:replace="~{fragments/home :: homeFragment}"></div>
             </div>
-
         </section>
 
         <!-- ✅ 메뉴 섹션 (header 포함) -->
         <section id="menuSection">
-
-            <header class="section-header">
-                <div class="left">
-                    <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-                </div>
+            <header class="menu-header">
+                <h1 class="menu-title">전체메뉴</h1>
+                <i class="fas fa-times menu-close-btn" onclick="prevSection()"></i>
             </header>
-            <div>
-                <div class="section-body">
-                    <nav>
-                        <ul>
-                            <li><button type="button" onclick="showMenuTab('menu-travel')">딱좋은여행</button></li>
-                            <li><button type="button" onclick="showMenuTab('menu-support')">고객지원</button></li>
-                        </ul>
-                    </nav>
+            
+            <div class="menu-tabs">
+                <button type="button" class="menu-tab active" id="tab-travel" onclick="showMenuTab('menu-travel')">딱좋은여행</button>
+                <button type="button" class="menu-tab" id="tab-support" onclick="showMenuTab('menu-support')">고객지원</button>
+            </div>
 
-                    <!-- ✅ 딱좋은여행 탭 내용 -->
-                    <div id="menu-travel" class="active">
-                        <div>
-                            <button type="button">해외여행</button>
-                            <ul>
-                                <li onclick="fetchSection('/subMain/101')">유럽</li>
-                                <li>아시아</li>
-                                <li>오세아니아</li>
-                                <li>미주</li>
-                                <li>중동·아프리카</li>
-                            </ul>
-                        </div>
-                        <div><button type="button" onclick="fetchSection('/air/search')">항공</button></div>
-                        <div><button type="button">기획전</button></div>
-                        <div><button type="button">이벤트</button></div>
-                        <div><button type="button">타임딜</button></div>
-                    </div>
-
-                    <!-- ✅ 고객지원 탭 내용 -->
-                    <div id="menu-support">
-                        <ul>
-                            <li><button type="button">마이페이지</button></li>
-                            <li><button type="button">고객문의</button></li>
-                            <li><button type="button">공지사항</button></li>
-                            <li><button type="button">설정</button></li>
+            <div class="section-body menu-body">
+                <!-- ✅ 딱좋은여행 탭 내용 -->
+                <div id="menu-travel" class="menu-content active">
+                    <div class="menu-category">
+                        <button type="button" class="menu-category-btn" onclick="toggleMenuCategory(this)">
+                            해외여행
+                            <i class="fas fa-chevron-up category-icon"></i>
+                        </button>
+                        <ul class="menu-subcategory active">
+                            <li onclick="fetchSection('/subMain/101')">유럽</li>
+                            <li onclick="fetchSection('/subMain/601')">오세아니아</li>
+                            <li onclick="fetchSection('/subMain/801')">중동·아프리카</li>
+                            <li onclick="fetchSection('/subMain/201')">아시아</li>
+                            <li onclick="fetchSection('/subMain/704')">미주</li>
                         </ul>
                     </div>
+                    <div class="menu-category">
+                        <button type="button" class="menu-category-btn" onclick="fetchSection('/air/search')">항공</button>
+                    </div>
+                    <div class="menu-category">
+                        <button type="button" class="menu-category-btn">기획전</button>
+                    </div>
+                    <div class="menu-category">
+                        <button type="button" class="menu-category-btn">이벤트</button>
+                    </div>
+                    <div class="menu-category">
+                        <button type="button" class="menu-category-btn">타임딜</button>
+                    </div>
+                </div>
+
+                <!-- ✅ 고객지원 탭 내용 -->
+                <div id="menu-support" class="menu-content">
+                    <ul class="menu-support-list">
+                        <li><button type="button" class="menu-support-item" onclick="showSection(5)">마이페이지</button></li>
+                        <li><button type="button" class="menu-support-item" onclick="fetchSection('/inquiry/all')">고객문의</button></li>
+                        <li><button type="button" class="menu-support-item" onclick="fetchSection('/notice')">공지사항</button></li>
+                        <li><button type="button" class="menu-support-item" onclick="fetchSection('/mypage/setting')">설정</button></li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -92,10 +86,9 @@
             <header class="search-header">
                 <i class="fas fa-chevron-left back-btn" onclick="prevSection()"></i>
 
-                <form class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" name="keyword" placeholder="검색어를 입력하세요">
-                    <i class="fas fa-times clear-btn" onclick="clearSearchInput(event)"></i>
+                <form class="search-box" onsubmit="handleSearchSubmit(event)">
+                    <input type="text" name="keyword" id="searchKeyword" placeholder="검색어를 입력하세요" autocomplete="off">
+                    <i class="fas fa-times clear-btn" onclick="clearSearchInput(event)" style="display: none;"></i>
                 </form>
             </header>
 
@@ -105,9 +98,9 @@
                 <div class="recent-header">
                     <h2>최근 검색</h2>
                     <div class="options">
-                        <span onclick="clearAllRecent()">전체 삭제</span>
-                        <span>|</span>
-                        <span onclick="toggleAutoSave()">자동저장 켜기</span>
+                        <span class="option-link" onclick="clearAllRecent()">전체 삭제</span>
+                        <span class="divider">|</span>
+                        <span class="option-link" onclick="toggleAutoSave()">자동저장 켜기</span>
                     </div>
                 </div>
 
@@ -147,11 +140,26 @@
     <footer id="footerSection">
         <nav>
             <ul>
-                <li><a href="#home" onclick="showSection(1)">홈</a></li>
-                <li><a href="#menu" onclick="showSection(2)">메뉴</a></li>
-                <li><a href="#search" onclick="showSection(3)">검색</a></li>
-                <li><a href="#wish" onclick="showSection(4)">찜</a></li>
-                <li><a href="#mypage" onclick="showSection(5)">마이</a></li>
+                <li><a href="#home" onclick="showSection(1)" class="nav-item" data-section="1">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-label">홈</span>
+                </a></li>
+                <li><a href="#menu" onclick="showSection(2)" class="nav-item" data-section="2">
+                    <i class="fas fa-bars nav-icon"></i>
+                    <span class="nav-label">메뉴</span>
+                </a></li>
+                <li><a href="#search" onclick="showSection(3)" class="nav-item" data-section="3">
+                    <i class="fas fa-search nav-icon"></i>
+                    <span class="nav-label">검색</span>
+                </a></li>
+                <li><a href="#wish" onclick="showSection(4)" class="nav-item" data-section="4">
+                    <i class="fas fa-heart nav-icon"></i>
+                    <span class="nav-label">찜</span>
+                </a></li>
+                <li><a href="#mypage" onclick="showSection(5)" class="nav-item" data-section="5">
+                    <i class="fas fa-user nav-icon"></i>
+                    <span class="nav-label">마이</span>
+                </a></li>
             </ul>
         </nav>
     </footer>
@@ -180,6 +188,7 @@
     <script th:inline="javascript">
         // 로그인 여부 확인
         const isLoggedIn = /*[[${ currentUser != null}]]*/ false;
+        window.isLoggedIn = isLoggedIn; // 전역 변수로 설정
         const username = /*[[${ currentUser?.name }]]*/ null;
     </script>
     <script src="/js/layout.js" defer></script>

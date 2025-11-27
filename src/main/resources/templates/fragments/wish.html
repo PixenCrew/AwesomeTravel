@@ -1,60 +1,508 @@
 <div th:fragment="wishFragment">
+    <div class="wish-container">
+        <header class="wish-header">
+            <i class="fas fa-chevron-left back-btn" onclick="prevSection()"></i>
+            <h1 class="wish-title">찜</h1>
+            <div class="header-spacer"></div>
+        </header>
 
-    <header class="section-header">
-        <h1>찜 / 최근 본 상품</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+        <div class="wish-tabs">
+            <button type="button" class="wish-tab active" data-target="recentWishList" onclick="switchWishTab('recentWishList')">최근 본 상품</button>
+            <button type="button" class="wish-tab" data-target="likedWishList" onclick="switchWishTab('likedWishList')">찜한 상품</button>
         </div>
-    </header>
 
-    <div class="section-body">
+        <!-- 비회원 안내 화면 -->
+        <div class="wish-non-member" th:if="${currentUser == null}">
+            <div class="non-member-icon">
+                <div class="folder-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
+                    <span class="question-mark">?</span>
+                </div>
+            </div>
+            <p class="non-member-message">비회원은 이용할 수 없습니다.</p>
+            <p class="non-member-message">로그인 후 이용해주세요.</p>
+            <div class="non-member-buttons">
+                <button type="button" class="login-btn" onclick="addModal('login')">로그인</button>
+                <button type="button" class="signup-btn" onclick="addModal('register/form')">회원가입하기</button>
+            </div>
+        </div>
 
-        <section class="recent-products">
-            <h2>최근 본 상품</h2>
-
-            <div th:if="${#lists.isEmpty(recentProducts)}">
-                <p>최근 본 상품이 없습니다.</p>
+        <!-- 회원 화면 -->
+        <div class="wish-member-content" th:if="${currentUser != null}">
+            <div class="wish-info-row">
+                <span class="wish-info-text">최대 30개까지 조회 가능합니다.</span>
+                <button type="button" class="wish-clear-btn" data-target="recentWishList"
+                    onclick="clearWishList(this.dataset.target)">전체삭제</button>
             </div>
 
-            <ul th:unless="${#lists.isEmpty(recentProducts)}">
-                <li th:each="item : ${recentProducts}">
-                    <div class="product-item" th:onclick="|openModal('/product/${item.id}')|">
-                        <span th:text="'상품 #' + ${item.id}"></span>
-                        <small th:text="${#temporals.format(item.viewedAt, 'yyyy-MM-dd HH:mm')}"></small>
-                    </div>
-                </li>
-            </ul>
-        </section>
-
-
-        <section class="liked-products" style="margin-top: 30px;">
-            <h2>찜한 상품</h2>
-
-            <div th:if="${currentUser != null}">
-
-                <div th:if="${#lists.isEmpty(likedProducts)}">
-                    <p>찜한 상품이 없습니다.</p>
+            <!-- 최근 본 상품 -->
+            <div id="recentWishList" class="wish-list-container active">
+                <div class="wish-empty-state" th:if="${#lists.isEmpty(recentProducts)}">
+                    최근 본 상품이 없습니다.
                 </div>
 
-                <ul th:unless="${#lists.isEmpty(likedProducts)}">
-                    <li th:each="item : ${likedProducts}">
-                        <div class="product-item" th:onclick="|openModal('/product/${item.id}')|">
-                            <span th:text="'상품 #' + ${item.id}"></span>
-                            <small th:text="${#temporals.format(item.viewedAt, 'yyyy-MM-dd HH:mm')}"></small>
+                <div th:each="product : ${recentProducts}">
+                    <div class="wish-date" th:if="${product.viewedAt != null}"
+                        th:text="${#temporals.format(product.viewedAt, 'yyyy.MM.dd(E)')}"></div>
+
+                        <div class="wish-card"
+                        th:attr="data-url=@{'/product/' + ${product.id}}"
+                        onclick="addModal(this.dataset.url)">
+                   
+                        <div class="wish-image">
+                            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="thumbnail" />
+                            <div th:if="${product.thumbnail == null}" class="wish-image-placeholder">img</div>
                         </div>
-                    </li>
-                </ul>
 
+                        <div class="wish-info">
+                            <p class="wish-product-title" th:text="${product.title}">상품 제목</p>
+                            <p class="wish-meta">
+                                <span th:if="${product.departDateTime != null}"
+                                    th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')}"></span>
+                                <span th:if="${product.departDateTime != null && product.returnDateTime != null}"> ~ </span>
+                                <span th:if="${product.returnDateTime != null}"
+                                    th:text="${#temporals.format(product.returnDateTime, 'yyyy.MM.dd')}"></span>
+                            </p>
+                            <p class="wish-meta"
+                                th:text="${product.title != null ? product.title : ''}"></p>
+                            <p class="wish-price"
+                                th:text="${product.finalPriceAdult != null ? #numbers.formatDecimal(product.finalPriceAdult, 0, 0) + '원' : (product.price != null ? #numbers.formatDecimal(product.price, 0, 0) + '원' : '')}">
+                            </p>
+                        </div>
+
+                        <button type="button" class="wish-remove-btn" 
+                                th:attr="data-product-id=${product.id}"
+                                onclick="event.stopPropagation(); removeWishItem('recent', this.dataset.productId)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div th:unless="${currentUser != null}"
-                style="text-align: center; padding: 20px 0;">
-                <p>찜한 상품을 보려면 로그인이 필요합니다.</p>
-                <button type="button" onclick="openModal('login')" class="btn-login">
-                    로그인하기
-                </button>
-            </div>
-        </section>
+            <!-- 찜한 상품 -->
+            <div id="likedWishList" class="wish-list-container">
+                <div class="wish-empty-state" th:if="${#lists.isEmpty(likedProducts)}">
+                    찜한 상품이 없습니다.
+                </div>
 
+                <div th:each="product : ${likedProducts}">
+                    <div class="wish-card" th:onclick="|addModal('/product/${product.id}')|">
+                        <div class="wish-image">
+                            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="thumbnail" />
+                            <div th:if="${product.thumbnail == null}" class="wish-image-placeholder">img</div>
+                        </div>
+
+                        <div class="wish-info">
+                            <p class="wish-product-title" th:text="${product.title}">상품 제목</p>
+                            <p class="wish-meta">
+                                <span th:if="${product.departDateTime != null}"
+                                    th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')}"></span>
+                                <span th:if="${product.departDateTime != null && product.returnDateTime != null}"> ~ </span>
+                                <span th:if="${product.returnDateTime != null}"
+                                    th:text="${#temporals.format(product.returnDateTime, 'yyyy.MM.dd')}"></span>
+                            </p>
+                            <p class="wish-meta"
+                                th:text="${product.title != null ? product.title : ''}"></p>
+                            <p class="wish-price"
+                                th:text="${product.finalPriceAdult != null ? #numbers.formatDecimal(product.finalPriceAdult, 0, 0) + '원' : (product.price != null ? #numbers.formatDecimal(product.price, 0, 0) + '원' : '')}">
+                            </p>
+                        </div>
+
+                        <button type="button" class="wish-remove-btn" 
+                                th:attr="data-product-id=${product.id}"
+                                onclick="event.stopPropagation(); removeWishItem('liked', this.dataset.productId)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <style>
+        .wish-container {
+            width: 100%;
+            min-height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wish-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .wish-header .back-btn {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .wish-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-spacer {
+            width: 26px;
+        }
+
+        /* 탭 네비게이션 */
+        .wish-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .wish-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #f5f5f5;
+            font-size: 15px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wish-tab.active {
+            background: white;
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 비회원 안내 화면 */
+        .wish-non-member {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            min-height: 400px;
+        }
+
+        .non-member-icon {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 32px;
+        }
+
+        .folder-icon {
+            width: 100px;
+            height: 100px;
+            background: #e3f2fd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .folder-icon i {
+            font-size: 48px;
+            color: #64b5f6;
+        }
+
+        .search-icon {
+            width: 60px;
+            height: 60px;
+            background: #1976d2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-icon i {
+            font-size: 24px;
+            color: white;
+            position: relative;
+        }
+
+        .question-mark {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .non-member-message {
+            font-size: 16px;
+            color: #333;
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .non-member-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 32px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #555;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .signup-btn:hover {
+            background: #f5f5f5;
+        }
+
+        /* 회원 화면 */
+        .wish-member-content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .wish-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            margin-bottom: 16px;
+        }
+
+        .wish-info-text {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .wish-clear-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wish-clear-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .wish-list-container {
+            display: none;
+        }
+
+        .wish-list-container.active {
+            display: block;
+        }
+
+        .wish-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 15px;
+        }
+
+        .wish-date {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 12px 0;
+            padding-left: 4px;
+        }
+
+        .wish-card {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+
+        .wish-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .wish-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .wish-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .wish-image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .wish-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .wish-product-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .wish-meta {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+
+        .wish-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f44336;
+            margin: 0;
+            margin-top: auto;
+        }
+
+        .wish-remove-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .wish-remove-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .wish-remove-btn i {
+            font-size: 12px;
+        }
+    </style>
+
+    <script>
+        (function () {
+            const tabs = document.querySelectorAll('.wish-tab');
+            const containers = document.querySelectorAll('.wish-list-container');
+            const clearBtn = document.querySelector('.wish-clear-btn');
+
+            window.switchWishTab = function(targetId) {
+                tabs.forEach(btn => {
+                    if (btn.dataset.target === targetId) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                containers.forEach(container => {
+                    if (container.id === targetId) {
+                        container.classList.add('active');
+                    } else {
+                        container.classList.remove('active');
+                    }
+                });
+
+                if (clearBtn) {
+                    clearBtn.dataset.target = targetId;
+                }
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchWishTab(tab.dataset.target);
+                });
+            });
+
+            window.removeWishItem = function (type, productId) {
+                alert('삭제 기능은 추후 제공될 예정입니다.');
+                console.log('remove', type, productId);
+            };
+
+            window.clearWishList = function (targetId) {
+                alert('전체 삭제 기능은 추후 제공될 예정입니다.');
+                console.log('clear', targetId);
+            };
+        })();
+    </script>
 </div>
