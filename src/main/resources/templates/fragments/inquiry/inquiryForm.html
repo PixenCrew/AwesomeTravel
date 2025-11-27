@@ -1,79 +1,217 @@
-<div>
+<div class="inquiry-form-container">
     <style>
-        /* 하단 고정 버튼 */
-        #fixedBottomButton {
-            box-sizing: border-box;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
-            padding: 10px 15px;
-            background: #fff;
-            border-top: 1px solid #ccc;
+        .inquiry-form-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .inquiry-header {
             display: flex;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
             z-index: 100;
         }
 
-        #fixedBottomButton button {
+        .inquiry-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .inquiry-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .inquiry-spacer {
+            width: 26px;
+        }
+
+        .inquiry-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .inquiry-input-group {
+            margin-bottom: 16px;
+        }
+
+        .inquiry-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        .inquiry-input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .inquiry-editor-wrapper {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .inquiry-editor {
+            min-height: 300px;
+            padding: 12px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .inquiry-toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px;
+            border-top: 1px solid #e0e0e0;
+            background: #f9f9f9;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .inquiry-toolbar-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
             font-size: 16px;
+        }
+
+        .inquiry-toolbar-btn:hover {
+            background: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .inquiry-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            z-index: 10;
+        }
+
+        .inquiry-submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #424242;
+            color: white;
             border: none;
             border-radius: 8px;
-            background: #141414;
-            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+        }
+
+        .inquiry-submit-btn:hover {
+            background: #333;
+        }
+
+        .ql-container {
+            border: none !important;
+        }
+
+        .ql-editor {
+            min-height: 300px;
         }
     </style>
 
-    <!-- 헤더 -->
-    <header class="section-header">
-        <h1>1:1 문의 등록</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+    <header class="inquiry-header">
+        <i class="fas fa-chevron-left inquiry-back" onclick="closeInquiryForm()"></i>
+        <h1 class="inquiry-title">1:1 문의 등록</h1>
+        <div class="inquiry-spacer"></div>
     </header>
 
-    <!-- 본문 -->
-    <div class="section-body">
-        <div class="modal-content">
-            <h4>문의 상품</h4>
-            <div th:text="${purchase.product.title}"></div>
-            <h4>문의 제목</h4>
-            <input type="text" id="inquiryTitle" placeholder="문의 제목을 입력해주세요.">
-            <h4>문의 내용</h4>
-            <div id="inquiryEditor" style="height: 200px;"></div>
-            <div id="quillToolbar">
-                <button class="ql-bold"></button>
-                <button class="ql-italic"></button>
-                <button class="ql-underline"></button>
-                <button class="ql-list" value="ordered"></button>
-                <button class="ql-list" value="bullet"></button>
-                <button class="ql-link"></button>
-                <button class="ql-image"></button>
+    <div class="inquiry-body">
+        <!-- Hidden fields for productId, purchaseId and stage -->
+        <input type="hidden" id="inquiryProductId" th:value="${productId}">
+        <input type="hidden" id="inquiryPurchaseId" th:value="${purchaseId}">
+        <input type="hidden" id="inquiryStage" th:value="${stage}">
+        
+        <div class="inquiry-input-group">
+            <input type="text" 
+                   id="inquiryTitle" 
+                   class="inquiry-input" 
+                   placeholder="문의 제목을 입력해주세요."
+                   th:value="${purchase != null ? '결제 관련 문의입니다.' : (purchaseId != null ? '예약/결제 관련 문의입니다.' : (productId != null ? '상품 관련 문의입니다.' : '일반 문의입니다.'))}">
+        </div>
+
+        <div class="inquiry-input-group">
+            <select id="inquiryCategory" class="inquiry-input">
+                <option value="ORDER">주문/결제</option>
+                <option value="REFUND">환불/취소</option>
+                <option value="ACCOUNT">계정/회원</option>
+                <option value="BENEFIT">혜택/쿠폰</option>
+                <option value="SERVICE">서비스 오류</option>
+                <option value="POLICY">정책/약관</option>
+                <option value="ETC" selected>기타</option>
+            </select>
+        </div>
+
+        <div class="inquiry-editor-wrapper">
+            <div id="inquiryEditor" class="inquiry-editor"></div>
+            <div class="inquiry-toolbar" id="quillToolbar">
+                <button class="ql-align inquiry-toolbar-btn" type="button"></button>
+                <button class="ql-blockquote inquiry-toolbar-btn" type="button"></button>
+                <button class="ql-bold inquiry-toolbar-btn" type="button"></button>
+                <button class="ql-italic inquiry-toolbar-btn" type="button"></button>
+                <button class="ql-underline inquiry-toolbar-btn" type="button"></button>
+                <button class="ql-list inquiry-toolbar-btn" value="ordered" type="button"></button>
+                <button class="ql-list inquiry-toolbar-btn" value="bullet" type="button"></button>
+                <button class="ql-link inquiry-toolbar-btn" type="button"></button>
             </div>
         </div>
     </div>
 
-
-    <!-- 하단 고정 버튼 -->
-    <div id="fixedBottomButton">
-        <button type="button" th:onclick="'submitInquiry(' + ${purchase.id} + ')'">문의 등록</button>
-    </div>
+    <!-- 하단 등록 버튼 -->
+    <footer class="inquiry-footer">
+        <button type="button" class="inquiry-submit-btn" onclick="submitInquiry()">등록하기</button>
+    </footer>
 
     <script>
         (function () {
-
             var quill = new Quill('#inquiryEditor', {
                 theme: 'snow',
                 modules: {
                     toolbar: '#quillToolbar'
-                }
+                },
+                placeholder: '안녕하세요.\n결제 과정에서 문제가 하나 있었는데, 이를 해결하기\n위한 과정에서 도움을 요청합니다.'
             });
 
             // 문의 등록 함수
-            window.submitInquiry = async function (purchaseId) {
+            window.submitInquiry = async function () {
                 const titleEl = document.getElementById('inquiryTitle');
+                const categoryEl = document.getElementById('inquiryCategory');
+                const productIdEl = document.getElementById('inquiryProductId');
+                const purchaseIdEl = document.getElementById('inquiryPurchaseId');
+                const stageEl = document.getElementById('inquiryStage');
+                
                 const title = titleEl ? titleEl.value.trim() : '';
+                const category = categoryEl ? categoryEl.value : 'ETC';
+                const productId = productIdEl ? productIdEl.value : null;
+                const purchaseId = purchaseIdEl ? purchaseIdEl.value : null;
+                const stage = stageEl ? stageEl.value : null;
                 const content = quill.root.innerHTML.trim();
 
                 // 빈 값 검증
@@ -90,28 +228,65 @@
                     return;
                 }
 
-                const payload = { purchaseId, title, content };
+                const payload = { 
+                    purchaseId: purchaseId ? parseInt(purchaseId) : null,
+                    productId: productId ? parseInt(productId) : null,
+                    stage: stage || null,
+                    category: category,
+                    title, 
+                    content 
+                };
 
                 try {
-                    const response = await fetch(`/product/purchase/${purchaseId}/inquiry`, {
+                    // 모든 문의는 /api/inquiry로 통일
+                    const url = `/api/inquiry`;
+                    
+                    const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
                     if (!response.ok) {
+                        if (response.status === 401) {
+                            alert('로그인이 필요합니다.');
+                            addModal('login');
+                            return;
+                        }
                         const errorText = await response.text();
                         throw new Error(errorText || '문의 등록 실패');
                     }
 
                     alert('문의가 등록되었습니다.');
-                    backModal();
+                    closeInquiryForm();
                 } catch (error) {
                     console.error('문의 등록 실패:', error);
                     alert('문의 등록 중 오류가 발생했습니다.');
                 }
             }
         })();
-    </script>
 
+        window.closeInquiryForm = function() {
+            try {
+                if (typeof fullModal !== 'undefined' && fullModal && !fullModal.classList.contains('hide')
+                        && typeof backModal === 'function' && typeof currentModal !== 'undefined' && currentModal) {
+                    backModal();
+                    return;
+                }
+            } catch (err) {
+                console.warn('모달 상태 확인 실패:', err);
+            }
+
+            if (typeof prevSection === 'function') {
+                prevSection();
+                return;
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+    </script>
 </div>

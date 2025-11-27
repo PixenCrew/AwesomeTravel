@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.inquiry.dto.request.InquiryRequestDto;
 import renewal.awesome_travel.inquiry.dto.response.InquiryDetailResponseDto;
 import renewal.awesome_travel.inquiry.dto.response.InquiryResponseDto;
 import renewal.awesome_travel.inquiry.service.InquiryService;
+import renewal.common.entity.User;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,8 +22,14 @@ public class InquiryUserController {
 
     // 1:1 문의 작성
     @PostMapping
-    public ResponseEntity<Long> createInquiry(@RequestParam Long userId, @RequestBody InquiryRequestDto dto) {
-        return ResponseEntity.ok(inquiryService.createInquiry(userId, dto));
+    public ResponseEntity<Long> createInquiry(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody InquiryRequestDto dto) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(inquiryService.createInquiry(user.getId(), dto));
     }
 
     // 내 문의 목록 조회

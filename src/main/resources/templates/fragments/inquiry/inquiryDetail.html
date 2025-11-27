@@ -1,21 +1,171 @@
-<div>
-    <header class="section-header">
-        <h1>문의 상세</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
+<div class="inquiry-detail-container">
+    <style>
+        .inquiry-detail-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
 
+        .inquiry-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .inquiry-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .inquiry-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .inquiry-spacer {
+            width: 26px;
+        }
+
+        .inquiry-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .inquiry-section {
+            margin-bottom: 32px;
+        }
+
+        .inquiry-section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .inquiry-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 12px 0;
+        }
+
+        .inquiry-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .inquiry-section-caption {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .inquiry-section-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .inquiry-meta-text {
+            padding: 4px 10px;
+            background: #f5f5f5;
+            border-radius: 999px;
+        }
+
+        .inquiry-section-date {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+
+        .inquiry-section-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .inquiry-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            z-index: 10;
+        }
+
+        .inquiry-list-btn {
+            width: 100%;
+            padding: 14px;
+            background: #424242;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .inquiry-list-btn:hover {
+            background: #333;
+        }
+    </style>
+
+    <header class="inquiry-header">
+        <i class="fas fa-chevron-left inquiry-back" onclick="prevSection()"></i>
+        <h1 class="inquiry-title">1:1 문의</h1>
+        <div class="inquiry-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div>문의 제목</div>
-        <div th:text="${inquiry.title}"></div>
-        <div>문의 내용</div>
-        <div th:utext="${inquiry.content}"></div>
-        <hr>
-        <div th:if="${answer!=null}">
-            <div>답변 내용</div>
-            <div th:utext="${answer.content}"></div>
+    <div class="inquiry-body" th:with="categoryName=${inquiry.category != null ? inquiry.category.displayName() : '일반'}">
+        <!-- 내 문의글 -->
+        <div class="inquiry-section" th:with="hasProduct=${inquiry.productId != null}, hasPurchase=${inquiry.purchaseId != null}">
+            <div class="inquiry-section-label">내 문의글</div>
+            <div class="inquiry-divider"></div>
+            <div class="inquiry-section-title" th:text="${categoryName + ' 문의입니다.'}">주문/결제 문의입니다.</div>
+            <div class="inquiry-section-caption" th:if="${inquiry.title != null}" th:text="${inquiry.title}">결제 관련 문의 제목입니다.</div>
+            <div class="inquiry-section-meta" th:if="${hasProduct or hasPurchase}">
+                <span class="inquiry-meta-text" th:if="${hasProduct}" th:text="${'상품번호: ' + inquiry.productId}">상품번호: 12345</span>
+                <span class="inquiry-meta-text" th:if="${hasPurchase}" th:text="${'구매번호: ' + inquiry.purchaseId}">구매번호: 98765</span>
+            </div>
+            <div class="inquiry-section-date" th:text="${#temporals.format(inquiry.createdAt, 'yyyy년 M월', new java.util.Locale('ko', 'KR'))}">2024년 10월</div>
+            <div class="inquiry-divider"></div>
+            <div class="inquiry-section-content" th:utext="${inquiry.content}">안녕하세요.
+결제 과정에서 문제가 하나 있었는데, 이를 해결하기
+위한 과정에서 도움을 요청합니다.</div>
+        </div>
+
+        <!-- 답변 -->
+        <div class="inquiry-section" th:if="${answer != null}">
+            <div class="inquiry-section-title" th:text="${categoryName + ' 문의 답변입니다.'}">주문/결제 문의 답변입니다.</div>
+            <div class="inquiry-section-date" th:text="${#temporals.format(answer.createdAt, 'yyyy년 M월', new java.util.Locale('ko', 'KR'))}">2024년 10월</div>
+            <div class="inquiry-divider"></div>
+            <div class="inquiry-section-content" th:utext="${answer.content}">문의에 대한 답변입니다.
+한번 더 시도해보시고 문의를 다시 부탁드리겠습니다.
+직접적인 도움이 되지 못하여 죄송합니다.</div>
         </div>
     </div>
+
+    <!-- 하단 목록 버튼 -->
+    <footer class="inquiry-footer">
+        <button type="button" class="inquiry-list-btn" onclick="prevSection()">목록으로</button>
+    </footer>
 </div>

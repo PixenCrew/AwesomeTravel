@@ -1,13 +1,13 @@
-<div class="inquiry-list-container">
+<div class="inquiry-all-list-container">
     <style>
-        .inquiry-list-container {
+        .inquiry-all-list-container {
             width: 100%;
             min-height: calc(100vh - 60px);
             padding-bottom: 60px;
             background: white;
         }
 
-        .inquiry-header {
+        .inquiry-all-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -19,13 +19,13 @@
             z-index: 100;
         }
 
-        .inquiry-back {
+        .inquiry-all-back {
             font-size: 18px;
             color: #999;
             cursor: pointer;
         }
 
-        .inquiry-title {
+        .inquiry-all-title {
             font-size: 18px;
             font-weight: bold;
             color: #333;
@@ -33,29 +33,29 @@
             text-align: center;
         }
 
-        .inquiry-spacer {
+        .inquiry-all-spacer {
             width: 26px;
         }
 
-        .inquiry-body {
+        .inquiry-all-body {
             padding: 16px;
             padding-bottom: 100px;
         }
 
-        .inquiry-section-header {
+        .inquiry-all-section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
         }
 
-        .inquiry-section-title {
+        .inquiry-all-section-title {
             font-size: 16px;
             font-weight: 600;
             color: #333;
         }
 
-        .inquiry-register-btn {
+        .inquiry-all-register-btn {
             padding: 8px 16px;
             background: #424242;
             color: white;
@@ -66,11 +66,11 @@
             cursor: pointer;
         }
 
-        .inquiry-register-btn:hover {
+        .inquiry-all-register-btn:hover {
             background: #333;
         }
 
-        .inquiry-item {
+        .inquiry-all-item {
             display: flex;
             justify-content: space-between;
             padding: 16px 0;
@@ -78,23 +78,23 @@
             cursor: pointer;
         }
 
-        .inquiry-item:last-child {
+        .inquiry-all-item:last-child {
             border-bottom: none;
         }
 
-        .inquiry-item-left {
+        .inquiry-all-item-left {
             flex: 1;
             min-width: 0;
         }
 
-        .inquiry-item-title {
+        .inquiry-all-item-title {
             font-size: 14px;
             font-weight: 600;
             color: #333;
             margin-bottom: 4px;
         }
 
-        .inquiry-item-content {
+        .inquiry-all-item-content {
             font-size: 13px;
             color: #666;
             line-height: 1.4;
@@ -103,9 +103,10 @@
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
+            line-clamp: 1;
         }
 
-        .inquiry-item-right {
+        .inquiry-all-item-right {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -113,47 +114,47 @@
             margin-left: 16px;
         }
 
-        .inquiry-item-date {
+        .inquiry-all-item-date {
             font-size: 13px;
             color: #666;
         }
 
-        .inquiry-item-status {
+        .inquiry-all-item-status {
             font-size: 13px;
             color: #666;
         }
 
-        .inquiry-empty {
+        .inquiry-all-empty {
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }
     </style>
 
-    <header class="inquiry-header">
-        <i class="fas fa-chevron-left inquiry-back" onclick="prevSection()"></i>
-        <h1 class="inquiry-title">1:1 문의</h1>
-        <div class="inquiry-spacer"></div>
+    <header class="inquiry-all-header">
+        <i class="fas fa-chevron-left inquiry-all-back" onclick="prevSection()"></i>
+        <h1 class="inquiry-all-title">고객문의</h1>
+        <div class="inquiry-all-spacer"></div>
     </header>
 
-    <div class="inquiry-body">
-        <div class="inquiry-section-header">
-            <h2 class="inquiry-section-title">나의 문의 목록</h2>
-            <button class="inquiry-register-btn" onclick="openInquiryForm()">문의 등록하기</button>
+    <div class="inquiry-all-body">
+        <div class="inquiry-all-section-header">
+            <h2 class="inquiry-all-section-title">고객문의 목록</h2>
+            <button class="inquiry-all-register-btn" onclick="openInquiryForm()">문의 등록하기</button>
         </div>
 
-        <div th:each="inquiry, iterStat : ${inquiries}" class="inquiry-item" th:onclick="'fetchSection(\'/inquiry/' + ${inquiry.id} + '\')'">
-            <div class="inquiry-item-left">
-                <div class="inquiry-item-title" th:text="'질문 ' + (${iterStat.index} + 1)">질문 1</div>
-                <div class="inquiry-item-content" th:text="${inquiry.title}">결제 관련 문의 드리겠습니다. 1</div>
+        <div th:each="inquiry, iterStat : ${inquiries.content}" class="inquiry-all-item" th:onclick="'fetchSection(\'/inquiry/' + ${inquiry.id} + '\')'">
+            <div class="inquiry-all-item-left">
+                <div class="inquiry-all-item-title" th:text="'질문 ' + (${iterStat.index} + 1)">질문 1</div>
+                <div class="inquiry-all-item-content" th:text="${inquiry.title}">결제 관련 문의 드리겠습니다.</div>
             </div>
-            <div class="inquiry-item-right">
-                <div class="inquiry-item-date" th:attr="data-date=${#temporals.format(inquiry.createdAt, 'yyyy-MM-dd HH:mm:ss')}">3일 전</div>
-                <div class="inquiry-item-status" th:text="${inquiry.status == T(renewal.common.entity.Inquiry.InquiryStatus).PENDING ? '미답변' : '답변완료'}">미답변</div>
+            <div class="inquiry-all-item-right">
+                <div class="inquiry-all-item-date" th:attr="data-date=${#temporals.format(inquiry.createdAt, 'yyyy-MM-dd HH:mm:ss')}">3일 전</div>
+                <div class="inquiry-all-item-status" th:text="${inquiry.isAnswered ? '답변완료' : '미답변'}">미답변</div>
             </div>
         </div>
 
-        <div th:if="${#lists.isEmpty(inquiries)}" class="inquiry-empty">
+        <div th:if="${#lists.isEmpty(inquiries.content)}" class="inquiry-all-empty">
             문의 내역이 없습니다.
         </div>
     </div>
@@ -193,7 +194,7 @@
 
         // 페이지 로드 시 날짜 변환
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.inquiry-item-date[data-date]').forEach(function(el) {
+            document.querySelectorAll('.inquiry-all-item-date[data-date]').forEach(function(el) {
                 const dateString = el.getAttribute('data-date');
                 if (dateString) {
                     el.textContent = formatDateAgo(dateString);
@@ -202,3 +203,4 @@
         });
     </script>
 </div>
+
