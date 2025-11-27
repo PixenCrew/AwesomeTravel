@@ -1,0 +1,305 @@
+<div class="notification-center-container">
+    <style>
+        .notification-center-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .notification-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .notification-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .notification-spacer {
+            width: 26px;
+        }
+
+        .notification-body {
+            padding: 16px;
+        }
+
+        .notification-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .notification-summary-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .notification-summary-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1976d2;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .notification-item:hover {
+            background: #f9f9f9;
+        }
+
+        .notification-item.unread {
+            background: #f0f8ff;
+        }
+
+        .notification-item.unread:hover {
+            background: #e3f2fd;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1976d2;
+            margin-right: 12px;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .notification-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .notification-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .notification-empty-icon {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+
+        .mark-all-read-btn {
+            padding: 8px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mark-all-read-btn:hover {
+            background: #1565c0;
+        }
+
+        .mark-all-read-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <header class="notification-header">
+        <i class="fas fa-chevron-left notification-back" onclick="closeNotificationCenter()"></i>
+        <h1 class="notification-title">알림</h1>
+        <div class="notification-spacer"></div>
+    </header>
+
+    <div class="notification-body">
+        <!-- 알림 요약 -->
+        <div class="notification-summary">
+            <span class="notification-summary-text">
+                안 읽은 알림 <span class="notification-summary-count" th:text="${unreadCount}">0</span>개
+            </span>
+            <button class="mark-all-read-btn" 
+                    th:disabled="${unreadCount == 0}"
+                    onclick="markAllAsRead()"
+                    th:if="${unreadCount > 0}">
+                모두 읽음
+            </button>
+        </div>
+
+        <!-- 알림 목록 -->
+        <div th:if="${!#lists.isEmpty(notifications)}">
+            <div th:each="notification : ${notifications}" 
+                 class="notification-item"
+                 th:classappend="${!notification.isRead} ? 'unread' : ''"
+                 th:onclick="'markAsRead(' + ${notification.id} + ')'">
+                <div class="notification-dot" th:if="${!notification.isRead}"></div>
+                <div class="notification-content" th:style="${notification.isRead} ? 'margin-left: 0;' : ''">
+                    <div class="notification-message" th:text="${notification.message}">알림 메시지</div>
+                    <div class="notification-date" th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}">2025-11-23 14:30</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 알림 없음 -->
+        <div th:if="${#lists.isEmpty(notifications)}" class="notification-empty">
+            <div class="notification-empty-icon">
+                <i class="far fa-bell-slash"></i>
+            </div>
+            <p>알림이 없습니다.</p>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function markAsRead(notificationId) {
+            fetch(`/notification/${notificationId}/read`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 해당 알림 아이템만 읽음 처리 (페이지 새로고침 없이)
+                    const notificationItem = document.querySelector(`[onclick*="${notificationId}"]`);
+                    if (notificationItem) {
+                        notificationItem.classList.remove('unread');
+                        const dot = notificationItem.querySelector('.notification-dot');
+                        if (dot) {
+                            dot.remove();
+                        }
+                        const content = notificationItem.querySelector('.notification-content');
+                        if (content) {
+                            content.style.marginLeft = '0';
+                        }
+                        
+                        // 안 읽은 알림 개수 업데이트
+                        const unreadCountElement = document.querySelector('.notification-summary-count');
+                        if (unreadCountElement) {
+                            const currentCount = parseInt(unreadCountElement.textContent) || 0;
+                            const newCount = Math.max(0, currentCount - 1);
+                            unreadCountElement.textContent = newCount;
+                            
+                            // 모두 읽음 버튼 상태 업데이트
+                            const markAllBtn = document.querySelector('.mark-all-read-btn');
+                            if (markAllBtn) {
+                                if (newCount === 0) {
+                                    markAllBtn.disabled = true;
+                                    markAllBtn.style.display = 'none';
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('알림 읽음 처리 실패:', err);
+            });
+        }
+
+        function markAllAsRead() {
+            if (confirm('모든 알림을 읽음 처리하시겠습니까?')) {
+                fetch('/api/notifications/read?userId=' + /*[[${currentUser.id}]]*/ 0, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // 모든 알림 아이템에서 unread 클래스 제거 및 dot 제거
+                        document.querySelectorAll('.notification-item.unread').forEach(item => {
+                            item.classList.remove('unread');
+                            const dot = item.querySelector('.notification-dot');
+                            if (dot) {
+                                dot.remove();
+                            }
+                            const content = item.querySelector('.notification-content');
+                            if (content) {
+                                content.style.marginLeft = '0';
+                            }
+                        });
+                        
+                        // 안 읽은 알림 개수 0으로 업데이트
+                        const unreadCountElement = document.querySelector('.notification-summary-count');
+                        if (unreadCountElement) {
+                            unreadCountElement.textContent = '0';
+                        }
+                        
+                        // 모두 읽음 버튼 숨기기
+                        const markAllBtn = document.querySelector('.mark-all-read-btn');
+                        if (markAllBtn) {
+                            markAllBtn.disabled = true;
+                            markAllBtn.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('모든 알림 읽음 처리 실패:', err);
+                });
+            }
+        }
+
+        function closeNotificationCenter() {
+            try {
+                if (typeof fullModal !== 'undefined' && fullModal && !fullModal.classList.contains('hide')
+                        && typeof backModal === 'function' && typeof currentModal !== 'undefined' && currentModal) {
+                    backModal();
+                    return;
+                }
+            } catch (err) {
+                console.warn('모달 상태 확인 실패:', err);
+            }
+
+            if (typeof prevSection === 'function') {
+                prevSection();
+                return;
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</div>
+
