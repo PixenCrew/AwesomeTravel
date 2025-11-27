@@ -1,0 +1,86 @@
+<div class="register-resend-container">
+    <header class="register-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="register-title">이메일 인증 안내</h1>
+        <div class="header-spacer"></div>
+    </header>
+
+    <div class="register-body">
+        <h2 class="resend-main-title">인증 메일을 다시 받고 싶으신가요?</h2>
+        <p class="resend-description">회원가입 시 사용한 이메일을 입력하면 새로운 인증 메일을 보내드립니다.</p>
+
+        <div class="resend-info-box">
+            <p class="resend-info-item">• 메일이 스팸함으로 분류되지 않았는지 확인해주세요.</p>
+            <p class="resend-info-item">• 인증 링크는 발송 후 24시간 동안만 유효합니다.</p>
+            <p class="resend-info-item">• 이미 인증을 완료했다면 로그인으로 이동하시면 됩니다.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="resendEmail">이메일 주소</label>
+            <input type="email" id="resendEmail" class="form-input" placeholder="example@email.com" />
+        </div>
+
+        <div id="resendMsg" class="error-message" style="display: none;"></div>
+
+        <button id="resendBtn" class="resend-submit-btn" onclick="resendVerificationEmail()">인증 메일 다시 보내기</button>
+    </div>
+
+    <script>
+        (function () {
+            window.resendVerificationEmail = async function () {
+                const emailInput = document.getElementById("resendEmail");
+                const messageBox = document.getElementById("resendMsg");
+                const resendBtn = document.getElementById("resendBtn");
+
+                const email = emailInput.value.trim();
+                messageBox.style.display = "none";
+                messageBox.textContent = "";
+
+                if (!email) {
+                    messageBox.textContent = "이메일을 입력해주세요.";
+                    messageBox.style.display = "block";
+                    messageBox.style.color = "#ff4444";
+                    return;
+                }
+
+                resendBtn.disabled = true;
+                resendBtn.textContent = "발송 중...";
+
+                try {
+                    const response = await fetch("/register/resend-email", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || "재전송 중 오류가 발생했습니다.");
+                    }
+
+                    messageBox.textContent = result.message || "인증 메일을 다시 발송했습니다.";
+                    messageBox.style.display = "block";
+                    messageBox.style.color = "#0a7d36";
+                } catch (err) {
+                    messageBox.textContent = err.message || "재전송 중 오류가 발생했습니다.";
+                    messageBox.style.display = "block";
+                    messageBox.style.color = "#ff4444";
+                } finally {
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = "인증 메일 다시 보내기";
+                }
+            }
+        })();
+    </script>
+</div>
+{
+  "cells": [],
+  "metadata": {
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}

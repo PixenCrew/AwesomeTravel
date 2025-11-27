@@ -1,0 +1,521 @@
+<div class="account-setting-container">
+    <style>
+        .account-setting-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .account-setting-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .account-setting-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .account-setting-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .account-setting-spacer {
+            width: 26px;
+        }
+
+        .account-setting-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .account-info-section {
+            margin-bottom: 32px;
+        }
+
+        .account-info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .account-connection-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .account-provider-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #03c75a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .account-form-group {
+            margin-bottom: 20px;
+        }
+
+        .account-form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .account-form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            background: #f5f5f5;
+            outline: none;
+        }
+
+        .account-form-input:disabled {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .account-form-input:not(:disabled) {
+            background: white;
+        }
+
+        .password-group {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .password-input {
+            flex: 1;
+        }
+
+        .password-change-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .password-change-btn:hover {
+            background: #555;
+        }
+
+        .phone-group {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .phone-input {
+            flex: 1;
+        }
+
+        .phone-verify-btn,
+        .phone-resend-btn {
+            padding: 12px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .phone-verify-btn {
+            background: #333;
+            color: white;
+            border: none;
+        }
+
+        .phone-verify-btn:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .phone-resend-btn {
+            background: #f5f5f5;
+        }
+
+        .phone-resend-btn:hover:not(:disabled) {
+            background: #e8e8e8;
+        }
+
+        .phone-verify-btn:disabled,
+        .phone-resend-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .verify-group {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .verify-input {
+            flex: 1;
+        }
+
+        .verify-check-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .verify-check-btn:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .verify-check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .account-action-buttons {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .account-submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .account-submit-btn:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .account-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .account-cancel-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f5f5f5;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .account-cancel-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .account-withdraw-link {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .account-withdraw-link a {
+            font-size: 14px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .account-withdraw-link a:hover {
+            text-decoration: underline;
+        }
+
+        .field-error {
+            font-size: 13px;
+            color: #f44336;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+    </style>
+
+    <header class="account-setting-header">
+        <i class="fas fa-chevron-left account-setting-back" onclick="backModal()"></i>
+        <h1 class="account-setting-title">계정 설정</h1>
+        <div class="account-setting-spacer"></div>
+    </header>
+
+    <div class="account-setting-body">
+        <!-- 계정 정보 섹션 -->
+        <div class="account-info-section">
+            <h2 class="account-info-title">계정 정보</h2>
+            <div class="account-connection-info">
+                <span class="account-provider-icon" th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}">N</span>
+                <span th:text="${currentUser?.email} + ' 으로 연결됨'">abc@naver.com 으로 연결됨</span>
+            </div>
+
+            <div class="account-form-group">
+                <label class="account-form-label">이름</label>
+                <input type="text" id="accountName" class="account-form-input" th:value="${currentUser?.name}" placeholder="이름을 입력하세요" />
+                <p class="field-error" id="nameError"></p>
+            </div>
+
+            <div class="account-form-group">
+                <label class="account-form-label">아이디</label>
+                <input type="email" id="accountEmail" class="account-form-input" th:value="${currentUser?.email}" disabled />
+            </div>
+        </div>
+
+        <!-- 비밀번호 섹션 -->
+        <div class="account-form-group">
+            <label class="account-form-label">비밀번호</label>
+            <div class="password-group">
+                <input type="password" id="accountPassword" class="account-form-input password-input" value="*********" disabled />
+                <button class="password-change-btn" onclick="addModal('/mypage/userInfo/password', true)">변경하기</button>
+            </div>
+        </div>
+
+        <!-- 휴대폰 번호 섹션 -->
+        <div class="account-form-group">
+            <label class="account-form-label">휴대폰 번호</label>
+            <div class="phone-group">
+                <input type="text" id="accountPhone" class="account-form-input phone-input" th:value="${currentUser?.phone ?: '010-0000-0000'}" placeholder="휴대폰 번호를 입력해주세요" />
+                <button id="phoneRequestBtn" class="phone-verify-btn" onclick="requestPhoneCode('request')">인증 요청</button>
+                <button id="phoneResendBtn" class="phone-resend-btn" onclick="requestPhoneCode('resend')" disabled>재전송</button>
+            </div>
+            <p class="field-error" id="phoneError"></p>
+        </div>
+
+        <!-- 인증번호 섹션 -->
+        <div class="account-form-group">
+            <label class="account-form-label">인증번호</label>
+            <div class="verify-group">
+                <input type="text" id="accountVerifyCode" class="account-form-input verify-input" placeholder="인증번호를 입력하세요." />
+                <button id="verifyCheckBtn" class="verify-check-btn" onclick="checkPhoneCode()">확인하기</button>
+            </div>
+            <p class="field-error" id="verifyCodeError"></p>
+        </div>
+
+        <!-- 액션 버튼 -->
+        <div class="account-action-buttons">
+            <button id="accountSubmitBtn" class="account-submit-btn" onclick="submitAccountSetting()">수정완료</button>
+            <button class="account-cancel-btn" onclick="backModal()">취소</button>
+            <div class="account-withdraw-link">
+                <a href="#" onclick="event.preventDefault(); addModal('/mypage/withdrawal', true)">회원탈퇴</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            let isPhoneVerified = false;
+            let isRequested = false;
+
+            window.requestPhoneCode = async function (action = "request") {
+                const phone = document.getElementById("accountPhone").value.trim();
+                const requestBtn = document.getElementById("phoneRequestBtn");
+                const resendBtn = document.getElementById("phoneResendBtn");
+                const targetBtn = action === "resend" ? resendBtn : requestBtn;
+
+                if (!phone) {
+                    showError("phoneError", "휴대폰 번호를 입력해주세요.");
+                    return;
+                }
+
+                if (targetBtn.dataset.loading === "true") return;
+                targetBtn.dataset.loading = "true";
+                const originalText = targetBtn.textContent;
+                targetBtn.textContent = "요청 중...";
+
+                try {
+                    const response = await fetch("/mypage/userInfo/phone", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ number: phone })
+                    });
+
+                    if (!response.ok) throw new Error("인증 요청 실패");
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        resendBtn.disabled = false;
+                        isRequested = true;
+                        clearError("phoneError");
+                    } else {
+                        showError("phoneError", result.message || "인증 요청 실패");
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    showError("phoneError", "인증 요청 중 오류가 발생했습니다.");
+                } finally {
+                    targetBtn.dataset.loading = "false";
+                    targetBtn.textContent = originalText;
+                }
+            };
+
+            window.checkPhoneCode = async function () {
+                const verifyCode = document.getElementById("accountVerifyCode").value.trim();
+                const phone = document.getElementById("accountPhone").value.trim();
+
+                clearError("verifyCodeError");
+                clearError("phoneError");
+
+                if (!phone) {
+                    showError("phoneError", "휴대폰 번호를 먼저 입력해주세요.");
+                    return;
+                }
+
+                if (!verifyCode) {
+                    showError("verifyCodeError", "인증번호를 입력해주세요.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch("/mypage/userInfo/phone/check", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ verifyCode, number: phone })
+                    });
+
+                    if (!response.ok) throw new Error("서버 검증 오류");
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        clearError("verifyCodeError");
+                        isPhoneVerified = true;
+                        document.getElementById("accountPhone").disabled = true;
+                        document.getElementById("accountVerifyCode").disabled = true;
+                        document.getElementById("phoneRequestBtn").disabled = true;
+                        document.getElementById("phoneResendBtn").disabled = true;
+                        document.getElementById("verifyCheckBtn").disabled = true;
+                    } else {
+                        showError("verifyCodeError", result.message || "인증번호가 올바르지 않습니다.");
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    showError("verifyCodeError", "인증 처리 중 오류가 발생했습니다.");
+                }
+            };
+
+            window.submitAccountSetting = async function () {
+                const name = document.getElementById("accountName").value.trim();
+                const phone = document.getElementById("accountPhone").value.trim();
+                const verifyCode = document.getElementById("accountVerifyCode").value.trim();
+
+                clearAllErrors();
+
+                if (!name) {
+                    showError("nameError", "이름을 입력해주세요.");
+                    return;
+                }
+
+                if (phone && !isPhoneVerified) {
+                    showError("phoneError", "휴대폰 번호 인증을 완료해주세요.");
+                    return;
+                }
+
+                const payload = {
+                    name: name,
+                    number: phone,
+                    verifyCode: verifyCode
+                };
+
+                try {
+                    const response = await fetch("/mypage/userInfo", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        alert(result.message || "수정 중 오류가 발생했습니다.");
+                        return;
+                    }
+
+                    alert("계정 정보가 수정되었습니다.");
+                    backModal();
+
+                } catch (err) {
+                    console.error(err);
+                    alert("수정 중 오류가 발생했습니다.");
+                }
+            };
+
+            function showError(fieldId, message) {
+                const el = document.getElementById(fieldId);
+                if (el) {
+                    el.textContent = message;
+                    el.classList.add("show");
+                }
+            }
+
+            function clearError(fieldId) {
+                const el = document.getElementById(fieldId);
+                if (el) {
+                    el.textContent = "";
+                    el.classList.remove("show");
+                }
+            }
+
+            function clearAllErrors() {
+                clearError("nameError");
+                clearError("phoneError");
+                clearError("verifyCodeError");
+            }
+        })();
+    </script>
+</div>
+

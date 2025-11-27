@@ -6,24 +6,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import org.hibernate.Hibernate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
+import renewal.common.entity.Banner;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
 import renewal.common.entity.User;
-import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.MenuCodeRepository;
+import renewal.common.repository.ProductRepository;
 import renewal.common.service.ProductServiceCommon;
+import renewal.awesome_travel.banner.dto.repository.BannerRepository;
+import renewal.awesome_travel.popup.entity.Popup;
+import renewal.awesome_travel.popup.repository.PopupRepository;
 
 @RequiredArgsConstructor
 @Controller(value = "/")
@@ -34,9 +45,23 @@ public class MainController {
     private final UserRepository userRepo;
     private final ProductService productService;
     private final MenuCodeRepository menuCodeRepo;
+    private final BannerRepository bannerRepo;
+    private final PopupRepository popupRepo;
+    private final ProductRepository productRepo;
 
     @GetMapping
     public String main(Principal principal, HttpServletRequest request, Model model) {
+
+        // 배너 목록 가져오기 (현재 날짜 기준 활성화된 배너)
+        LocalDate today = LocalDate.now();
+        List<Banner> banners = bannerRepo.findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
+                today, today);
+        model.addAttribute("banners", banners);
+
+        // 팝업 목록 가져오기 (현재 날짜 기준 활성화된 팝업)
+        List<Popup> popups = popupRepo.findActivePopupsByDate(today);
+        model.addAttribute("popups", popups);
+        model.addAttribute("today", today);
 
         // ============로그인 한 경우=================
         if (principal != null) {
@@ -56,12 +81,11 @@ public class MainController {
             model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
 
         } else {
-            // 비로그인 상태 → 쿠키에서 최근 본 상품만
-            List<RecentViewedItem> cookieRecent = productService.loadRecentViewProducts(request);
+            // 비로그인 상태 → 최근 등록된 상품 5개 (인덱스 사용으로 빠름)
+            Pageable pageable = PageRequest.of(0, 5);
+            List<Product> recentProducts = productRepo.findRecentProducts(pageable);
 
-            List<Product> actualRecentProducts = productService.convertToProducts(cookieRecent);
-
-            model.addAttribute("recentProducts", actualRecentProducts);
+            model.addAttribute("recentProducts", recentProducts);
             model.addAttribute("likedProducts", Collections.emptyList());
         }
 
@@ -94,33 +118,119 @@ public class MainController {
     // 특정 메뉴코드 상품 목록
     @GetMapping("menu/{menuCode}")
     public String getMenuByCode(@PathVariable String menuCode, Model model) {
-        if (String.valueOf(menuCode).length() != 6)
-            return "error/error";
-
-        MenuCode targetCode = menuCodeRepo.findByCode(menuCode);
-        List<Product> codeProducts = productService.findProductsByMenuCode(targetCode);
-        List<Product> resulProducts = new ArrayList<>();
-
-        for (Product product : codeProducts) {
-
-            Product calcedProduct = null;
-            int plusDays = product.getCutoffDays().intValue();
-            int maxPlusDays = product.getCutoffDays().intValue() + 30;
-
-            while (calcedProduct == null && plusDays < maxPlusDays) {
-                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
-                plusDays++;
+        try {
+            if (menuCode == null || menuCode.length() != 6) {
+                return renderDataError(model, "메뉴 정보를 확인할 수 없습니다.", "선택한 메뉴 코드가 올바르지 않습니다.");
             }
 
-            if (calcedProduct != null) {
-                resulProducts.add(calcedProduct);
+            MenuCode targetCode = menuCodeRepo.findByCode(menuCode);
+            if (targetCode == null) {
+                return renderDataError(model, "메뉴 정보를 확인할 수 없습니다.", "등록되지 않은 메뉴 코드입니다.");
+            }
+            
+            List<Product> codeProducts = productService.findProductsByMenuCode(targetCode);
+            List<Product> resulProducts = new ArrayList<>();
+
+            List<MenuCode> relatedMenus = new ArrayList<>();
+            if (targetCode.getCode() != null && targetCode.getCode().length() >= 3) {
+                String prefix = targetCode.getCode().substring(0, 3);
+                relatedMenus = menuCodeRepo.findAllByCodeStartingWith(prefix);
             }
 
+            for (Product product : codeProducts) {
+                if (product == null || product.getCutoffDays() == null) {
+                    continue;
+                }
+
+                Product calcedProduct = null;
+                int plusDays = product.getCutoffDays().intValue();
+                int maxPlusDays = plusDays + 30;
+
+                while (calcedProduct == null && plusDays < maxPlusDays) {
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                    plusDays++;
+                }
+
+                if (calcedProduct != null) {
+                    resulProducts.add(calcedProduct);
+                }
+            }
+
+            if (resulProducts.isEmpty()) {
+                return renderDataError(model, "상품 정보를 불러올 수 없습니다.", "현재 준비 중인 상품이거나 데이터가 아직 등록되지 않았습니다.");
+            }
+
+            model.addAttribute("products", resulProducts);
+            model.addAttribute("menuCode", targetCode); // MenuCode 추가 (지역명 표시용)
+            model.addAttribute("menuCodeOptions", relatedMenus);
+
+            return "fragments/product/productResult.html";
+        } catch (Exception e) {
+            return renderDataError(model, "상품 정보를 불러오지 못했습니다.", "잠시 후 다시 시도해 주세요.");
         }
+    }
 
-        model.addAttribute("products", resulProducts);
+    private String renderDataError(Model model, String title, String message) {
+        model.addAttribute("errorTitle", title);
+        model.addAttribute("errorMessage", message);
+        return "fragments/error/dataUnavailable";
+    }
 
-        return "fragments/product/productResult.html";
+    // 원래 요청 URL 저장 (로그인 전)
+    @PostMapping("/api/save-original-url")
+    @ResponseBody
+    public void saveOriginalUrl(@RequestBody java.util.Map<String, String> request, HttpSession session) {
+        String url = request.get("url");
+        if (url != null && !url.isEmpty()) {
+            session.setAttribute("originalRequestUrl", url);
+        }
+    }
+
+    // 항공편 예약 정보 저장 (로그인 전)
+    @PostMapping("/api/save-air-reservation")
+    @ResponseBody
+    public void saveAirReservation(@RequestBody java.util.Map<String, Object> request, HttpSession session) {
+        // 항공편 예약 정보를 세션에 저장
+        session.setAttribute("pendingAirReservation", request);
+    }
+
+    // 항공편 예약 정보 확인 (로그인 후)
+    @GetMapping("/api/check-air-reservation")
+    @ResponseBody
+    public java.util.Map<String, Object> checkAirReservation(HttpSession session) {
+        // 세션에 저장된 항공편 예약 정보 확인
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> airReservationInfo = (java.util.Map<String, Object>) session.getAttribute("airReservationData");
+        if (airReservationInfo != null) {
+            session.removeAttribute("airReservationData");
+            session.removeAttribute("redirectToAirReservation");
+            return airReservationInfo;
+        }
+        return java.util.Collections.emptyMap();
+    }
+
+    // 결제 페이지로 리다이렉트할 URL 저장 (로그인 전)
+    @PostMapping("/api/save-payment-redirect")
+    @ResponseBody
+    public void savePaymentRedirect(@RequestBody java.util.Map<String, String> request, HttpSession session) {
+        String url = request.get("url");
+        if (url != null && !url.isEmpty()) {
+            session.setAttribute("redirectToPayment", true);
+            session.setAttribute("paymentRedirectUrl", url);
+        }
+    }
+
+    // 결제 페이지로 리다이렉트할 URL 확인 (로그인 후)
+    @GetMapping("/api/check-payment-redirect")
+    @ResponseBody
+    public java.util.Map<String, String> checkPaymentRedirect(HttpSession session) {
+        String redirectUrl = (String) session.getAttribute("paymentRedirectUrl");
+        if (redirectUrl != null) {
+            session.removeAttribute("redirectToPayment");
+            session.removeAttribute("paymentRedirectUrl");
+            return java.util.Map.of("url", redirectUrl);
+        }
+        return java.util.Collections.emptyMap();
     }
 
 }

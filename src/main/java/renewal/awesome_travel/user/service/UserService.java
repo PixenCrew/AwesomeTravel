@@ -7,8 +7,11 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import renewal.awesome_travel.payment.repository.PaymentRepository;
 import renewal.awesome_travel.user.dto.MemberGradeStatsDto;
 import renewal.awesome_travel.user.dto.request.PasswordChangeRequestDto;
@@ -37,6 +40,7 @@ import renewal.common.service.EmailService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -84,9 +88,26 @@ public class UserService {
         // 이메일 발송
         EmailVerificationToken token = EmailVerificationToken.create(user);
         tokenRepository.save(token);
-        emailService.sendVerificationMail(user.getEmail(), token.getToken(), "/register/email?token=");
+        scheduleVerificationEmail(user.getEmail(), token.getToken());
 
         return user.getId();
+    }
+
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("가입 내역이 확인되지 않는 이메일입니다."));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalStateException("이미 이메일 인증이 완료된 계정입니다.");
+        }
+
+        tokenRepository.deleteAllByUser(user);
+        tokenRepository.flush();
+
+        EmailVerificationToken token = EmailVerificationToken.create(user);
+        tokenRepository.save(token);
+        scheduleVerificationEmail(user.getEmail(), token.getToken());
     }
 
     @Transactional
@@ -111,6 +132,27 @@ public class UserService {
         } catch (Exception e) {
             System.out.println("[verifyEmail] error: " + e.getMessage());
             return false;
+        }
+    }
+
+    private void scheduleVerificationEmail(String email, String token) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendVerificationMailSafely(email, token);
+                }
+            });
+        } else {
+            sendVerificationMailSafely(email, token);
+        }
+    }
+
+    private void sendVerificationMailSafely(String email, String token) {
+        try {
+            emailService.sendVerificationMail(email, token, "/register/email?token=");
+        } catch (Exception e) {
+            log.error("Failed to send verification email to {}", email, e);
         }
     }
 

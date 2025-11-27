@@ -1,46 +1,65 @@
-<div>
-
-    <header class="section-header">
-        <h1>회원가입</h1>
-        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+<div class="register-form-container">
+    <header class="register-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="register-title">회원가입</h1>
+        <div class="header-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div class="title">회원정보 입력</div>
+    <div class="register-body">
+        <h2 class="form-main-title">회원정보 입력</h2>
 
         <!-- 이메일 -->
-        <label class="input-label">아이디(이메일)</label>
-        <input type="email" id="email" placeholder="이메일을 입력해주세요." />
+        <div class="form-group">
+            <label class="form-label">아이디(이메일)</label>
+            <input type="email" id="email" class="form-input" placeholder="이메일을 입력해주세요." />
+            <p class="field-error" id="emailError"></p>
+        </div>
 
         <!-- 비밀번호 -->
-        <label class="input-label">비밀번호</label>
-        <input type="password" id="password" placeholder="비밀번호를 입력해주세요" />
+        <div class="form-group">
+            <label class="form-label">비밀번호</label>
+            <input type="password" id="password" class="form-input" placeholder="비밀번호를 입력해주세요" />
+            <p class="field-error" id="passwordError"></p>
+        </div>
 
         <!-- 비밀번호 재확인 -->
-        <label class="input-label">비밀번호 재확인</label>
-        <input type="password" id="password2" placeholder="비밀번호를 다시 한번 입력해주세요" />
+        <div class="form-group">
+            <label class="form-label">비밀번호 재확인</label>
+            <input type="password" id="password2" class="form-input" placeholder="비밀번호를 다시한번 입력해주세요" />
+            <p class="field-error" id="password2Error"></p>
+        </div>
 
         <!-- 이름 -->
-        <label class="input-label">이름</label>
-        <input type="text" id="name" placeholder="이름을 입력하세요." />
+        <div class="form-group">
+            <label class="form-label">이름</label>
+            <input type="text" id="name" class="form-input" placeholder="이름을 입력하세요." />
+            <p class="field-error" id="nameError"></p>
+        </div>
 
         <!-- 휴대폰 번호 -->
-        <label class="input-label">휴대폰 번호</label>
-        <div class="phone-box">
-            <input type="text" id="number" placeholder="휴대폰 번호를 입력해주세요" />
-            <button id="requestBtn" class="btn-black" onclick="requestCode()">인증 요청</button>
+        <div class="form-group">
+            <label class="form-label">휴대폰 번호</label>
+            <div class="phone-input-group">
+                <input type="text" id="number" class="form-input phone-input" placeholder="휴대폰 번호를 입력해주세요" />
+                <button id="requestBtn" class="phone-verify-btn" onclick="requestCode('request')">인증 요청</button>
+                <button id="resendBtn" class="phone-resend-btn" onclick="requestCode('resend')" disabled>재전송</button>
+            </div>
+            <p class="field-error" id="numberError"></p>
         </div>
 
         <!-- 인증번호 -->
-        <label class="input-label">인증번호</label>
-        <div class="verify-box">
-            <input type="text" id="verifyCode" placeholder="인증번호를 입력하세요." />
-            <button id="checkBtn" class="btn-black" onclick="checkCode()">확인하기</button>
+        <div class="form-group">
+            <label class="form-label">인증번호</label>
+            <div class="verify-input-group">
+                <input type="text" id="verifyCode" class="form-input verify-input" placeholder="인증번호를 입력하세요." />
+                <button id="checkBtn" class="verify-check-btn" onclick="checkCode()">확인하기</button>
+            </div>
+            <p class="field-error" id="verifyCodeError"></p>
         </div>
-        <h4 id="errorMsg"></h4>
+        
+        <div id="errorMsg" class="error-message" style="display: none;"></div>
 
-        <button id="registerBtn" class="btn-primary" onclick="submitRegister()" disabled>회원가입</button>
-
+        <button id="registerBtn" class="register-submit-btn" onclick="submitRegister()" disabled>인증완료</button>
     </div>
 
     <script>
@@ -48,11 +67,42 @@
             let isRequested = false;
             isSubmitting = false;
 
+            const errorElements = {
+                email: document.getElementById("emailError"),
+                password: document.getElementById("passwordError"),
+                password2: document.getElementById("password2Error"),
+                name: document.getElementById("nameError"),
+                number: document.getElementById("numberError"),
+                verifyCode: document.getElementById("verifyCodeError"),
+                global: document.getElementById("errorMsg")
+            };
+
+            const clearFieldErrors = () => {
+                Object.values(errorElements).forEach(el => {
+                    if (!el) return;
+                    el.textContent = "";
+                    el.style.display = "none";
+                });
+            };
+
+            const clearSpecificError = (field) => {
+                const el = errorElements[field];
+                if (!el) return;
+                el.textContent = "";
+                el.style.display = "none";
+            };
+
+            const showFieldError = (field, message) => {
+                const el = errorElements[field];
+                if (!el) return;
+                el.textContent = message;
+                el.style.display = "block";
+            };
+
             window.submitRegister = async function () {
 
                 if (isSubmitting) return;
-                isSubmitting = true;
-
+                
                 const email = document.getElementById("email").value.trim();
                 const password = document.getElementById("password").value.trim();
                 const password2 = document.getElementById("password2").value.trim();
@@ -60,16 +110,62 @@
                 const number = document.getElementById("number").value.trim();
                 const verifyCode = document.getElementById("verifyCode").value.trim();
 
-                // 기본 검증
-                if (!email || !password || !name || !number || !verifyCode) {
-                    alert("모든 값을 입력해주세요.");
+                clearFieldErrors();
+
+                if (!email) {
+                    showFieldError("email", "이메일을 입력해주세요.");
                     return;
                 }
 
-                if (password !== password2) {
-                    alert("비밀번호가 일치하지 않습니다.");
+                if (!password) {
+                    showFieldError("password", "비밀번호를 입력해주세요.");
                     return;
                 }
+
+                if (!password2) {
+                    showFieldError("password2", "비밀번호를 다시 입력해주세요.");
+                    return;
+                }
+
+                if (!name) {
+                    showFieldError("name", "이름을 입력해주세요.");
+                    return;
+                }
+
+                if (!number) {
+                    showFieldError("number", "휴대폰 번호를 입력해주세요.");
+                    return;
+                }
+
+                if (!verifyCode) {
+                    showFieldError("verifyCode", "인증번호를 입력해주세요.");
+                    return;
+                }
+
+                // 이메일 형식 검증
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showFieldError("email", "올바른 이메일 형식을 입력해주세요.");
+                    return;
+                }
+
+                // 비밀번호 일치 검증
+                if (password !== password2) {
+                    showFieldError("password2", "비밀번호가 일치하지 않습니다.");
+                    return;
+                }
+
+                // 비밀번호 길이 검증
+                if (password.length < 8) {
+                    showFieldError("password", "비밀번호는 8자 이상 입력해주세요.");
+                    return;
+                }
+
+                isSubmitting = true;
+                const registerBtn = document.getElementById("registerBtn");
+                const originalText = registerBtn.textContent;
+                registerBtn.disabled = true;
+                registerBtn.textContent = "처리 중...";
 
                 const payload = {
                     email: email,
@@ -86,39 +182,56 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
-                    if (!response.ok) {
-                        alert("가입 중 오류가 발생했습니다.");
+                    
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        // JSON 파싱 실패 시 (서버에서 HTML이나 다른 형식 반환)
+                        throw new Error("서버 오류가 발생했습니다. (HTTP " + response.status + ")");
+                    }
+                    
+                    if (!response.ok || !result.success) {
+                        showFieldError("global", result.message || "가입 중 오류가 발생했습니다.");
+                        isSubmitting = false;
+                        registerBtn.disabled = false;
+                        registerBtn.textContent = originalText;
                         return;
                     }
 
-                    alert('가입 신청이 완료되었습니다.\n 이메일을 확인해주세요.');
+                    // 성공 시 완료 페이지로 이동
                     addModal('/register/done', true);
+                    isSubmitting = false;
 
                 } catch (err) {
                     console.error(err);
-                    alert("가입 중 오류가 발생했습니다.");
-                } finally {
+                    showFieldError("global", err.message || "가입 중 오류가 발생했습니다.");
                     isSubmitting = false;
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = originalText;
                 }
             }
 
-            window.requestCode = async function () {
+            window.requestCode = async function (action = "request") {
 
                 const number = document.getElementById("number").value.trim();
-                const btn = document.getElementById("requestBtn");
+                const requestBtn = document.getElementById("requestBtn");
+                const resendBtn = document.getElementById("resendBtn");
+                const targetBtn = action === "resend" ? resendBtn : requestBtn;
 
                 if (!number) {
-                    alert("휴대폰 번호를 입력해주세요.");
+                    showFieldError("number", "휴대폰 번호를 입력해주세요.");
                     return;
                 }
 
                 // 중복 클릭 방지
-                if (btn.dataset.loading === "true") return;
-                btn.dataset.loading = "true";
-                btn.textContent = "요청 중...";
+                if (targetBtn.dataset.loading === "true") return;
+                targetBtn.dataset.loading = "true";
+                const originalText = targetBtn.textContent;
+                targetBtn.textContent = "요청 중...";
 
                 try {
-                    // 서버 요청 (예시)
+                    // 서버 요청
                     const response = await fetch("/register/phone", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -130,23 +243,22 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        alert("인증번호가 발송되었습니다.");
-
-                        // 버튼을 재전송 모드로 변경
-                        btn.textContent = "재전송";
+                        resendBtn.disabled = false;
                         isRequested = true;
+                        clearSpecificError("number");
+                        clearSpecificError("global");
 
                     } else {
-                        alert(result.message || "인증 요청 실패");
+                        showFieldError("global", result.message || "인증 요청 실패");
                     }
 
                 } catch (err) {
                     console.error(err);
-                    alert("인증 요청 중 오류가 발생했습니다.");
+                    showFieldError("global", "인증 요청 중 오류가 발생했습니다.");
 
                 } finally {
-                    btn.dataset.loading = "false";
-                    if (!isRequested) btn.textContent = "인증 요청";
+                    targetBtn.dataset.loading = "false";
+                    targetBtn.textContent = originalText;
                 }
             };
 
@@ -154,17 +266,17 @@
 
                 const verifyCode = document.getElementById("verifyCode").value.trim();
                 const number = document.getElementById("number").value.trim(); // 기존 입력값
-                const errorMsg = document.getElementById("errorMsg");
-
-                errorMsg.textContent = "";
+                clearSpecificError("verifyCode");
+                clearSpecificError("number");
+                clearSpecificError("global");
 
                 if (!number) {
-                    errorMsg.textContent = "휴대폰 번호를 먼저 입력해주세요.";
+                    showFieldError("number", "휴대폰 번호를 먼저 입력해주세요.");
                     return;
                 }
 
                 if (!verifyCode) {
-                    errorMsg.textContent = "인증번호를 입력해주세요.";
+                    showFieldError("verifyCode", "인증번호를 입력해주세요.");
                     return;
                 }
 
@@ -183,23 +295,24 @@
                     const result = await response.json();
 
                     if (response.ok && result.success) {
-                        alert("인증이 완료되었습니다.");
+                        clearSpecificError("verifyCode");
 
                         // 인증 성공 후 버튼 비활성화
                         document.getElementById("number").disabled = true;
                         document.getElementById("verifyCode").disabled = true;
                         document.getElementById("requestBtn").disabled = true;
+                        document.getElementById("resendBtn").disabled = true;
                         document.getElementById("checkBtn").disabled = true;
                         document.getElementById("registerBtn").disabled = false;
 
                         return;
                     }
 
-                    errorMsg.textContent = result.message || "인증번호가 올바르지 않습니다.";
+                    showFieldError("verifyCode", result.message || "인증번호가 올바르지 않습니다.");
 
                 } catch (err) {
                     console.error(err);
-                    errorMsg.textContent = "인증 처리 중 오류가 발생했습니다.";
+                    showFieldError("global", "인증 처리 중 오류가 발생했습니다.");
                 }
             };
 
