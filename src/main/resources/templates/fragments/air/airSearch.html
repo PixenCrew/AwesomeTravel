@@ -65,185 +65,539 @@
             border-radius: 50%;
         }
     </style>
-    <header class="section-header">
-        <h1>항공권 검색</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
-    </header>
+    <style>
+        /* 항공 검색 화면 디자인 */
+        .air-search-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+            box-sizing: border-box;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
 
-    <div class="section-body">
+        .air-search-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
 
-        <!-- ==== 타입 선택 ==== -->
+        .air-search-main-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin: 0 0 8px 0;
+        }
 
-        <label>왕복
-            <input type="radio" name="tripTypeSelect" value="ROUND_TRIP" checked onclick="showForm('ROUND_TRIP')">
-        </label>
+        .air-search-sub-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
 
-        <label>편도
-            <input type="radio" name="tripTypeSelect" value="ONE_WAY" onclick="showForm('ONE_WAY')">
-        </label>
+        .air-search-sub-title {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
 
-        <label>다구간
-            <input type="radio" name="tripTypeSelect" value="MULTI" onclick="showForm('MULTI')">
-        </label>
+        .air-search-form-card {
+            background: white;
+            border-radius: 12px;
+            margin: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
+        }
 
-        <hr>
-        <!-- ROUND_TRIP -->
-        <div id="form-ROUND_TRIP" class="trip-form">
-            <h2>왕복 (ROUND_TRIP)</h2>
-            <input type="hidden" name="tripType" value="ROUND_TRIP" required>
+        .air-search-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 4px;
+        }
 
-            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
-            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
-            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
+        .air-search-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-            좌석 등급:
-            <select name="seatClassType" required>
-                <option value="">선택</option>
-                <option value="ECONOMY">이코노미</option>
-                <option value="BUSINESS">비즈니스</option>
-                <option value="FIRST">퍼스트</option>
-            </select><br>
+        .air-search-tab.active {
+            background: white;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-            직항만:<input type="checkbox" name="directOnly"><br>
+        .air-search-route-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
 
-            <h3>구간</h3>
-            <div id="roundtrip-segments">
-                <div>출발</div>
-                <div>
-                    <label>출발 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].depart.airportCode"
-                                onclick="openCityModal('depart', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
+        .air-search-city-card {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-                    <label>도착 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].arrive.airportCode"
-                                onclick="openCityModal('arrive', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
+        .air-search-city-card:hover {
+            border-color: #333;
+        }
 
-                    <label>출발일:
-                        <input type="date" name="segments[0].departDate" onclick="openCalendar(this)" readonly required>
-                    </label><br>
+        .air-search-city-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .air-search-city-code {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .air-search-city-card.placeholder .air-search-city-name {
+            color: #999;
+        }
+
+        .air-search-swap-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid #e0e0e0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .air-search-swap-btn:hover {
+            background: #f5f5f5;
+            border-color: #333;
+        }
+
+        .air-search-swap-btn i {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .air-search-field-group {
+            margin-bottom: 20px;
+        }
+
+        .air-search-field-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .air-search-field-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+
+        .air-search-field-input i {
+            font-size: 18px;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .air-search-field-input input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            width: 0;
+        }
+
+        .air-search-field-input input::placeholder {
+            color: #999;
+        }
+
+        .air-search-checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            cursor: pointer;
+        }
+
+        .air-search-checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .air-search-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            display: inline-block;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .air-search-checkbox:hover {
+            border-color: #999;
+        }
+
+        .air-search-checkbox-wrapper input[type="checkbox"]:checked + .air-search-checkbox {
+            background: #333;
+            border-color: #333;
+        }
+
+        .air-search-checkbox-wrapper input[type="checkbox"]:checked + .air-search-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .air-search-checkbox-label {
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .air-search-submit-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .air-search-submit-btn:hover {
+            background: #555;
+        }
+
+        .air-search-promo-banner {
+            background: #333;
+            border-radius: 12px;
+            margin: 16px;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .air-search-promo-text {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .air-search-promo-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .air-search-promo-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .air-search-promo-dot.active {
+            background: white;
+        }
+
+        /* 기존 폼 숨기기 */
+        .trip-form h2,
+        .trip-form h3 {
+            display: none;
+        }
+
+        .trip-form label:not(.air-search-tab-label) {
+            display: none;
+        }
+
+        .trip-form input[type="number"],
+        .trip-form select {
+            display: none;
+        }
+
+        .trip-form hr {
+            display: none;
+        }
+
+        /* 도시 입력 래퍼 스타일 */
+        .city-input-wrapper {
+            display: none;
+        }
+
+        .air-search-city-display {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+
+    <div class="air-search-container">
+        <header class="air-search-header">
+            <h1 class="air-search-main-title">항공편 예약</h1>
+            <div class="air-search-sub-header">
+                <span class="air-search-sub-title">항공 예약</span>
+            </div>
+        </header>
+
+        <div class="section-body">
+            <div class="air-search-form-card">
+                <!-- 여행 타입 탭 -->
+                <div class="air-search-tabs">
+                    <button class="air-search-tab active" onclick="showForm('ROUND_TRIP'); updateTabs('ROUND_TRIP')">왕복</button>
+                    <button class="air-search-tab" onclick="showForm('ONE_WAY'); updateTabs('ONE_WAY')">편도</button>
+                    <button class="air-search-tab" onclick="showForm('MULTI'); updateTabs('MULTI')">다구간</button>
                 </div>
-                <div>
-                    <div style="display: none;">
-                        <label>출발 공항:
-                            <div class="city-input-wrapper">
-                                <input type="text" name="segments[1].depart.airportCode"
-                                    onclick="openCityModal('depart', this)" readonly required>
-                                <span class="city-label"></span>
-                            </div>
-                        </label>
 
-                        <label>도착 공항:
-                            <div class="city-input-wrapper">
-                                <input type="text" name="segments[1].arrive.airportCode"
-                                    onclick="openCityModal('arrive', this)" readonly required>
-                                <span class="city-label"></span>
+                <!-- 숨겨진 라디오 버튼 -->
+                <input type="radio" name="tripTypeSelect" value="ROUND_TRIP" checked style="display: none;">
+                <input type="radio" name="tripTypeSelect" value="ONE_WAY" style="display: none;">
+                <input type="radio" name="tripTypeSelect" value="MULTI" style="display: none;">
+
+                <!-- ROUND_TRIP -->
+                <div id="form-ROUND_TRIP" class="trip-form">
+                    <input type="hidden" name="tripType" value="ROUND_TRIP" required>
+
+                    <!-- 출발지/도착지 -->
+                    <div class="air-search-route-section">
+                        <div class="air-search-city-card" onclick="openCityModalRoundTrip('depart')">
+                            <div class="air-search-city-display">
+                                <span class="air-search-city-name" id="depart-city-name">인천</span>
+                                <span class="air-search-city-code" id="depart-city-code">ICN</span>
                             </div>
-                        </label>
+                        </div>
+                        <button type="button" class="air-search-swap-btn" onclick="swapCities()">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <div class="air-search-city-card placeholder" onclick="openCityModalRoundTrip('arrive')">
+                            <div class="air-search-city-display">
+                                <span class="air-search-city-name" id="arrive-city-name">도착지</span>
+                                <span class="air-search-city-code" id="arrive-city-code">IN</span>
+                            </div>
+                        </div>
                     </div>
-                    <label>귀환일:
-                        <input type="date" name="segments[1].departDate" onclick="openCalendar(this)" readonly required>
-                    </label><br>
+
+                    <!-- 숨겨진 입력 필드 -->
+                    <div style="display: none;">
+                        <input type="text" name="segments[0].depart.airportCode" value="ICN" readonly required>
+                        <input type="text" name="segments[0].arrive.airportCode" readonly required>
+                        <input type="text" name="segments[1].depart.airportCode" readonly required>
+                        <input type="text" name="segments[1].arrive.airportCode" value="ICN" readonly required>
+                    </div>
+
+                    <!-- 날짜 선택 -->
+                    <div class="air-search-field-group">
+                        <label class="air-search-field-label">날짜 선택</label>
+                        <div class="air-search-field-input" onclick="openCalendar()">
+                            <i class="fas fa-calendar"></i>
+                            <input type="text" placeholder="언제 떠나시나요?" readonly id="depart-date-display">
+                        </div>
+                        <div class="air-search-field-input" style="margin-top: 8px;" onclick="openCalendar()">
+                            <i class="fas fa-calendar"></i>
+                            <input type="text" placeholder="언제 돌아오시나요?" readonly id="return-date-display">
+                        </div>
+                        <input type="date" name="segments[0].departDate" onclick="openCalendar(this)" readonly required style="display: none;">
+                        <input type="date" name="segments[1].departDate" onclick="openCalendar(this)" readonly required style="display: none;">
+                    </div>
+
+                    <!-- 여행자 및 좌석 등급 -->
+                    <div class="air-search-field-group">
+                        <label class="air-search-field-label">여행자 및 좌석 등급</label>
+                        <div class="air-search-field-input" onclick="openPassengerModal()">
+                            <i class="fas fa-users"></i>
+                            <input type="text" placeholder="성인 1명, 일반석" readonly id="passenger-display" value="">
+                        </div>
+                        <input type="number" name="adultCount" min="0" value="1" required style="display: none;">
+                        <input type="number" name="youthCount" min="0" value="0" required style="display: none;">
+                        <input type="number" name="infantCount" min="0" value="0" required style="display: none;">
+                        <select name="seatClassType" required style="display: none;">
+                            <option value="ECONOMY" selected>ECONOMY</option>
+                            <option value="PREMIUMECONOMY">PREMIUMECONOMY</option>
+                            <option value="BUSINESS">BUSINESS</option>
+                            <option value="FIRST">FIRST</option>
+                        </select>
+                    </div>
+
+                    <!-- 직항만 -->
+                    <div class="air-search-checkbox-wrapper" onclick="document.getElementById('directOnly').click()">
+                        <input type="checkbox" name="directOnly" id="directOnly" style="display: none;">
+                        <label for="directOnly" class="air-search-checkbox"></label>
+                        <span class="air-search-checkbox-label">직항만</span>
+                    </div>
+
+                    <!-- 검색 버튼 -->
+                    <button type="button" class="air-search-submit-btn" onclick="submitAirSearch('ROUND_TRIP')">검색</button>
+                </div>
+
+                <!-- ONE_WAY -->
+                <div id="form-ONE_WAY" class="trip-form" style="display:none;">
+                    <input type="hidden" name="tripType" value="ONE_WAY" required>
+
+                    <!-- 출발지/도착지 -->
+                    <div class="air-search-route-section">
+                        <div class="air-search-city-card" onclick="openCityModalOneWay('depart')">
+                            <div class="air-search-city-display">
+                                <span class="air-search-city-name" id="oneway-depart-city-name">인천</span>
+                                <span class="air-search-city-code" id="oneway-depart-city-code">ICN</span>
+                            </div>
+                        </div>
+                        <button type="button" class="air-search-swap-btn" onclick="swapCitiesOneWay()">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <div class="air-search-city-card placeholder" onclick="openCityModalOneWay('arrive')">
+                            <div class="air-search-city-display">
+                                <span class="air-search-city-name" id="oneway-arrive-city-name">도착지</span>
+                                <span class="air-search-city-code" id="oneway-arrive-city-code">IN</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 숨겨진 입력 필드 -->
+                    <div style="display: none;">
+                        <input type="text" name="segments[0].depart.airportCode" value="ICN" readonly required>
+                        <input type="text" name="segments[0].arrive.airportCode" readonly required>
+                    </div>
+
+                    <!-- 날짜 선택 -->
+                    <div class="air-search-field-group">
+                        <label class="air-search-field-label">날짜 선택</label>
+                        <div class="air-search-field-input" onclick="openCalendar()">
+                            <i class="fas fa-calendar"></i>
+                            <input type="text" placeholder="언제 떠나시나요?" readonly id="oneway-date-display">
+                        </div>
+                        <input type="date" name="segments[0].departDate" onclick="openCalendar(this)" readonly required style="display: none;">
+                    </div>
+
+                    <!-- 여행자 및 좌석 등급 -->
+                    <div class="air-search-field-group">
+                        <label class="air-search-field-label">여행자 및 좌석 등급</label>
+                        <div class="air-search-field-input" onclick="openPassengerModal()">
+                            <i class="fas fa-users"></i>
+                            <input type="text" placeholder="성인 1명, 일반석" readonly id="oneway-passenger-display" value="">
+                        </div>
+                        <input type="number" name="adultCount" min="0" value="1" required style="display: none;">
+                        <input type="number" name="youthCount" min="0" value="0" required style="display: none;">
+                        <input type="number" name="infantCount" min="0" value="0" required style="display: none;">
+                        <select name="seatClassType" required style="display: none;">
+                            <option value="ECONOMY" selected>ECONOMY</option>
+                            <option value="PREMIUMECONOMY">PREMIUMECONOMY</option>
+                            <option value="BUSINESS">BUSINESS</option>
+                            <option value="FIRST">FIRST</option>
+                        </select>
+                    </div>
+
+                    <!-- 직항만 -->
+                    <div class="air-search-checkbox-wrapper" onclick="document.getElementById('oneway-directOnly').click()">
+                        <input type="checkbox" name="directOnly" id="oneway-directOnly" style="display: none;">
+                        <label for="oneway-directOnly" class="air-search-checkbox"></label>
+                        <span class="air-search-checkbox-label">직항만</span>
+                    </div>
+
+                    <!-- 검색 버튼 -->
+                    <button type="button" class="air-search-submit-btn" onclick="submitAirSearch('ONE_WAY')">검색</button>
+                </div>
+
+                <!-- MULTI -->
+                <div id="form-MULTI" class="trip-form" style="display:none;">
+                    <input type="hidden" name="tripType" value="MULTI" required>
+                    <div id="multi-segments" style="margin-bottom: 20px;"></div>
+                    <button type="button" onclick="addSegment('multi-segments')" style="width: 100%; margin-bottom: 20px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #333;">구간 추가</button>
+                    <div class="air-search-field-group">
+                        <label class="air-search-field-label">여행자 및 좌석 등급</label>
+                        <div class="air-search-field-input" onclick="openPassengerModal()">
+                            <i class="fas fa-users"></i>
+                            <input type="text" placeholder="성인 1명, 일반석" readonly id="multi-passenger-display" value="">
+                        </div>
+                        <input type="number" name="adultCount" min="0" value="1" required style="display: none;">
+                        <input type="number" name="youthCount" min="0" value="0" required style="display: none;">
+                        <input type="number" name="infantCount" min="0" value="0" required style="display: none;">
+                        <select name="seatClassType" required style="display: none;">
+                            <option value="ECONOMY" selected>ECONOMY</option>
+                            <option value="PREMIUMECONOMY">PREMIUMECONOMY</option>
+                            <option value="BUSINESS">BUSINESS</option>
+                            <option value="FIRST">FIRST</option>
+                        </select>
+                    </div>
+                    <div class="air-search-checkbox-wrapper" onclick="document.getElementById('multi-directOnly').click()">
+                        <input type="checkbox" name="directOnly" id="multi-directOnly" style="display: none;">
+                        <label for="multi-directOnly" class="air-search-checkbox"></label>
+                        <span class="air-search-checkbox-label">직항만</span>
+                    </div>
+                    <button type="button" class="air-search-submit-btn" onclick="submitAirSearch('MULTI')">검색</button>
                 </div>
             </div>
 
-            <button type="button" onclick="submitAirSearch('ROUND_TRIP')">검색</button>
-        </div>
-
-        <!-- ONE_WAY -->
-        <div id="form-ONE_WAY" class="trip-form" style="display:none;">
-            <h2>편도 (ONE_WAY)</h2>
-            <input type="hidden" name="tripType" value="ONE_WAY" required>
-
-            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
-            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
-            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
-
-            좌석 등급:
-            <select name="seatClassType" required>
-                <option value="">선택</option>
-                <option value="ECONOMY">이코노미</option>
-                <option value="BUSINESS">비즈니스</option>
-                <option value="FIRST">퍼스트</option>
-            </select><br>
-
-            직항만:<input type="checkbox" name="directOnly"><br>
-
-            <h3>구간</h3>
-            <div id="oneway-segments">
-                <div>
-                    <label>출발 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].depart.airportCode"
-                                onclick="openCityModal('depart', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
-
-                    <label>도착 공항:
-                        <div class="city-input-wrapper">
-                            <input type="text" name="segments[0].arrive.airportCode"
-                                onclick="openCityModal('arrive', this)" readonly required>
-                            <span class="city-label"></span>
-                        </div>
-                    </label>
-
-                    <label>출발일:
-                        <input type="date" name="segments[0].departDate"
-                            onclick="openCalendar(this)" readonly required>
-                    </label><br>
+            <!-- 프로모션 배너 -->
+            <div class="air-search-promo-banner">
+                <p class="air-search-promo-text">신용카드 결제 시 5% 추가 할인</p>
+                <p class="air-search-promo-text">로열티 프로그램</p>
+                <div class="air-search-promo-dots">
+                    <div class="air-search-promo-dot active"></div>
+                    <div class="air-search-promo-dot"></div>
+                    <div class="air-search-promo-dot"></div>
+                    <div class="air-search-promo-dot"></div>
                 </div>
             </div>
-            <button type="button" onclick="submitAirSearch('ONE_WAY')">검색</button>
         </div>
-
-        <!-- MULTI -->
-        <div id="form-MULTI" class="trip-form" style="display:none;">
-            <h2>다구간 (MULTI)</h2>
-            <input type="hidden" name="tripType" value="MULTI" required>
-
-            성인:<input type="number" name="adultCount" min="0" value="1" required><br>
-            어린이:<input type="number" name="youthCount" min="0" value="0" required><br>
-            유아:<input type="number" name="infantCount" min="0" value="0" required><br>
-
-            좌석 등급:
-            <select name="seatClassType" required>
-                <option value="">선택</option>
-                <option value="ECONOMY">이코노미</option>
-                <option value="BUSINESS">비즈니스</option>
-                <option value="FIRST">퍼스트</option>
-            </select><br>
-
-            직항만:<input type="checkbox" name="directOnly"><br>
-
-            <h3>구간</h3>
-            <div id="multi-segments">
-                <!-- <div class="segment">
-                    <label>출발 공항:
-                        <input type="text" name="segments[0].depart.airportCode">
-                    </label>
-                    <label>도착 공항:
-                        <input type="text" name="segments[0].arrive.airportCode">
-                    </label>
-                    <label>출발일:
-                        <input type="date" name="segments[0].departDate">
-                    </label>
-                    <button type="button" class="delete-segment" onclick="deleteSegment(this)">삭제</button>
-                </div> -->
-            </div>
-
-            <button type="button" onclick="addSegment('multi-segments')">구간 추가</button><br>
-            <button type="button" onclick="submitAirSearch('MULTI')">검색</button>
-        </div>
+    </div>
 
     </div>
 
@@ -252,182 +606,973 @@
     </div>
 
     <template id="calendar-modal">
-        <header class="section-header">
-            <h4>일정 선택</h4>
-            <div class="right">
-                <button class="close-btn" onclick="closeCalendar()">✕</button>
-            </div>
-        </header>
+        <div class="calendar-modal-container">
+            <header class="calendar-modal-header">
+                <i class="fas fa-chevron-left calendar-back-btn" onclick="closeCalendar()"></i>
+                <h1 class="calendar-modal-title">출발일/도착일 선택</h1>
+                <div class="calendar-header-spacer"></div>
+            </header>
 
-        <div class="section-body">
-            <div id="calendar"></div>
+            <div class="calendar-modal-body">
+                <div id="calendar" class="calendar-wrapper"></div>
+            </div>
+
+            <footer class="calendar-modal-footer">
+                <button class="calendar-apply-btn" id="calendar-apply-btn" onclick="confirmSelectedDates()" disabled>
+                    <span id="selected-date-text">날짜를 선택하세요</span>
+                </button>
+            </footer>
         </div>
 
-        <footer class="section-footer">
-            <div id="selected-date-text">
-                ~
-            </div>
+        <style>
+            .calendar-modal-container {
+                width: 100%;
+                height: 100vh;
+                background: white;
+                display: flex;
+                flex-direction: column;
+            }
 
-            <button class="confirm-btn" onclick="confirmSelectedDates()">선택 완료</button>
-        </footer>
+            .calendar-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                border-bottom: 1px solid #e0e0e0;
+                position: sticky;
+                top: 0;
+                background: white;
+                z-index: 10;
+            }
+
+            .calendar-back-btn {
+                font-size: 18px;
+                color: #999;
+                cursor: pointer;
+                padding: 4px;
+                flex-shrink: 0;
+            }
+
+            .calendar-modal-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #333;
+                margin: 0;
+                flex: 1;
+                text-align: center;
+            }
+
+            .calendar-header-spacer {
+                width: 26px;
+            }
+
+            .calendar-modal-body {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px;
+                padding-bottom: 100px;
+            }
+
+            .calendar-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+            }
+
+            .calendar-wrapper .month {
+                margin-bottom: 24px;
+            }
+
+            .calendar-wrapper .month h3 {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+                margin: 0 0 16px 0;
+                text-align: center;
+            }
+
+            .calendar-wrapper table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .calendar-wrapper th {
+                font-size: 13px;
+                font-weight: 500;
+                color: #666;
+                text-align: center;
+                padding: 8px 0;
+                border: none;
+            }
+
+            .calendar-wrapper td {
+                width: calc(100% / 7);
+                height: 44px;
+                text-align: center;
+                vertical-align: middle;
+                font-size: 15px;
+                color: #333;
+                cursor: pointer;
+                position: relative;
+                border: none;
+            }
+
+            .calendar-wrapper td.empty {
+                cursor: default;
+            }
+
+            .calendar-wrapper td.unavail {
+                color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .calendar-wrapper td.range {
+                background-color: #f5f5f5;
+                color: #333;
+            }
+
+            .calendar-wrapper td.selected {
+                background-color: #424242;
+                color: white;
+                border-radius: 50%;
+                font-weight: 600;
+            }
+
+            .calendar-wrapper td.range.selected {
+                background-color: #424242;
+                color: white;
+                border-radius: 50%;
+            }
+
+            .calendar-wrapper td:hover:not(.empty):not(.unavail) {
+                background-color: #f0f0f0;
+                border-radius: 50%;
+            }
+
+            .calendar-wrapper td.selected:hover {
+                background-color: #333;
+            }
+
+            .calendar-modal-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 16px;
+                background: white;
+                border-top: 1px solid #e0e0e0;
+                z-index: 100;
+            }
+
+            .calendar-apply-btn {
+                width: 100%;
+                padding: 14px;
+                background: #424242;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .calendar-apply-btn:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+            .calendar-apply-btn:not(:disabled):hover {
+                background: #333;
+            }
+        </style>
     </template>
 
     <template id="city-select-modal">
-        <div class="modal-overlay">
-            <div class="modal-bottom city-modal">
-                <header class="section-header">
-                    <h4 id="cityModalTitle">도시 선택</h4>
-                    <div class="right">
-                        <button type="button" class="close-btn" onclick="closeModal()">✕</button>
-                    </div>
-                </header>
+        <div class="city-search-container">
+            <header class="city-search-header">
+                <i class="fas fa-chevron-left back-btn" onclick="closeModal()"></i>
+                <h1 class="city-search-title">여행지 찾기</h1>
+                <div class="header-spacer"></div>
+            </header>
 
-                <div class="section-body">
-                    <!-- 검색창 -->
-                    <div class="city-search-box">
-                        <input
-                            type="text"
-                            id="citySearchInput"
-                            placeholder="국가 / 도시 / 공항명으로 검색"
-                            oninput="filterCityList(this.value)"
-                            onfocus="isCityInputFocused = true"
-                            onblur="isCityInputFocused = false; clearTimeout(citySearchTimer)">
-                        <button
-                            type="button"
-                            onclick="filterCityList(document.getElementById('citySearchInput').value)">
-                            검색
-                        </button>
-                    </div>
+            <div class="city-search-body">
+                <!-- 검색 바 -->
+                <div class="city-search-bar">
+                    <input
+                        type="text"
+                        id="citySearchInput"
+                        class="city-search-input"
+                        placeholder="여행지를 검색해보세요"
+                        oninput="filterCityList(this.value)"
+                        onfocus="isCityInputFocused = true; handleCitySearchFocus()"
+                        onblur="isCityInputFocused = false; clearTimeout(citySearchTimer)">
+                </div>
 
-                    <!-- 검색 결과 -->
-                    <div id="citySearchResults" class="city-list" style="display:none;">
-                        <p>검색결과</p>
-                        <ul id="citySearchList"></ul>
-                    </div>
+                <!-- 검색 결과 -->
+                <div id="citySearchResults" class="city-search-results" style="display:none;">
+                    <ul id="citySearchList" class="city-result-list"></ul>
+                </div>
 
-                    <!-- 전체 목록 -->
-                    <div id="cityGroupList" class="city-list">
-                        <ul>
-                            <p>국내</p>
-                            <li>
-                                <button data-code="ICN" data-name="서울" onclick="selectCity(this)">서울</button>
-                                <button data-code="GMP" data-name="김포" onclick="selectCity(this)">김포</button>
-                                <button data-code="CJU" data-name="제주" onclick="selectCity(this)">제주</button>
-                                <button data-code="PUS" data-name="부산" onclick="selectCity(this)">부산</button>
-                                <button data-code="CJJ" data-name="청주" onclick="selectCity(this)">청주</button>
-                                <button data-code="TAE" data-name="대구" onclick="selectCity(this)">대구</button>
-                                <button data-code="USN" data-name="울산" onclick="selectCity(this)">울산</button>
-                                <button data-code="RSU" data-name="여수" onclick="selectCity(this)">여수</button>
-                                <button data-code="KWJ" data-name="광주" onclick="selectCity(this)">광주</button>
-                            </li>
-                        </ul>
+                <!-- 지역별 인기 여행지 -->
+                <div id="cityGroupList" class="city-popular-sections">
+                    <!-- 국내 인기 -->
+                    <section class="popular-section">
+                        <h2 class="popular-section-title">국내 인기</h2>
+                        <div class="city-button-grid">
+                            <button type="button" class="city-button" data-code="ICN" data-name="서울" onclick="selectCity(this)">서울</button>
+                            <button type="button" class="city-button" data-code="CJU" data-name="제주" onclick="selectCity(this)">제주</button>
+                            <button type="button" class="city-button" data-code="PUS" data-name="부산" onclick="selectCity(this)">부산</button>
+                            <button type="button" class="city-button" data-code="GMP" data-name="김포" onclick="selectCity(this)">김포</button>
+                            <button type="button" class="city-button" data-code="ICN" data-name="인천" onclick="selectCity(this)">인천</button>
+                            <button type="button" class="city-button" data-code="KWJ" data-name="광주" onclick="selectCity(this)">광주</button>
+                            <button type="button" class="city-button" data-code="MWX" data-name="무안" onclick="selectCity(this)">무안</button>
+                            <button type="button" class="city-button" data-code="KUV" data-name="군산" onclick="selectCity(this)">군산</button>
+                            <button type="button" class="city-button" data-code="TAE" data-name="대구" onclick="selectCity(this)">대구</button>
+                            <button type="button" class="city-button" data-code="HIN" data-name="진주" onclick="selectCity(this)">진주</button>
+                            <button type="button" class="city-button" data-code="RSU" data-name="여수" onclick="selectCity(this)">여수</button>
+                            <button type="button" class="city-button" data-code="USN" data-name="울산" onclick="selectCity(this)">울산</button>
+                            <button type="button" class="city-button" data-code="WJU" data-name="원주" onclick="selectCity(this)">원주</button>
+                            <button type="button" class="city-button" data-code="CJJ" data-name="청주" onclick="selectCity(this)">청주</button>
+                            <button type="button" class="city-button" data-code="KPO" data-name="포항" onclick="selectCity(this)">포항</button>
+                            <button type="button" class="city-button" data-code="YNY" data-name="양양" onclick="selectCity(this)">양양</button>
+                        </div>
+                    </section>
 
-                        <ul>
-                            <p>동남아시아</p>
-                            <li>
-                                <button data-code="BKK" data-name="방콕" onclick="selectCity(this)">방콕</button>
-                                <button data-code="DAD" data-name="다낭" onclick="selectCity(this)">다낭</button>
-                                <button data-code="CXR" data-name="나트랑" onclick="selectCity(this)">나트랑</button>
-                                <button data-code="TPE" data-name="타이페이" onclick="selectCity(this)">타이페이</button>
-                                <button data-code="DPS" data-name="발리" onclick="selectCity(this)">발리</button>
-                                <button data-code="CNX" data-name="치앙마이" onclick="selectCity(this)">치앙마이</button>
-                                <button data-code="SIN" data-name="싱가포르" onclick="selectCity(this)">싱가포르</button>
-                                <button data-code="CEB" data-name="세부" onclick="selectCity(this)">세부</button>
-                                <button data-code="MNL" data-name="마닐라" onclick="selectCity(this)">마닐라</button>
-                                <button data-code="HAN" data-name="하노이" onclick="selectCity(this)">하노이</button>
-                            </li>
-                        </ul>
+                    <!-- 미주 인기 -->
+                    <section class="popular-section">
+                        <h2 class="popular-section-title">미주 인기</h2>
+                        <div class="city-button-grid">
+                            <button type="button" class="city-button" data-code="LAX" data-name="LA" onclick="selectCity(this)">LA</button>
+                            <button type="button" class="city-button" data-code="JFK" data-name="뉴욕" onclick="selectCity(this)">뉴욕</button>
+                            <button type="button" class="city-button" data-code="SFO" data-name="샌프란시스코" onclick="selectCity(this)">샌프란시스코</button>
+                            <button type="button" class="city-button" data-code="YVR" data-name="벤쿠버" onclick="selectCity(this)">벤쿠버</button>
+                            <button type="button" class="city-button" data-code="HNL" data-name="하와이" onclick="selectCity(this)">하와이</button>
+                            <button type="button" class="city-button" data-code="YYZ" data-name="토론토" onclick="selectCity(this)">토론토</button>
+                            <button type="button" class="city-button" data-code="SEA" data-name="시애틀" onclick="selectCity(this)">시애틀</button>
+                            <button type="button" class="city-button" data-code="ORD" data-name="시카고" onclick="selectCity(this)">시카고</button>
+                        </div>
+                    </section>
 
-                        <ul>
-                            <p>중국</p>
-                            <li>
-                                <button data-code="CAN" data-name="광저우" onclick="selectCity(this)">광저우</button>
-                                <button data-code="YNJ" data-name="연길" onclick="selectCity(this)">연길</button>
-                                <button data-code="PVG" data-name="상해/푸동" onclick="selectCity(this)">상해/푸동</button>
-                                <button data-code="SHE" data-name="심양" onclick="selectCity(this)">심양</button>
-                                <button data-code="HGH" data-name="항주" onclick="selectCity(this)">항주</button>
-                                <button data-code="SZX" data-name="심천" onclick="selectCity(this)">심천</button>
-                                <button data-code="PEK" data-name="북경" onclick="selectCity(this)">북경</button>
-                                <button data-code="XIY" data-name="시안" onclick="selectCity(this)">시안</button>
-                                <button data-code="CSX" data-name="장사" onclick="selectCity(this)">장사</button>
-                                <button data-code="HRB" data-name="하얼빈" onclick="selectCity(this)">하얼빈</button>
-                            </li>
-                        </ul>
+                    <!-- 유럽 인기 -->
+                    <section class="popular-section">
+                        <h2 class="popular-section-title">유럽 인기</h2>
+                        <div class="city-button-grid">
+                            <button type="button" class="city-button" data-code="CDG" data-name="파리" onclick="selectCity(this)">파리</button>
+                            <button type="button" class="city-button" data-code="LHR" data-name="런던" onclick="selectCity(this)">런던</button>
+                            <button type="button" class="city-button" data-code="FCO" data-name="로마" onclick="selectCity(this)">로마</button>
+                            <button type="button" class="city-button" data-code="PRG" data-name="프라하" onclick="selectCity(this)">프라하</button>
+                            <button type="button" class="city-button" data-code="FRA" data-name="프랑크푸르트" onclick="selectCity(this)">프랑크푸르트</button>
+                            <button type="button" class="city-button" data-code="MAD" data-name="마드리드" onclick="selectCity(this)">마드리드</button>
+                            <button type="button" class="city-button" data-code="BCN" data-name="바르셀로나" onclick="selectCity(this)">바르셀로나</button>
+                            <button type="button" class="city-button" data-code="ZRH" data-name="취리히" onclick="selectCity(this)">취리히</button>
+                        </div>
+                    </section>
 
-                        <ul>
-                            <p>일본</p>
-                            <li>
-                                <button data-code="KIX" data-name="오사카/간사이" onclick="selectCity(this)">오사카/간사이</button>
-                                <button data-code="NRT" data-name="도쿄/나리타" onclick="selectCity(this)">도쿄/나리타</button>
-                                <button data-code="HND" data-name="도쿄/하네다" onclick="selectCity(this)">도쿄/하네다</button>
-                                <button data-code="CTS" data-name="삿포로" onclick="selectCity(this)">삿포로</button>
-                                <button data-code="FUK" data-name="후쿠오카" onclick="selectCity(this)">후쿠오카</button>
-                                <button data-code="OKA" data-name="오키나와" onclick="selectCity(this)">오키나와</button>
-                                <button data-code="NGO" data-name="나고야" onclick="selectCity(this)">나고야</button>
-                                <button data-code="SDJ" data-name="센다이" onclick="selectCity(this)">센다이</button>
-                                <button data-code="TAK" data-name="다카마쓰" onclick="selectCity(this)">다카마쓰</button>
-                                <button data-code="UKB" data-name="오사카/고베" onclick="selectCity(this)">오사카/고베</button>
-                            </li>
-                        </ul>
+                    <!-- 동남아 -->
+                    <section class="popular-section">
+                        <h2 class="popular-section-title">동남아</h2>
+                        <div class="city-button-grid">
+                            <button type="button" class="city-button" data-code="BKK" data-name="방콕" onclick="selectCity(this)">방콕</button>
+                            <button type="button" class="city-button" data-code="DAD" data-name="다낭" onclick="selectCity(this)">다낭</button>
+                            <button type="button" class="city-button" data-code="CEB" data-name="세부" onclick="selectCity(this)">세부</button>
+                            <button type="button" class="city-button" data-code="CXR" data-name="나트랑" onclick="selectCity(this)">나트랑</button>
+                            <button type="button" class="city-button" data-code="BHH" data-name="보홀" onclick="selectCity(this)">보홀</button>
+                            <button type="button" class="city-button" data-code="SGN" data-name="호치민" onclick="selectCity(this)">호치민</button>
+                            <button type="button" class="city-button" data-code="HAN" data-name="하노이" onclick="selectCity(this)">하노이</button>
+                            <button type="button" class="city-button" data-code="HKG" data-name="홍콩" onclick="selectCity(this)">홍콩</button>
+                            <button type="button" class="city-button" data-code="DPS" data-name="발리" onclick="selectCity(this)">발리</button>
+                            <button type="button" class="city-button" data-code="TPE" data-name="타이페이" onclick="selectCity(this)">타이페이</button>
+                        </div>
+                    </section>
 
-                        <ul>
-                            <p>미주/중남미</p>
-                            <li>
-                                <button data-code="JFK" data-name="뉴욕" onclick="selectCity(this)">뉴욕</button>
-                                <button data-code="LAX" data-name="로스앤젤레스" onclick="selectCity(this)">로스앤젤레스</button>
-                                <button data-code="HNL" data-name="하와이/호놀룰루" onclick="selectCity(this)">하와이/호놀룰루</button>
-                                <button data-code="YVR" data-name="밴쿠버" onclick="selectCity(this)">밴쿠버</button>
-                                <button data-code="SFO" data-name="샌프란시스코" onclick="selectCity(this)">샌프란시스코</button>
-                                <button data-code="YYZ" data-name="토론토" onclick="selectCity(this)">토론토</button>
-                                <button data-code="SEA" data-name="시애틀" onclick="selectCity(this)">시애틀</button>
-                                <button data-code="ATL" data-name="애틀랜타" onclick="selectCity(this)">애틀랜타</button>
-                                <button data-code="GRU" data-name="상파울로" onclick="selectCity(this)">상파울로</button>
-                                <button data-code="CUN" data-name="칸쿤" onclick="selectCity(this)">칸쿤</button>
-                            </li>
-                        </ul>
-
-                        <ul>
-                            <p>유럽</p>
-                            <li>
-                                <button data-code="CDG" data-name="파리" onclick="selectCity(this)">파리</button>
-                                <button data-code="LHR" data-name="런던" onclick="selectCity(this)">런던</button>
-                                <button data-code="FCO" data-name="로마" onclick="selectCity(this)">로마</button>
-                                <button data-code="BCN" data-name="바르셀로나" onclick="selectCity(this)">바르셀로나</button>
-                                <button data-code="FRA" data-name="프랑크푸르트" onclick="selectCity(this)">프랑크푸르트</button>
-                                <button data-code="IST" data-name="이스탄불" onclick="selectCity(this)">이스탄불</button>
-                                <button data-code="BUD" data-name="부다페스트" onclick="selectCity(this)">부다페스트</button>
-                                <button data-code="PRG" data-name="프라하" onclick="selectCity(this)">프라하</button>
-                                <button data-code="ZRH" data-name="취리히" onclick="selectCity(this)">취리히</button>
-                                <button data-code="MXP" data-name="밀라노" onclick="selectCity(this)">밀라노</button>
-                            </li>
-                        </ul>
-
-                        <ul>
-                            <p>대양주/기타</p>
-                            <li>
-                                <button data-code="SYD" data-name="시드니" onclick="selectCity(this)">시드니</button>
-                                <button data-code="GUM" data-name="괌" onclick="selectCity(this)">괌</button>
-                                <button data-code="AKL" data-name="오클랜드" onclick="selectCity(this)">오클랜드</button>
-                                <button data-code="SPN" data-name="사이판" onclick="selectCity(this)">사이판</button>
-                                <button data-code="BNE" data-name="브리즈번" onclick="selectCity(this)">브리즈번</button>
-                                <button data-code="MEL" data-name="멜버른" onclick="selectCity(this)">멜버른</button>
-                                <button data-code="PER" data-name="퍼스" onclick="selectCity(this)">퍼스</button>
-                                <button data-code="ZQN" data-name="퀸스타운" onclick="selectCity(this)">퀸스타운</button>
-                                <button data-code="CHC" data-name="크라이스트처치" onclick="selectCity(this)">크라이스트처치</button>
-                                <button data-code="ADL" data-name="아델레이드" onclick="selectCity(this)">아델레이드</button>
-                            </li>
-                        </ul>
-                    </div>
-
+                    <!-- 중동 · 아프리카 인기 -->
+                    <section class="popular-section">
+                        <h2 class="popular-section-title">중동 · 아프리카 인기</h2>
+                        <div class="city-button-grid">
+                            <button type="button" class="city-button" data-code="IST" data-name="터키" onclick="selectCity(this)">터키</button>
+                            <button type="button" class="city-button" data-code="DOH" data-name="카타르" onclick="selectCity(this)">카타르</button>
+                            <button type="button" class="city-button" data-code="RUH" data-name="사우디아라비아" onclick="selectCity(this)">사우디아라비아</button>
+                            <button type="button" class="city-button" data-code="NBO" data-name="케냐" onclick="selectCity(this)">케냐</button>
+                            <button type="button" class="city-button" data-code="CAI" data-name="이집트" onclick="selectCity(this)">이집트</button>
+                            <button type="button" class="city-button" data-code="JNB" data-name="남아프리카공화국" onclick="selectCity(this)">남아프리카공화국</button>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
+
+        <style>
+            .city-search-container {
+                width: 100%;
+                min-height: 100%;
+                background: white;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .city-search-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                border-bottom: 1px solid #e0e0e0;
+                position: sticky;
+                top: 0;
+                background: white;
+                z-index: 10;
+            }
+
+            .city-search-header .back-btn {
+                font-size: 18px;
+                color: #999;
+                cursor: pointer;
+                padding: 4px;
+                flex-shrink: 0;
+            }
+
+            .city-search-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #333;
+                margin: 0;
+                flex: 1;
+                text-align: center;
+            }
+
+            .header-spacer {
+                width: 26px;
+            }
+
+            .city-search-body {
+                flex: 1;
+                padding: 16px;
+                padding-bottom: 100px;
+            }
+
+            /* 검색 바 */
+            .city-search-bar {
+                position: relative;
+                margin-bottom: 24px;
+            }
+
+            .city-search-input {
+                width: 100%;
+                padding: 12px 16px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 15px;
+                color: #333;
+                outline: none;
+                transition: border-color 0.2s;
+                box-sizing: border-box;
+            }
+
+            .city-search-input:focus {
+                border-color: #1976d2;
+            }
+
+            .city-search-input::placeholder {
+                color: #999;
+            }
+
+            /* 검색 결과 */
+            .city-search-results {
+                margin-top: 16px;
+            }
+
+            .city-result-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .city-result-item {
+                padding: 16px;
+                border-bottom: 1px solid #f0f0f0;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .city-result-item:hover {
+                background: #f9f9f9;
+            }
+
+            .city-result-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+                margin: 0 0 4px 0;
+            }
+
+            .city-result-code {
+                font-size: 14px;
+                color: #666;
+                margin: 0;
+            }
+
+            /* 지역별 인기 여행지 */
+            .city-popular-sections {
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+            }
+
+            .popular-section {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .popular-section-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+                margin: 0;
+            }
+
+            .city-button-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+
+            .city-button {
+                padding: 12px 8px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                font-size: 14px;
+                color: #333;
+                cursor: pointer;
+                transition: all 0.2s;
+                text-align: center;
+            }
+
+            .city-button:hover {
+                background: #f5f5f5;
+                border-color: #999;
+            }
+
+            .city-button:active {
+                background: #e0e0e0;
+            }
+        </style>
     </template>
 
     <script>
         var segmentCount = 0; // 다구간 선택필요날짜 갰수
         var currentFormId = "form-ROUND_TRIP"; // 처음 기본 표시 폼 id
         var daysToSelect = 0; // 달력 렌더시점 최종 선택 필요갯수
+
+        // 탭 업데이트 함수
+        window.updateTabs = function(type) {
+            const tabs = document.querySelectorAll('.air-search-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (type === 'ROUND_TRIP') {
+                tabs[0].classList.add('active');
+            } else if (type === 'ONE_WAY') {
+                tabs[1].classList.add('active');
+            } else if (type === 'MULTI') {
+                tabs[2].classList.add('active');
+            }
+        };
+
+        // 출발지/도착지 교환 (왕복)
+        window.swapCities = function() {
+            const departInput = document.querySelector('input[name="segments[0].depart.airportCode"]');
+            const arriveInput = document.querySelector('input[name="segments[0].arrive.airportCode"]');
+            
+            if (!departInput || !arriveInput || !departInput.value || !arriveInput.value) return;
+            
+            const tempCode = departInput.value;
+            const tempName = document.getElementById('depart-city-name').textContent;
+            
+            departInput.value = arriveInput.value;
+            document.getElementById('depart-city-name').textContent = document.getElementById('arrive-city-name').textContent;
+            document.getElementById('depart-city-code').textContent = document.getElementById('arrive-city-code').textContent;
+            
+            arriveInput.value = tempCode;
+            document.getElementById('arrive-city-name').textContent = tempName;
+            document.getElementById('arrive-city-code').textContent = tempCode;
+        };
+
+        // 출발지/도착지 교환 (편도)
+        window.swapCitiesOneWay = function() {
+            const form = document.getElementById('form-ONE_WAY');
+            if (!form) return;
+            
+            const departInput = form.querySelector('input[name="segments[0].depart.airportCode"]');
+            const arriveInput = form.querySelector('input[name="segments[0].arrive.airportCode"]');
+            
+            if (!departInput || !arriveInput || !departInput.value || !arriveInput.value) return;
+            
+            const tempCode = departInput.value;
+            const tempName = document.getElementById('oneway-depart-city-name').textContent;
+            
+            departInput.value = arriveInput.value;
+            document.getElementById('oneway-depart-city-name').textContent = document.getElementById('oneway-arrive-city-name').textContent;
+            document.getElementById('oneway-depart-city-code').textContent = document.getElementById('oneway-arrive-city-code').textContent;
+            
+            arriveInput.value = tempCode;
+            document.getElementById('oneway-arrive-city-name').textContent = tempName;
+            document.getElementById('oneway-arrive-city-code').textContent = tempCode;
+        };
+
+        // 여행자 선택 모달 열기
+        window.openPassengerModal = function() {
+            const form = document.getElementById(currentFormId);
+            if (!form) return;
+            
+            const adultCount = parseInt(form.querySelector('input[name="adultCount"]').value || '1');
+            const youthCount = parseInt(form.querySelector('input[name="youthCount"]').value || '0');
+            const infantCount = parseInt(form.querySelector('input[name="infantCount"]').value || '0');
+            const seatClassType = form.querySelector('select[name="seatClassType"]').value || 'ECONOMY';
+            
+            const modalHtml = `
+                <div class="passenger-modal-container">
+                    <header class="passenger-modal-header">
+                        <i class="fas fa-chevron-left passenger-back-btn" onclick="backModal()"></i>
+                        <h1 class="passenger-modal-title">여행자 및 좌석 등급</h1>
+                        <div class="passenger-header-spacer"></div>
+                    </header>
+                    <div class="passenger-modal-body">
+                        <div class="passenger-count-section">
+                            <div class="passenger-count-item">
+                                <div class="passenger-count-label">
+                                    <span>성인</span>
+                                    <span class="passenger-count-note">만 12세 이상</span>
+                                </div>
+                                <div class="passenger-count-controls">
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('adult', -1)">-</button>
+                                    <span class="passenger-count-value" id="passenger-adult-count">${adultCount}</span>
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('adult', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="passenger-count-item">
+                                <div class="passenger-count-label">
+                                    <span>소아</span>
+                                    <span class="passenger-count-note">만 2세~12세</span>
+                                </div>
+                                <div class="passenger-count-controls">
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('youth', -1)">-</button>
+                                    <span class="passenger-count-value" id="passenger-youth-count">${youthCount}</span>
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('youth', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="passenger-count-item">
+                                <div class="passenger-count-label">
+                                    <span>유아</span>
+                                    <span class="passenger-count-note">만 2세 미만</span>
+                                </div>
+                                <div class="passenger-count-controls">
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('infant', -1)">-</button>
+                                    <span class="passenger-count-value" id="passenger-infant-count">${infantCount}</span>
+                                    <button type="button" class="passenger-count-btn" onclick="changePassengerCount('infant', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="passenger-seat-section">
+                            <h3 class="passenger-seat-title">좌석 등급</h3>
+                            <div class="passenger-seat-options">
+                                <label class="passenger-seat-option">
+                                    <input type="radio" name="passengerSeatClass" value="ECONOMY" ${seatClassType === 'ECONOMY' ? 'checked' : ''}>
+                                    <span>일반석</span>
+                                </label>
+                                <label class="passenger-seat-option">
+                                    <input type="radio" name="passengerSeatClass" value="PREMIUMECONOMY" ${seatClassType === 'PREMIUMECONOMY' ? 'checked' : ''}>
+                                    <span>프리미엄 일반석</span>
+                                </label>
+                                <label class="passenger-seat-option">
+                                    <input type="radio" name="passengerSeatClass" value="BUSINESS" ${seatClassType === 'BUSINESS' ? 'checked' : ''}>
+                                    <span>비즈니스석</span>
+                                </label>
+                                <label class="passenger-seat-option">
+                                    <input type="radio" name="passengerSeatClass" value="FIRST" ${seatClassType === 'FIRST' ? 'checked' : ''}>
+                                    <span>퍼스트석</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="passenger-modal-footer">
+                        <button class="passenger-confirm-btn" onclick="confirmPassengerSelection()">확인</button>
+                    </footer>
+                </div>
+                <style>
+                    .passenger-modal-container {
+                        width: 100%;
+                        height: 100vh;
+                        background: white;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .passenger-modal-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 12px 16px;
+                        border-bottom: 1px solid #e0e0e0;
+                        flex-shrink: 0;
+                    }
+                    .passenger-back-btn {
+                        font-size: 18px;
+                        color: #999;
+                        cursor: pointer;
+                        padding: 4px;
+                    }
+                    .passenger-modal-title {
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #333;
+                        margin: 0;
+                        flex: 1;
+                        text-align: center;
+                    }
+                    .passenger-header-spacer {
+                        width: 26px;
+                    }
+                    .passenger-modal-body {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding: 24px 16px;
+                        padding-bottom: 90px;
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    .passenger-count-section {
+                        margin-bottom: 32px;
+                    }
+                    .passenger-count-item {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 16px 0;
+                        border-bottom: 1px solid #e0e0e0;
+                    }
+                    .passenger-count-label {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 4px;
+                    }
+                    .passenger-count-label > span:first-child {
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #333;
+                    }
+                    .passenger-count-note {
+                        font-size: 13px;
+                        color: #999;
+                    }
+                    .passenger-count-controls {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                    }
+                    .passenger-count-btn {
+                        width: 32px;
+                        height: 32px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 50%;
+                        background: white;
+                        color: #333;
+                        font-size: 18px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.2s;
+                    }
+                    .passenger-count-btn:hover:not(:disabled) {
+                        background: #f5f5f5;
+                        border-color: #333;
+                    }
+                    .passenger-count-btn:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                    .passenger-count-value {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #333;
+                        min-width: 30px;
+                        text-align: center;
+                    }
+                    .passenger-seat-section {
+                        margin-top: 24px;
+                    }
+                    .passenger-seat-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #333;
+                        margin: 0 0 16px 0;
+                    }
+                    .passenger-seat-options {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                    }
+                    .passenger-seat-option {
+                        display: flex;
+                        align-items: center;
+                        padding: 14px 16px;
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+                    .passenger-seat-option:hover {
+                        border-color: #333;
+                        background: #f9f9f9;
+                    }
+                    .passenger-seat-option input[type="radio"] {
+                        margin-right: 12px;
+                        width: 20px;
+                        height: 20px;
+                        cursor: pointer;
+                    }
+                    .passenger-seat-option input[type="radio"]:checked + span {
+                        font-weight: 600;
+                    }
+                    .passenger-seat-option span {
+                        font-size: 15px;
+                        color: #333;
+                    }
+                    .passenger-modal-footer {
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        padding: 16px;
+                        background: white;
+                        border-top: 1px solid #e0e0e0;
+                        z-index: 100;
+                        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+                        height: 70px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .passenger-confirm-btn {
+                        width: 100%;
+                        padding: 14px;
+                        border: none;
+                        border-radius: 8px;
+                        background: #333;
+                        color: white;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    }
+                    .passenger-confirm-btn:hover {
+                        background: #555;
+                    }
+                </style>
+            `;
+            
+            // 하단 네비게이션 바 숨기기
+            const footer = document.getElementById('footerSection');
+            if (footer) footer.classList.add('hidden');
+            
+            openModalHtml(modalHtml);
+            
+            // 모달이 열린 후 버튼 상태 초기화
+            setTimeout(function() {
+                const adultCount = parseInt(document.getElementById('passenger-adult-count')?.textContent || '1');
+                const youthCount = parseInt(document.getElementById('passenger-youth-count')?.textContent || '0');
+                const infantCount = parseInt(document.getElementById('passenger-infant-count')?.textContent || '0');
+                
+                // 성인 버튼 상태
+                const adultMinusBtn = document.getElementById('passenger-adult-count')?.previousElementSibling;
+                if (adultMinusBtn) adultMinusBtn.disabled = adultCount <= 1;
+                
+                // 소아 버튼 상태
+                const youthMinusBtn = document.getElementById('passenger-youth-count')?.previousElementSibling;
+                if (youthMinusBtn) youthMinusBtn.disabled = youthCount <= 0;
+                
+                // 유아 버튼 상태
+                const infantMinusBtn = document.getElementById('passenger-infant-count')?.previousElementSibling;
+                if (infantMinusBtn) infantMinusBtn.disabled = infantCount <= 0;
+            }, 100);
+        };
+
+        // 여행자 수 변경
+        window.changePassengerCount = function(type, delta) {
+            const countEl = document.getElementById(`passenger-${type}-count`);
+            if (!countEl) return;
+            
+            let currentCount = parseInt(countEl.textContent || '0');
+            const newCount = Math.max(0, currentCount + delta);
+            
+            // 성인 수는 최소 1명
+            if (type === 'adult' && newCount < 1) return;
+            
+            // 유아 수는 성인 수를 초과할 수 없음
+            if (type === 'infant') {
+                const adultCount = parseInt(document.getElementById('passenger-adult-count').textContent || '1');
+                if (newCount > adultCount) {
+                    alert('유아 수는 성인 수를 초과할 수 없습니다.');
+                    return;
+                }
+            }
+            
+            countEl.textContent = newCount;
+            
+            // 버튼 활성화/비활성화
+            const minusBtn = countEl.previousElementSibling;
+            const plusBtn = countEl.nextElementSibling;
+            
+            if (type === 'adult') {
+                if (minusBtn) minusBtn.disabled = newCount <= 1;
+            } else {
+                if (minusBtn) minusBtn.disabled = newCount <= 0;
+            }
+            
+            // 유아 수 변경 시 성인 수 확인
+            if (type === 'adult') {
+                const infantCount = parseInt(document.getElementById('passenger-infant-count').textContent || '0');
+                if (infantCount > newCount) {
+                    document.getElementById('passenger-infant-count').textContent = newCount;
+                    const infantMinusBtn = document.getElementById('passenger-infant-count').previousElementSibling;
+                    if (infantMinusBtn) infantMinusBtn.disabled = newCount <= 0;
+                }
+            }
+        };
+
+        // 여행자 선택 확인
+        window.confirmPassengerSelection = function() {
+            const form = document.getElementById(currentFormId);
+            if (!form) {
+                backModal();
+                return;
+            }
+            
+            const adultCount = parseInt(document.getElementById('passenger-adult-count').textContent || '1');
+            const youthCount = parseInt(document.getElementById('passenger-youth-count').textContent || '0');
+            const infantCount = parseInt(document.getElementById('passenger-infant-count').textContent || '0');
+            const seatClassRadio = document.querySelector('input[name="passengerSeatClass"]:checked');
+            const seatClassType = seatClassRadio ? seatClassRadio.value : 'ECONOMY';
+            
+            // 폼에 값 저장
+            form.querySelector('input[name="adultCount"]').value = adultCount;
+            form.querySelector('input[name="youthCount"]').value = youthCount;
+            form.querySelector('input[name="infantCount"]').value = infantCount;
+            form.querySelector('select[name="seatClassType"]').value = seatClassType;
+            
+            // 표시 업데이트
+            updatePassengerDisplay(adultCount, youthCount, infantCount, seatClassType);
+            
+            // 하단 네비게이션 바 다시 보이기
+            const footer = document.getElementById('footerSection');
+            if (footer) footer.classList.remove('hidden');
+            
+            backModal();
+        };
+
+        // 여행자 표시 업데이트
+        function updatePassengerDisplay(adultCount, youthCount, infantCount, seatClassType) {
+            const seatClassNames = {
+                'ECONOMY': '일반석',
+                'PREMIUMECONOMY': '프리미엄 일반석',
+                'BUSINESS': '비즈니스석',
+                'FIRST': '퍼스트석'
+            };
+            
+            let displayText = '';
+            const parts = [];
+            
+            if (adultCount > 0) parts.push(`성인 ${adultCount}명`);
+            if (youthCount > 0) parts.push(`소아 ${youthCount}명`);
+            if (infantCount > 0) parts.push(`유아 ${infantCount}명`);
+            
+            displayText = parts.join(', ') + ', ' + (seatClassNames[seatClassType] || '일반석');
+            
+            // 현재 폼의 표시 요소 업데이트
+            if (currentFormId === 'form-ROUND_TRIP') {
+                const displayEl = document.getElementById('passenger-display');
+                if (displayEl) displayEl.value = displayText;
+            } else if (currentFormId === 'form-ONE_WAY') {
+                const displayEl = document.getElementById('oneway-passenger-display');
+                if (displayEl) displayEl.value = displayText;
+            } else if (currentFormId === 'form-MULTI') {
+                const displayEl = document.getElementById('multi-passenger-display');
+                if (displayEl) displayEl.value = displayText;
+            }
+        }
+
+        // 도시 모달 열기 (왕복)
+        window.openCityModalRoundTrip = function(mode) {
+            const input = mode === 'depart' 
+                ? document.querySelector('input[name="segments[0].depart.airportCode"]')
+                : document.querySelector('input[name="segments[0].arrive.airportCode"]');
+            if (input) {
+                openCityModal(mode, input);
+            }
+        };
+
+        // 도시 모달 열기 (편도)
+        window.openCityModalOneWay = function(mode) {
+            const form = document.getElementById('form-ONE_WAY');
+            if (!form) return;
+            const input = mode === 'depart'
+                ? form.querySelector('input[name="segments[0].depart.airportCode"]')
+                : form.querySelector('input[name="segments[0].arrive.airportCode"]');
+            if (input) {
+                openCityModal(mode, input);
+            }
+        };
+
+        // 날짜 표시 업데이트
+        function updateDateDisplay() {
+            const form = document.getElementById(currentFormId);
+            if (!form) return;
+            
+            const dateInputs = form.querySelectorAll('input[type="date"][name^="segments"]');
+            if (dateInputs.length === 0) return;
+            
+            if (currentFormId === 'form-ROUND_TRIP') {
+                const departDate = dateInputs[0].value;
+                const returnDate = dateInputs[1]?.value;
+                
+                if (departDate) {
+                    const date = new Date(departDate);
+                    const displayEl = document.getElementById('depart-date-display');
+                    if (displayEl) {
+                        displayEl.value = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+                    }
+                }
+                if (returnDate) {
+                    const date = new Date(returnDate);
+                    const displayEl = document.getElementById('return-date-display');
+                    if (displayEl) {
+                        displayEl.value = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+                    }
+                }
+            } else if (currentFormId === 'form-ONE_WAY') {
+                const departDate = dateInputs[0].value;
+                if (departDate) {
+                    const date = new Date(departDate);
+                    const displayEl = document.getElementById('oneway-date-display');
+                    if (displayEl) {
+                        displayEl.value = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+                    }
+                }
+            } else if (currentFormId === 'form-MULTI') {
+                // 다구간 폼의 각 세그먼트 날짜 업데이트
+                dateInputs.forEach((dateInput, index) => {
+                    if (dateInput.value) {
+                        const segment = dateInput.closest('.segment');
+                        if (segment) {
+                            const dateDisplayInput = segment.querySelector('.air-search-field-input input[type="text"]');
+                            if (dateDisplayInput) {
+                                const date = new Date(dateInput.value);
+                                dateDisplayInput.value = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+                            }
+                        }
+                    }
+                });
+            }
+        }
 
         (function () {
 
@@ -436,86 +1581,165 @@
                 const index = container.children.length;
                 const newSegment = document.createElement('div');
                 newSegment.className = 'segment';
+                newSegment.style.cssText = 'margin-bottom: 20px; padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px;';
 
-                // ===== 출발 공항 =====
-                const departLabel = document.createElement('label');
-                departLabel.textContent = '출발 공항:';
+                // 출발지/도착지 섹션
+                const routeSection = document.createElement('div');
+                routeSection.className = 'air-search-route-section';
+                routeSection.style.marginBottom = '16px';
 
-                const departWrapper = document.createElement('div');
-                departWrapper.className = 'city-input-wrapper';
-
+                // 숨겨진 입력 필드 먼저 생성 (출발지 카드에서 참조하기 위해)
+                const hiddenInputs = document.createElement('div');
+                hiddenInputs.style.display = 'none';
+                
                 const departInput = document.createElement('input');
                 departInput.type = 'text';
                 departInput.name = `segments[${index}].depart.airportCode`;
                 departInput.required = true;
                 departInput.readOnly = true;
-                departInput.onclick = function () { openCityModal('depart', this); };
-
-                const departCityLabel = document.createElement('span');
-                departCityLabel.className = 'city-label';
-
-                departWrapper.appendChild(departInput);
-                departWrapper.appendChild(departCityLabel);
-                departLabel.appendChild(departWrapper);
-
-                // ===== 도착 공항 =====
-                const arriveLabel = document.createElement('label');
-                arriveLabel.textContent = '도착 공항:';
-
-                const arriveWrapper = document.createElement('div');
-                arriveWrapper.className = 'city-input-wrapper';
-
+                
+                // 첫 구간 이후의 경우 이전 구간의 도착지 값을 출발지로 설정
+                if (index > 0) {
+                    const prevIndex = index - 1;
+                    const prevArriveInput = document.querySelector(`input[name="segments[${prevIndex}].arrive.airportCode"]`);
+                    if (prevArriveInput && prevArriveInput.value) {
+                        departInput.value = prevArriveInput.value;
+                    }
+                }
+                
                 const arriveInput = document.createElement('input');
                 arriveInput.type = 'text';
                 arriveInput.name = `segments[${index}].arrive.airportCode`;
                 arriveInput.required = true;
                 arriveInput.readOnly = true;
-                arriveInput.onclick = function () { openCityModal('arrive', this); };
-
-                const arriveCityLabel = document.createElement('span');
-                arriveCityLabel.className = 'city-label';
-
-                arriveWrapper.appendChild(arriveInput);
-                arriveWrapper.appendChild(arriveCityLabel);
-                arriveLabel.appendChild(arriveWrapper);
-
-                // ===== 출발일 =====
-                const dateLabel = document.createElement('label');
-                dateLabel.textContent = '출발일:';
-
+                
                 const dateInput = document.createElement('input');
                 dateInput.type = 'date';
                 dateInput.name = `segments[${index}].departDate`;
                 dateInput.required = true;
                 dateInput.readOnly = true;
-                dateInput.onclick = function () { openCalendar(this); };
+                dateInput.onclick = function() { openCalendar(this); };
+                
+                hiddenInputs.appendChild(departInput);
+                hiddenInputs.appendChild(arriveInput);
+                hiddenInputs.appendChild(dateInput);
 
-                dateLabel.appendChild(dateInput);
+                // 출발지 카드
+                const departCard = document.createElement('div');
+                departCard.className = 'air-search-city-card placeholder';
+                departCard.onclick = function() {
+                    const input = newSegment.querySelector('input[name$=".depart.airportCode"]');
+                    if (input) openCityModal('depart', input);
+                };
+                const departDisplay = document.createElement('div');
+                departDisplay.className = 'air-search-city-display';
+                // 첫 구간은 "출발지", 이후 구간은 이전 구간의 도착지 값 표시
+                if (index === 0) {
+                    departDisplay.innerHTML = '<span class="air-search-city-name">출발지</span><span class="air-search-city-code">IN</span>';
+                } else {
+                    // 이전 구간의 도착지 값 가져오기
+                    const prevIndex = index - 1;
+                    const prevArriveInput = document.querySelector(`input[name="segments[${prevIndex}].arrive.airportCode"]`);
+                    if (prevArriveInput && prevArriveInput.value) {
+                        // 도시명 찾기 (이전 구간의 도착지 카드에서)
+                        const prevSegment = prevArriveInput.closest('.segment');
+                        if (prevSegment) {
+                            const prevCityNames = prevSegment.querySelectorAll('.air-search-city-name');
+                            const prevCityCodes = prevSegment.querySelectorAll('.air-search-city-code');
+                            if (prevCityNames[1] && prevCityCodes[1]) {
+                                const prevCityName = prevCityNames[1].textContent;
+                                const prevCityCode = prevCityCodes[1].textContent;
+                                departDisplay.innerHTML = `<span class="air-search-city-name">${prevCityName}</span><span class="air-search-city-code">${prevCityCode}</span>`;
+                                departCard.classList.remove('placeholder');
+                            } else {
+                                departDisplay.innerHTML = '<span class="air-search-city-name">도착지</span><span class="air-search-city-code">IN</span>';
+                            }
+                        } else {
+                            departDisplay.innerHTML = '<span class="air-search-city-name">도착지</span><span class="air-search-city-code">IN</span>';
+                        }
+                    } else {
+                        departDisplay.innerHTML = '<span class="air-search-city-name">도착지</span><span class="air-search-city-code">IN</span>';
+                    }
+                }
+                departCard.appendChild(departDisplay);
 
-                // ===== 조립 =====
-                newSegment.appendChild(departLabel);
-                newSegment.appendChild(arriveLabel);
-                newSegment.appendChild(dateLabel);
-                newSegment.appendChild(document.createElement('br'));
+                // 화살표
+                const arrow = document.createElement('div');
+                arrow.style.cssText = 'width: 40px; text-align: center; color: #999; font-size: 18px;';
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
 
-                // ===== 삭제 버튼 =====
+                // 도착지 카드
+                const arriveCard = document.createElement('div');
+                arriveCard.className = 'air-search-city-card placeholder';
+                arriveCard.onclick = function() {
+                    const input = newSegment.querySelector('input[name$=".arrive.airportCode"]');
+                    if (input) openCityModal('arrive', input);
+                };
+                const arriveDisplay = document.createElement('div');
+                arriveDisplay.className = 'air-search-city-display';
+                arriveDisplay.innerHTML = '<span class="air-search-city-name">도착지</span><span class="air-search-city-code">IN</span>';
+                arriveCard.appendChild(arriveDisplay);
+
+                routeSection.appendChild(departCard);
+                routeSection.appendChild(arrow);
+                routeSection.appendChild(arriveCard);
+
+                // 날짜 선택
+                const dateGroup = document.createElement('div');
+                dateGroup.className = 'air-search-field-group';
+                const dateLabel = document.createElement('label');
+                dateLabel.className = 'air-search-field-label';
+                dateLabel.textContent = '날짜 선택';
+                const dateInputWrapper = document.createElement('div');
+                dateInputWrapper.className = 'air-search-field-input';
+                dateInputWrapper.onclick = function() {
+                    const dateInput = newSegment.querySelector('input[type="date"]');
+                    if (dateInput) openCalendar(dateInput);
+                };
+                dateInputWrapper.innerHTML = '<i class="fas fa-calendar"></i><input type="text" placeholder="언제 떠나시나요?" readonly>';
+                dateGroup.appendChild(dateLabel);
+                dateGroup.appendChild(dateInputWrapper);
+
+                // 삭제 버튼
                 if (delButton) {
                     const deleteBtn = document.createElement('button');
                     deleteBtn.type = 'button';
-                    deleteBtn.textContent = '삭제';
+                    deleteBtn.textContent = '구간 삭제';
+                    deleteBtn.style.cssText = 'width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #666; margin-top: 12px;';
                     deleteBtn.onclick = function () { deleteSegment(this); };
                     newSegment.appendChild(deleteBtn);
-                    newSegment.appendChild(document.createElement('br'));
                 }
 
-                newSegment.appendChild(document.createElement('hr'));
+                // 조립
+                newSegment.appendChild(routeSection);
+                newSegment.appendChild(dateGroup);
+                newSegment.appendChild(hiddenInputs);
                 container.appendChild(newSegment);
 
                 segmentCount++;
             };
 
-            // 페이지 로드시 다구간 기본 1개 추가
-            addSegment('multi-segments', false);
+            // 페이지 로드시 다구간 기본 2개 추가 (최소 2개 필요)
+            const multiSegmentsContainer = document.getElementById('multi-segments');
+            if (multiSegmentsContainer) {
+                addSegment('multi-segments', false);
+                addSegment('multi-segments', false);
+            }
+            
+            // 초기 탭 상태 설정
+            updateTabs('ROUND_TRIP');
+            
+            // 초기 여행자 표시 업데이트
+            setTimeout(function() {
+                const form = document.getElementById('form-ROUND_TRIP');
+                if (form) {
+                    const adultCount = parseInt(form.querySelector('input[name="adultCount"]').value || '1');
+                    const youthCount = parseInt(form.querySelector('input[name="youthCount"]').value || '0');
+                    const infantCount = parseInt(form.querySelector('input[name="infantCount"]').value || '0');
+                    const seatClassType = form.querySelector('select[name="seatClassType"]').value || 'ECONOMY';
+                    updatePassengerDisplay(adultCount, youthCount, infantCount, seatClassType);
+                }
+            }, 100);
 
             // // 왕복 출발-도착지 지정시 귀환편 출발-도착지 자동 입력하게 이벤트 리스너 추가
             // document.addEventListener("DOMContentLoaded", () => {
@@ -554,6 +1778,25 @@
                     next.style.display = "block";
                     currentFormId = nextId;// 현재 폼 id 갱신
                 }
+                
+                // 다구간 탭이 활성화될 때 최소 2개의 구간이 있는지 확인
+                if (type === 'MULTI') {
+                    const multiSegmentsContainer = document.getElementById('multi-segments');
+                    if (multiSegmentsContainer) {
+                        const existingSegments = multiSegmentsContainer.querySelectorAll('.segment');
+                        const segmentCount = existingSegments.length;
+                        // 최소 2개 구간이 없으면 추가
+                        if (segmentCount < 2) {
+                            const segmentsToAdd = 2 - segmentCount;
+                            for (let i = 0; i < segmentsToAdd; i++) {
+                                addSegment('multi-segments', false);
+                            }
+                        }
+                    }
+                }
+                
+                // 탭 업데이트
+                updateTabs(type);
             }
 
             // 삭제 함수
@@ -593,6 +1836,7 @@
 
                 // 기본 필드 수집
                 const payload = {};
+                payload.tripType = tripType;
                 payload.segments = [];
 
                 // 일반 input/select
@@ -605,21 +1849,74 @@
                 });
 
                 // segments 수집
-                const segmentDivs = container.querySelectorAll('div.segment, #roundtrip-segments > div:nth-child(n+2), #oneway-segments > div, #multi-segments > div');
-                segmentDivs.forEach(segDiv => {
-                    const segment = {};
-                    const departInput = segDiv.querySelector('[name$=".depart.airportCode"]');
-                    const arriveInput = segDiv.querySelector('[name$=".arrive.airportCode"]');
-                    const dateInput = segDiv.querySelector('[name$=".departDate"]');
+                if (tripType === 'MULTI') {
+                    // 다구간: segment div에서 수집
+                    const segmentDivs = container.querySelectorAll('div.segment, #multi-segments > div');
+                    segmentDivs.forEach(segDiv => {
+                        const segment = {};
+                        const departInput = segDiv.querySelector('[name$=".depart.airportCode"]');
+                        const arriveInput = segDiv.querySelector('[name$=".arrive.airportCode"]');
+                        const dateInput = segDiv.querySelector('[name$=".departDate"]');
 
-                    if (!departInput && !arriveInput && !dateInput) return; // 빈 div skip
+                        if (!departInput && !arriveInput && !dateInput) return; // 빈 div skip
 
-                    segment.depart = { airportCode: departInput?.value.trim() || '' };
-                    segment.arrive = { airportCode: arriveInput?.value.trim() || '' };
-                    segment.departDate = dateInput?.value || '';
+                        segment.depart = { airportCode: departInput?.value.trim() || '' };
+                        segment.arrive = { airportCode: arriveInput?.value.trim() || '' };
+                        segment.departDate = dateInput?.value || '';
 
-                    payload.segments.push(segment);
-                });
+                        payload.segments.push(segment);
+                    });
+                } else {
+                    // 왕복/편도: 숨겨진 input 필드에서 직접 수집
+                    const segmentInputs = container.querySelectorAll('input[name^="segments["]');
+                    const segmentMap = {};
+                    
+                    segmentInputs.forEach(input => {
+                        const name = input.name;
+                        // segments[0].depart.airportCode 또는 segments[0].departDate 형식 파싱
+                        const match = name.match(/segments\[(\d+)\]\.(depart|arrive)\.(airportCode|departDate)/);
+                        if (match) {
+                            const index = parseInt(match[1]);
+                            const type = match[2]; // depart or arrive
+                            const field = match[3]; // airportCode or departDate
+                            
+                            if (!segmentMap[index]) {
+                                segmentMap[index] = { depart: {}, arrive: {} };
+                            }
+                            
+                            if (field === 'departDate') {
+                                segmentMap[index].departDate = input.value.trim();
+                            } else {
+                                segmentMap[index][type][field] = input.value.trim();
+                            }
+                        } else {
+                            // segments[0].departDate 형식도 처리 (depart/arrive 없이)
+                            const simpleMatch = name.match(/segments\[(\d+)\]\.departDate/);
+                            if (simpleMatch) {
+                                const index = parseInt(simpleMatch[1]);
+                                if (!segmentMap[index]) {
+                                    segmentMap[index] = { depart: {}, arrive: {} };
+                                }
+                                segmentMap[index].departDate = input.value.trim();
+                            }
+                        }
+                    });
+                    
+                    // 인덱스 순서대로 배열에 추가
+                    Object.keys(segmentMap).sort((a, b) => parseInt(a) - parseInt(b)).forEach(key => {
+                        const segment = segmentMap[key];
+                        if (segment.depart.airportCode || segment.arrive.airportCode || segment.departDate) {
+                            payload.segments.push({
+                                depart: { airportCode: segment.depart.airportCode || '' },
+                                arrive: { airportCode: segment.arrive.airportCode || '' },
+                                departDate: segment.departDate || ''
+                            });
+                        }
+                    });
+                    
+                    // 디버깅: segments 수집 결과 확인
+                    console.log('수집된 segments:', payload.segments);
+                }
 
                 // 입력값 누락 확인용
                 const missing = [];
@@ -645,8 +1942,14 @@
                     const n = i + 1;
                     if (!seg.depart.airportCode) missing.push(`구간${n} 출발 공항`);
                     if (!seg.arrive.airportCode) missing.push(`구간${n} 도착 공항`);
-                    if (!seg.departDate) missing.push(`구간${n} 출발일`);
+                    if (!seg.departDate || seg.departDate.trim() === '') {
+                        missing.push(`구간${n} 출발일`);
+                    }
                 });
+                
+                // 디버깅: segments 값 확인
+                console.log('검증 전 segments:', payload.segments);
+                console.log('누락된 항목:', missing);
 
                 if (missing.length > 0) {
                     alert(`다음 항목을 입력해야 합니다:\n\n- ${missing.join('\n- ')}`);
@@ -699,12 +2002,18 @@
                 console.log('daysToSelect = ', daysToSelect);
 
                 const calendarHtml = document.getElementById('calendar-modal').innerHTML;
+                // 하단 네비게이션 바 숨기기
+                const footer = document.getElementById('footerSection');
+                if (footer) footer.classList.add('hidden');
                 openModalHtml(calendarHtml);
                 renderCalendar();
             }
 
             window.closeCalendar = function () {
                 selected = [];
+                // 하단 네비게이션 바 다시 보이기
+                const footer = document.getElementById('footerSection');
+                if (footer) footer.classList.remove('hidden');
                 closeModal()
             }
 
@@ -897,34 +2206,37 @@
 
             window.updateFooterStatus = function () {
                 const textEl = document.getElementById('selected-date-text');
-                const btn = document.querySelector('.confirm-btn');
+                const btn = document.getElementById('calendar-apply-btn');
 
                 if (!textEl || !btn) return;
 
                 if (selectedDates.length === 0) {
                     textEl.textContent = '날짜를 선택하세요';
                     btn.disabled = true;
-                    btn.style.opacity = '0.5';
                     return;
                 }
 
                 const start = selectedDates[0];
                 const end = selectedDates[selectedDates.length - 1];
 
+                // 날짜 형식 변환: YYYY-MM-DD -> YY.MM.DD
+                function formatDateForButton(dateStr) {
+                    const [y, m, d] = dateStr.split('-');
+                    return `${y.slice(2)}.${m}.${d}`;
+                }
+
                 // ✅ 날짜 요약 표시
                 if (selectedDates.length === 1) {
-                    textEl.textContent = `${start} 선택 중`;
+                    textEl.textContent = `${formatDateForButton(start)} 선택 중`;
                 } else {
-                    textEl.textContent = `${start} ~ ${end}`;
+                    textEl.textContent = `${formatDateForButton(start)} ~ ${formatDateForButton(end)} 적용하기`;
                 }
 
                 // ✅ 버튼 활성화 조건
                 if (selectedDates.length === daysToSelect) {
                     btn.disabled = false;
-                    btn.style.opacity = '1';
                 } else {
                     btn.disabled = true;
-                    btn.style.opacity = '0.5';
                 }
             };
 
@@ -948,17 +2260,43 @@
                     return;
                 }
 
-                const dateInputs = form.querySelectorAll('input[type="date"][name^="segments"]');
+                // 날짜 input 필드 찾기 (segments[].departDate 형식)
+                const dateInputs = form.querySelectorAll('input[type="date"][name*="departDate"]');
                 if (dateInputs.length === 0) {
-                    console.warn("날짜 입력란이 없습니다.");
+                    console.warn("날짜 입력란이 없습니다. currentFormId:", currentFormId);
+                    console.warn("폼 내 모든 input:", Array.from(form.querySelectorAll('input')).map(input => ({ name: input.name, type: input.type })));
                     return;
                 }
+                
+                // 날짜 input을 인덱스 순서대로 정렬 (segments[0], segments[1], ...)
+                const sortedDateInputs = Array.from(dateInputs).sort((a, b) => {
+                    const matchA = a.name.match(/segments\[(\d+)\]/);
+                    const matchB = b.name.match(/segments\[(\d+)\]/);
+                    const indexA = matchA ? parseInt(matchA[1]) : 999;
+                    const indexB = matchB ? parseInt(matchB[1]) : 999;
+                    return indexA - indexB;
+                });
+                
+                console.log('찾은 날짜 입력 필드 (정렬됨):', sortedDateInputs.map(input => ({ name: input.name, value: input.value })));
 
                 // 선택된 날짜를 순서대로 입력
-                const count = Math.min(selectedDates.length, dateInputs.length);
+                const count = Math.min(selectedDates.length, sortedDateInputs.length);
                 for (let i = 0; i < count; i++) {
-                    dateInputs[i].value = selectedDates[i];
+                    sortedDateInputs[i].value = selectedDates[i];
+                    // 값이 제대로 설정되었는지 확인
+                    console.log(`날짜 입력 ${i}: ${sortedDateInputs[i].name} = ${sortedDateInputs[i].value}`);
                 }
+                
+                // 왕복 검색의 경우 두 번째 날짜가 없으면 경고
+                if (currentFormId === 'form-ROUND_TRIP' && count < 2) {
+                    console.warn('왕복 검색인데 날짜가 2개 선택되지 않았습니다. 선택된 날짜:', selectedDates.length);
+                }
+
+                // 날짜 표시 업데이트
+                updateDateDisplay();
+
+                // 모달 닫기 전에 값이 제대로 설정되었는지 확인
+                console.log('날짜 설정 완료. 입력 필드 값:', Array.from(dateInputs).map(input => ({ name: input.name, value: input.value })));
 
                 selectedDates = [];
                 closeModal();
@@ -979,6 +2317,10 @@
                 currentCityMode = mode;
                 currentCityInput = inputEl;
 
+                // 하단 네비게이션 바 숨기기
+                const footer = document.getElementById('footerSection');
+                if (footer) footer.classList.add('hidden');
+
                 const html = document.getElementById('city-select-modal').innerHTML;
                 openModalHtml(html);
 
@@ -991,11 +2333,6 @@
             window.filterCityList = function (keyword) {
                 clearTimeout(citySearchTimer);
 
-                // blur 상태 검색 UI 변경 금지
-                if (!isCityInputFocused) {
-                    return;
-                }
-
                 const groupList = document.getElementById('cityGroupList');
                 const searchResults = document.getElementById('citySearchResults');
                 const searchList = document.getElementById('citySearchList');
@@ -1004,30 +2341,25 @@
 
                 // 입력이 없으면 → 기본 목록 표시
                 if (query.length === 0) {
-                    groupList.style.display = 'block';
-                    searchResults.style.display = 'none';
-                    searchList.innerHTML = '';
+                    if (groupList) groupList.style.display = 'block';
+                    if (searchResults) searchResults.style.display = 'none';
+                    if (searchList) searchList.innerHTML = '';
                     return;
                 }
 
-                // focus 중일 때만 UI 업데이트
-                groupList.style.display = 'none';
-                searchResults.style.display = 'block';
+                // 검색어가 있으면 검색 결과 표시
+                if (groupList) groupList.style.display = 'none';
+                if (searchResults) searchResults.style.display = 'block';
 
-                // // 2글자 미만이면 fetch 안 함
-                // if (query.length < 2) {
-                //     searchList.innerHTML = '<li>2글자 이상 입력해주세요.</li>';
-                //     return;
-                // }
+                if (!searchList) return;
 
                 searchList.innerHTML = '';
 
                 citySearchTimer = setTimeout(() => {
-
                     // blur 되었다면 fetch 실행 안함
                     if (!isCityInputFocused) return;
 
-                    searchList.innerHTML = '<li>검색 중...</li>';
+                    searchList.innerHTML = '<li class="city-result-item">검색 중...</li>';
 
                     fetch(`/api/code/search?keyword=${encodeURIComponent(query)}`)
                         .then(res => res.json())
@@ -1036,7 +2368,7 @@
                             renderCitySearchResults(data);
                         })
                         .catch(err => {
-                            searchList.innerHTML = '<li>검색 실패. 다시 시도해주세요.</li>';
+                            searchList.innerHTML = '<li class="city-result-item">검색 실패. 다시 시도해주세요.</li>';
                         });
 
                 }, 500);
@@ -1047,19 +2379,34 @@
                 list.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    list.innerHTML = '<li>검색된 결과가 없습니다.</li>';
+                    list.innerHTML = '<li class="city-result-item">검색된 결과가 없습니다.</li>';
                     return;
                 }
 
                 data.forEach(item => {
                     const li = document.createElement('li');
+                    li.className = 'city-result-item';
                     li.innerHTML = `
-                                    <button data-code="${item.airportCode}" data-name="${item.cityKor}" onclick="selectCity(this)">
-                                        ${item.cityKor} - ${item.airportKor} (${item.airportCode})
-                                    </button>`;
+                        <div class="city-result-name">${item.cityKor}</div>
+                        <div class="city-result-code">${item.airportCode}</div>
+                    `;
+                    li.onclick = function() {
+                        const btn = document.createElement('button');
+                        btn.dataset.code = item.airportCode;
+                        btn.dataset.name = item.cityKor;
+                        selectCity(btn);
+                    };
                     list.appendChild(li);
                 });
             }
+
+            window.handleCitySearchFocus = function() {
+                const input = document.getElementById('citySearchInput');
+                const query = input.value.trim();
+                if (query.length > 0) {
+                    filterCityList(query);
+                }
+            };
 
             window.selectCity = function (btn) {
                 const cityCode = btn.dataset.code;
@@ -1083,22 +2430,91 @@
 
                 console.log(`선택됨 → ${cityName} (${cityCode})`);
 
-                // 왕복시 동기화
+                // 화면에 표시 업데이트
                 if (currentFormId === "form-ROUND_TRIP") {
                     const name = currentCityInput.name;
-
-                    // 출발 segment0 → depart
+                    
                     if (name === "segments[0].depart.airportCode") {
+                        document.getElementById('depart-city-name').textContent = cityName;
+                        document.getElementById('depart-city-code').textContent = cityCode;
+                        document.getElementById('depart-city-name').parentElement.parentElement.classList.remove('placeholder');
+                        
                         const hiddenArrive1 = document.querySelector('input[name="segments[1].arrive.airportCode"]');
-                        if (hiddenArrive1) hiddenArrive1.value = currentCityInput.value;
-                    }
-
-                    // 도착 segment0 → arrive
-                    if (name === "segments[0].arrive.airportCode") {
+                        if (hiddenArrive1) hiddenArrive1.value = cityCode;
+                    } else if (name === "segments[0].arrive.airportCode") {
+                        document.getElementById('arrive-city-name').textContent = cityName;
+                        document.getElementById('arrive-city-code').textContent = cityCode;
+                        document.getElementById('arrive-city-name').parentElement.parentElement.classList.remove('placeholder');
+                        
                         const hiddenDepart1 = document.querySelector('input[name="segments[1].depart.airportCode"]');
-                        if (hiddenDepart1) hiddenDepart1.value = currentCityInput.value;
+                        if (hiddenDepart1) hiddenDepart1.value = cityCode;
+                    }
+                } else if (currentFormId === "form-ONE_WAY") {
+                    const name = currentCityInput.name;
+                    
+                    if (name === "segments[0].depart.airportCode") {
+                        document.getElementById('oneway-depart-city-name').textContent = cityName;
+                        document.getElementById('oneway-depart-city-code').textContent = cityCode;
+                        document.getElementById('oneway-depart-city-name').parentElement.parentElement.classList.remove('placeholder');
+                    } else if (name === "segments[0].arrive.airportCode") {
+                        document.getElementById('oneway-arrive-city-name').textContent = cityName;
+                        document.getElementById('oneway-arrive-city-code').textContent = cityCode;
+                        document.getElementById('oneway-arrive-city-name').parentElement.parentElement.classList.remove('placeholder');
+                    }
+                } else if (currentFormId === "form-MULTI") {
+                    // 다구간 폼의 경우 해당 세그먼트 찾기
+                    const segment = currentCityInput.closest('.segment');
+                    if (segment) {
+                        const cityCards = segment.querySelectorAll('.air-search-city-card');
+                        const cityNames = segment.querySelectorAll('.air-search-city-name');
+                        const cityCodes = segment.querySelectorAll('.air-search-city-code');
+                        
+                        if (currentCityInput.name.includes('.depart.airportCode')) {
+                            if (cityCards[0] && cityNames[0] && cityCodes[0]) {
+                                cityNames[0].textContent = cityName;
+                                cityCodes[0].textContent = cityCode;
+                                cityCards[0].classList.remove('placeholder');
+                            }
+                        } else if (currentCityInput.name.includes('.arrive.airportCode')) {
+                            if (cityCards[1] && cityNames[1] && cityCodes[1]) {
+                                cityNames[1].textContent = cityName;
+                                cityCodes[1].textContent = cityCode;
+                                cityCards[1].classList.remove('placeholder');
+                            }
+                            
+                            // 도착지 선택 시 다음 구간의 출발지로 자동 입력
+                            const match = currentCityInput.name.match(/segments\[(\d+)\]\.arrive\.airportCode/);
+                            if (match) {
+                                const currentIndex = parseInt(match[1]);
+                                const nextIndex = currentIndex + 1;
+                                
+                                // 다음 구간의 출발지 input 찾기
+                                const nextDepartInput = document.querySelector(`input[name="segments[${nextIndex}].depart.airportCode"]`);
+                                if (nextDepartInput) {
+                                    nextDepartInput.value = cityCode;
+                                    
+                                    // 다음 구간의 출발지 카드 업데이트
+                                    const nextSegment = nextDepartInput.closest('.segment');
+                                    if (nextSegment) {
+                                        const nextCityCards = nextSegment.querySelectorAll('.air-search-city-card');
+                                        const nextCityNames = nextSegment.querySelectorAll('.air-search-city-name');
+                                        const nextCityCodes = nextSegment.querySelectorAll('.air-search-city-code');
+                                        
+                                        if (nextCityCards[0] && nextCityNames[0] && nextCityCodes[0]) {
+                                            nextCityNames[0].textContent = cityName;
+                                            nextCityCodes[0].textContent = cityCode;
+                                            nextCityCards[0].classList.remove('placeholder');
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+
+                // 하단 네비게이션 바 다시 보이기
+                const footer = document.getElementById('footerSection');
+                if (footer) footer.classList.remove('hidden');
 
                 closeModal();
             };

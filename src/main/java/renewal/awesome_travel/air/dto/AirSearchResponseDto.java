@@ -37,6 +37,8 @@ public class AirSearchResponseDto {
         private AirportCode arrive;
         private LocalDateTime arriveDateTime;
 
+        private Long availableSeats; // 잔여 좌석 수
+
         // private Long totalDuration; // 여정 소요시간 => (첫 출발시간 - 마지막 도착시간 차이로 계산?)
         private List<FlightSegment> flightSegments; // 비행 리스트 [1구간 출발, 1구간 경유도착, 1구간 경유출발,... ]
     }

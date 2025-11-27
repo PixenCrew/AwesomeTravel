@@ -1,264 +1,616 @@
-<div>
-    <header class="section-header">
-        <h1>예약하기</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+<div class="air-reservation-container">
+    <style>
+        .air-reservation-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: #f5f5f5;
+        }
+
+        .air-reservation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .air-reservation-back {
+            font-size: 18px;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .air-reservation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .air-reservation-spacer {
+            width: 26px;
+        }
+
+        .air-reservation-body {
+            padding: 16px;
+            padding-bottom: 60px;
+        }
+
+        /* 결제 정보 섹션 */
+        .air-reservation-payment-info {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .air-reservation-route {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .air-reservation-route-arrow {
+            color: #666;
+        }
+
+        .air-reservation-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .air-reservation-passenger {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .air-reservation-separator {
+            margin: 0 6px;
+            color: #999;
+        }
+
+        /* 요금 정보 섹션 */
+        .air-reservation-fare-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .air-reservation-fare-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .air-reservation-fare-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .air-reservation-fare-box {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .air-reservation-fare-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .air-reservation-fare-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .air-reservation-fare-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .air-reservation-fare-total-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .air-reservation-rule-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s;
+        }
+
+        .air-reservation-rule-btn:hover {
+            background: #eeeeee;
+        }
+
+        /* 여정 정보 섹션 */
+        .air-reservation-itinerary-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .air-reservation-itinerary-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .air-reservation-trip-box {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .air-reservation-trip-box:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .air-reservation-trip-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .air-reservation-trip-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .air-reservation-flight-card {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .air-reservation-airline-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .air-reservation-flight-info {
+            flex: 1;
+        }
+
+        .air-reservation-flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .air-reservation-airline-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .air-reservation-flight-number {
+            font-size: 14px;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .air-reservation-change-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .air-reservation-change-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .air-reservation-flight-time-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .air-reservation-time-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .air-reservation-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .air-reservation-airport {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .air-reservation-duration {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            position: relative;
+            padding: 0 12px;
+        }
+
+        .air-reservation-duration::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .air-reservation-duration {
+            background: #f9f9f9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .air-reservation-baggage {
+            font-size: 13px;
+            color: #666;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 6px;
+            border-left: 3px solid #1976d2;
+        }
+
+        .air-reservation-next-btn {
+            margin-top: 20px;
+            padding: 0;
+        }
+
+        .air-reservation-next-btn button {
+            width: 100%;
+            padding: 16px;
+            background: #424242;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .air-reservation-next-btn button:hover {
+            background: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .air-reservation-next-btn button:active {
+            transform: translateY(1px);
+        }
+
+        .payment-policy-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .payment-policy-modal.show {
+            display: flex;
+        }
+
+        .payment-policy-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .payment-policy-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-policy-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .payment-policy-modal-close {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .payment-policy-modal-close:hover {
+            color: #333;
+        }
+
+        .payment-policy-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .payment-policy-modal-body h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 12px 0;
+        }
+
+        .payment-policy-modal-body h3:first-child {
+            margin-top: 0;
+        }
+
+        .payment-policy-modal-body p {
+            margin: 8px 0;
+        }
+
+        .payment-policy-modal-body ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .payment-policy-modal-body li {
+            margin: 6px 0;
+        }
+    </style>
+
+    <header class="air-reservation-header">
+        <i class="fas fa-chevron-left air-reservation-back" onclick="backModal()"></i>
+        <h1 class="air-reservation-title">예약하기</h1>
+        <div class="air-reservation-spacer"></div>
     </header>
-    <div class="section-body">
-        <div class="modal-content">
-            <!-- 🔹 헤더 -->
-            <section class="header-box">
-                <h2>결제 정보</h2>
-            </section>
-            <!-- ========================================= -->
-            <!-- 🔹 여정 요약 (상단) -->
-            <!-- ========================================= -->
-            <section class="route-summary">
-                <!-- 공통 출발지 → 도착지 -->
-                <div class="route-info">
-                    <span th:text="${detailResult.seatClasses[0].air.departAirport.airportCode}"></span>
-                    →
+
+    <div class="air-reservation-body">
+        <!-- 결제 정보 -->
+        <section class="air-reservation-payment-info">
+            <div class="air-reservation-route">
+                <span th:text="${detailResult.seatClasses[0].air.departAirport.airportCode}">ICN</span>
+                <span class="air-reservation-route-arrow">→</span>
                     <span th:text="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'} 
                         ? ${detailResult.seatClasses[0].air.arriveAirport.airportCode} 
-                        : ${detailResult.seatClasses[detailResult.seatClasses.size()-1].air.arriveAirport.airportCode}">
-                    </span>
+                    : ${detailResult.seatClasses[detailResult.seatClasses.size()-1].air.arriveAirport.airportCode}">NRT</span>
+                            </div>
+            <div class="air-reservation-date" th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}">
+                <span th:text="${#temporals.format(detailResult.seatClasses[0].air.departDateTime, 'yyyy-MM-dd') + 'T' + #temporals.format(detailResult.seatClasses[0].air.departDateTime, 'HH:mm')}">2025-11-30T08:00</span>
+                            </div>
+            <div class="air-reservation-date" th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}">
+                <span th:text="${#temporals.format(detailResult.seatClasses[0].air.departDateTime, 'yyyy-MM-dd') + 'T' + #temporals.format(detailResult.seatClasses[0].air.departDateTime, 'HH:mm')}">2025-11-30T08:00</span>
                 </div>
-                <!-- 날짜 표현: ROUND_TRIP / ONE_WAY / MULTI -->
-                <div class="date-info">
-                    <!-- ONE_WAY -->
-                    <span th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}"
-                        th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
-                    <!-- ROUND_TRIP -->
-                    <span th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}">
-                        <span th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
-                        ~
-                        <span th:text="${detailResult.seatClasses[1].air.arriveDateTime}"></span>
-                    </span>
-                    <!-- MULTI -->
-                    <span th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}">
-                        <span th:text="${detailResult.seatClasses[0].air.departDateTime}"></span>
-                        ~
-                        <span th:text="${detailResult.seatClasses[seatClasses.size()-1].air.arriveDateTime}"></span>
-                    </span>
+            <div class="air-reservation-date" th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}">
+                <span th:text="${#temporals.format(detailResult.seatClasses[0].air.departDateTime, 'yyyy-MM-dd') + 'T' + #temporals.format(detailResult.seatClasses[0].air.departDateTime, 'HH:mm')}">2025-11-30T08:00</span>
                 </div>
-                <div class="people-info">
-                    <span>성인 <span th:text="${detailResult.detailRequest.adultCount}"></span></span>
-                    <span th:if="${detailResult.detailRequest.youthCount > 0}"> / 청소년 <span th:text="${detailResult.detailRequest.youthCount}"></span></span>
-                    <span th:if="${detailResult.detailRequest.infantCount > 0}"> / 유아 <span th:text="${detailResult.detailRequest.infantCount}"></span></span>
-                    · <span th:text="${detailResult.detailRequest.seatClassType}"></span>
+            <div class="air-reservation-passenger">
+                <span id="passenger-display-text" th:text="'성인 ' + ${detailResult.detailRequest.adultCount} + (${detailResult.detailRequest.youthCount} > 0 ? ', 청소년 ' + ${detailResult.detailRequest.youthCount} : '') + (${detailResult.detailRequest.infantCount} > 0 ? ', 유아 ' + ${detailResult.detailRequest.infantCount} : '') + ', ' + ${detailResult.detailRequest.seatClassType}">성인 1, ECONOMY</span>
+                <button type="button" class="air-reservation-passenger-edit-btn" onclick="openPassengerModal()" style="margin-left: 8px; padding: 4px 8px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 12px; color: #666; cursor: pointer;">변경</button>
                 </div>
+            <!-- 숨겨진 입력 필드 -->
+            <input type="number" id="adultCount" th:value="${detailResult.detailRequest.adultCount}" min="1" style="display: none;">
+            <input type="number" id="youthCount" th:value="${detailResult.detailRequest.youthCount}" min="0" style="display: none;">
+            <input type="number" id="infantCount" th:value="${detailResult.detailRequest.infantCount}" min="0" style="display: none;">
+            <input type="text" id="seatClassType" th:value="${detailResult.detailRequest.seatClassType}" style="display: none;">
             </section>
 
-
-            <!-- ========================================= -->
-            <!-- 🔹 요금 정보 -->
-            <!-- ========================================= -->
-            <section class="price-info-box">
-                <h3>요금 정보</h3>
-                <div class="fare-box">
-
-                    <!--성인 요금 상세-->
-                    <div th:if="${detailResult.detailRequest.adultCount != 0}">
-
-                        <!-- 총액 -->
-                        <div class="fare-row">
-                            <span>성인 <span th:text="${detailResult.detailRequest.adultCount}"></span>명</span>
-                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.adultTotal, 3, 'COMMA')} + '원'"></strong>
+        <!-- 요금 정보 -->
+        <section class="air-reservation-fare-section">
+            <h2 class="air-reservation-fare-title">요금 정보</h2>
+            
+            <!-- 성인 요금 -->
+            <div class="air-reservation-fare-summary" th:if="${detailResult.detailRequest.adultCount != 0}">
+                <span th:text="'성인 ' + ${detailResult.detailRequest.adultCount} + '명'">성인 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult.adultTotal, 0, 0) + '원'}">150000원</span>
                         </div>
 
-                        <div class="fare-detail">
-
-                            <!-- 기본운임 -->
-                            <div class="fare-subrow">
+            <div class="air-reservation-fare-box" th:if="${detailResult.detailRequest.adultCount != 0}">
+                <div class="air-reservation-fare-item">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultBase, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultBase, 0, 0) + '원'}">89500원</span>
                             </div>
-
-                            <!-- 유류할증료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>유류할증료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultOil, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultOil, 0, 0) + '원'}">37500원</span>
                             </div>
-
-                            <!-- 제세공과금 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>제세공과금</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultTax, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultTax, 0, 0) + '원'}">18000원</span>
                             </div>
-
-                            <!-- 발권 수수료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>발권 수수료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.adultFee, 3, 'COMMA')} + '원'"></span>
-                            </div>
-
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultFee, 0, 0) + '원'}">5000원</span>
                         </div>
                     </div>
 
-                    <!--청소년 요금 상세-->
-                    <div th:if="${detailResult.detailRequest.youthCount != 0}">
-
-                        <!-- 총액 -->
-                        <div class="fare-row">
-                            <span>청소년 <span th:text="${detailResult.detailRequest.youthCount}"></span>명</span>
-                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.youthTotal, 3, 'COMMA')} + '원'"></strong>
+            <!-- 청소년 요금 -->
+            <div class="air-reservation-fare-summary" th:if="${detailResult.detailRequest.youthCount != 0}">
+                <span th:text="'청소년 ' + ${detailResult.detailRequest.youthCount} + '명'">청소년 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult.youthTotal, 0, 0) + '원'}">120000원</span>
                         </div>
 
-                        <div class="fare-detail">
-
-                            <!-- 기본운임 -->
-                            <div class="fare-subrow">
+            <div class="air-reservation-fare-box" th:if="${detailResult.detailRequest.youthCount != 0}">
+                <div class="air-reservation-fare-item">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthBase, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthBase, 0, 0) + '원'}">71600원</span>
                             </div>
-
-                            <!-- 유류할증료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>유류할증료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthOil, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthOil, 0, 0) + '원'}">30000원</span>
                             </div>
-
-                            <!-- 제세공과금 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>제세공과금</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthTax, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthTax, 0, 0) + '원'}">14400원</span>
                             </div>
-
-                            <!-- 발권 수수료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>발권 수수료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.youthFee, 3, 'COMMA')} + '원'"></span>
-                            </div>
-
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthFee, 0, 0) + '원'}">5000원</span>
                         </div>
                     </div>
 
-                    <!--영유아 요금 상세-->
-                    <div th:if="${detailResult.detailRequest.infantCount != 0}">
-
-                        <!-- 총액 -->
-                        <div class="fare-row">
-                            <span>영유아 <span th:text="${detailResult.detailRequest.infantCount}"></span>명</span>
-                            <strong th:text="${detailResult.#numbers.formatInteger(detailResult.infantTotal, 3, 'COMMA')} + '원'"></strong>
+            <!-- 유아 요금 -->
+            <div class="air-reservation-fare-summary" th:if="${detailResult.detailRequest.infantCount != 0}">
+                <span th:text="'유아 ' + ${detailResult.detailRequest.infantCount} + '명'">유아 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult.infantTotal, 0, 0) + '원'}">75000원</span>
                         </div>
 
-                        <div class="fare-detail">
-
-                            <!-- 기본운임 -->
-                            <div class="fare-subrow">
+            <div class="air-reservation-fare-box" th:if="${detailResult.detailRequest.infantCount != 0}">
+                <div class="air-reservation-fare-item">
                                 <span>항공요금 (기본운임)</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantBase, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantBase, 0, 0) + '원'}">44750원</span>
                             </div>
-
-                            <!-- 유류할증료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>유류할증료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantOil, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantOil, 0, 0) + '원'}">18750원</span>
                             </div>
-
-                            <!-- 제세공과금 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>제세공과금</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantTax, 3, 'COMMA')} + '원'"></span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantTax, 0, 0) + '원'}">9000원</span>
                             </div>
-
-                            <!-- 발권 수수료 -->
-                            <div class="fare-subrow">
+                <div class="air-reservation-fare-item">
                                 <span>발권 수수료</span>
-                                <span th:text="${detailResult.#numbers.formatInteger(detailResult.infantFee, 3, 'COMMA')} + '원'"></span>
-                            </div>
-
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantFee, 0, 0) + '원'}">5000원</span>
                         </div>
                     </div>
 
-                    <div class="fare-total">
+            <div class="air-reservation-fare-total">
                         <span>최종 결제 금액</span>
-                        <strong th:text="${detailResult.#numbers.formatInteger(detailResult.priceTotal,3,'COMMA')} + '원'"></strong>
-                    </div>
+                <span class="air-reservation-fare-total-amount" th:text="${#numbers.formatDecimal(detailResult.priceTotal, 0, 0) + '원'}">150000원</span>
                 </div>
 
-                <button class="fare-rule-btn">항공권 변경/환불 및 수하물 규정</button>
+            <button class="air-reservation-rule-btn" onclick="openPaymentPolicyModal()">항공권 변경/환불 및 수하물 규정</button>
             </section>
 
+        <!-- 여정 정보 -->
+        <section class="air-reservation-itinerary-section">
+            <h2 class="air-reservation-itinerary-title">여정 정보</h2>
 
-            <!-- ========================================= -->
-            <!-- 🔹 여정 정보 -->
-            <!-- ========================================= -->
-            <section class="trip-detail">
-                <h3>여정 정보</h3>
+            <div th:each="seat, idx : ${detailResult.seatClasses}" class="air-reservation-trip-box">
+                <h3 class="air-reservation-trip-title" th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}">가는 편</h3>
+                <h3 class="air-reservation-trip-title" th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}" th:text="${idx.count == 1} ? '가는 편' : '오는 편'">가는 편</h3>
+                <h3 class="air-reservation-trip-title" th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}" th:text="'여정 ' + ${idx.count}">여정 1</h3>
 
-                <div
-                    th:each="seat, idx : ${detailResult.seatClasses}"
-                    th:attr="data-seatclass-id=${seat.id}, data-segment-index=${idx.index}"
-                    class="trip-box">
-
-                    <!-- 구간 제목: ONE_WAY / ROUND_TRIP / MULTI -->
-                    <!-- ONE_WAY -->
-                    <h4 class="trip-title"
-                        th:if="${detailResult.detailRequest.tripType.name() == 'ONE_WAY'}">
-                        가는 편
-                    </h4>
-
-                    <!-- ROUND_TRIP -->
-                    <h4 class="trip-title"
-                        th:if="${detailResult.detailRequest.tripType.name() == 'ROUND_TRIP'}"
-                        th:text="${idx.count == 1} ? '가는 편' : '오는 편'">
-                    </h4>
-
-                    <!-- MULTI -->
-                    <h4 class="trip-title"
-                        th:if="${detailResult.detailRequest.tripType.name() == 'MULTI'}"
-                        th:text="'여정 ' + ${idx.count}">
-                    </h4>
-
-                    <!-- 날짜 + 공항 -->
-                    <div class="trip-date"
-                        th:text="${seat.air.departDateTime.toLocalDate()} + '  ' +
-                          ${seat.air.departAirport.airportCode}+ '(' + ${seat.air.departAirport.airportKor} + ')' + ' → ' +
-                          ${seat.air.arriveAirport.airportCode}+ '(' + ${seat.air.arriveAirport.airportKor} + ')'">
+                <div class="air-reservation-trip-date">
+                    <span th:text="${#temporals.format(seat.air.departDateTime, 'yyyy-MM-dd')}">2025-11-30</span>
+                    <span th:text="${seat.air.departAirport.airportCode + '(' + seat.air.departAirport.airportKor + ')'}"> ICN(인천국제공항)</span>
+                    <span class="air-reservation-route-arrow"> → </span>
+                    <span th:text="${seat.air.arriveAirport.airportCode + '(' + seat.air.arriveAirport.airportKor + ')'}"> NRT(나리타 국제공항)</span>
                     </div>
 
-                    <!-- 항공편 카드 -->
-                    <div class="flight-card">
-                        <img th:src="@{'/' + ${seat.air.airline.iconUrl}}" class="air-logo">
-
-                        <div class="flight-info">
-
-                            <!-- 항공편 변경 버튼 -->
-                            <div class="flight-header">
-                                <span th:text="${seat.air.airline.nameKor}"></span>
-                                <span th:text="${seat.air.flightNumber}"></span>
-
-                                <button class="change-flight-btn"
-                                    th:onclick="openFlightChange(this)"
+                <div class="air-reservation-flight-card">
+                    <img th:src="@{'/' + ${seat.air.airline.iconUrl}}" class="air-reservation-airline-logo" alt="항공사 로고">
+                    
+                    <div class="air-reservation-flight-info">
+                        <div class="air-reservation-flight-header">
+                            <div>
+                                <span class="air-reservation-airline-name" th:text="${seat.air.airline.nameKor}">일본항공</span>
+                                <span class="air-reservation-flight-number" th:text="${seat.air.flightNumber}">JL101</span>
+                            </div>
+                            <button class="air-reservation-change-btn" 
+                                th:onclick="'openFlightChange(this)'"
                                     th:data-index="${idx.index}"
                                     th:data-depart="${seat.air.departAirport.airportCode}"
                                     th:data-arrive="${seat.air.arriveAirport.airportCode}"
                                     th:data-date="${seat.air.departDateTime.toLocalDate()}"
-                                    th:data-exclude="${seat.id}">
-                                    항공편 변경
-                                </button>
+                                th:data-exclude="${seat.id}">항공편 변경</button>
                             </div>
 
-                            <!-- 시간 -->
-                            <div class="flight-time-row">
-                                <div class="time-col">
-                                    <strong th:text="${seat.air.departDateTime.toLocalTime()}"></strong>
-                                    <div th:text="${seat.air.departAirport.airportCode}"></div>
+                        <div class="air-reservation-flight-time-row">
+                            <div class="air-reservation-time-col">
+                                <div class="air-reservation-time" th:text="${#temporals.format(seat.air.departDateTime, 'HH:mm')}">08:00</div>
+                                <div class="air-reservation-airport" th:text="${seat.air.departAirport.airportCode}">ICN</div>
                                 </div>
-
-                                <div class="duration">
-                                    <span th:text="${seat.air.flightDuration} + '분'"></span>
-                                </div>
-
-                                <div class="time-col">
-                                    <strong th:text="${seat.air.arriveDateTime.toLocalTime()}"></strong>
-                                    <div th:text="${seat.air.arriveAirport.airportCode}"></div>
+                            <div class="air-reservation-duration" th:text="${(seat.air.flightDuration / 60) + '시간 ' + (seat.air.flightDuration % 60) + '분'}">150분</div>
+                            <div class="air-reservation-time-col" style="align-items: flex-end;">
+                                <div class="air-reservation-time" th:text="${#temporals.format(seat.air.arriveDateTime, 'HH:mm')}">11:30</div>
+                                <div class="air-reservation-airport" th:text="${seat.air.arriveAirport.airportCode}">NRT</div>
                                 </div>
                             </div>
 
-                            <div class="baggage-info">
+                        <div class="air-reservation-baggage">
                                 무료 위탁 수하물 (1인) 15KG
                             </div>
                         </div>
@@ -266,15 +618,115 @@
                 </div>
             </section>
 
-            <section class="footer-section">
-                <button class="next-step-btn" onclick="selectPayment()">다음 단계</button>
-            </section>
+        <!-- 다음 단계 버튼 -->
+        <div class="air-reservation-next-btn">
+            <button type="button" onclick="selectPayment()">다음 단계</button>
+        </div>
+    </div>
+
+    <!-- 항공권 변경/환불 및 수하물 규정 모달 -->
+    <div class="payment-policy-modal" id="paymentPolicyModal">
+        <div class="payment-policy-modal-content">
+            <div class="payment-policy-modal-header">
+                <h2 class="payment-policy-modal-title">항공권 변경/환불 및 수하물 규정</h2>
+                <i class="fas fa-times payment-policy-modal-close" onclick="closePaymentPolicyModal()"></i>
+            </div>
+            <div class="payment-policy-modal-body">
+                <h3>제1조 (항공권 변경 규정)</h3>
+                <p>1. 항공권 변경은 출발일 기준으로 다음과 같이 수수료가 부과됩니다:</p>
+                <ul>
+                    <li>출발 30일 전 변경: 무료</li>
+                    <li>출발 14일 전 변경: 항공요금의 10%</li>
+                    <li>출발 7일 전 변경: 항공요금의 20%</li>
+                    <li>출발 3일 전 변경: 항공요금의 30%</li>
+                    <li>출발 당일 변경: 항공요금의 50%</li>
+                </ul>
+                <p>2. 변경 가능 횟수는 항공권 유형에 따라 다르며, 일부 특가 항공권은 변경이 불가능할 수 있습니다.</p>
+                <p>3. 변경 시 발생하는 운임 차액은 고객이 부담하며, 환불이 필요한 경우 환불 규정에 따라 처리됩니다.</p>
+
+                <h3>제2조 (항공권 환불 규정)</h3>
+                <p>1. 항공권 환불은 출발일 기준으로 다음과 같이 환불 수수료가 부과됩니다:</p>
+                <ul>
+                    <li>출발 30일 전 취소: 환불 수수료 없음 (전액 환불)</li>
+                    <li>출발 14일 전 취소: 항공요금의 10%</li>
+                    <li>출발 7일 전 취소: 항공요금의 20%</li>
+                    <li>출발 3일 전 취소: 항공요금의 30%</li>
+                    <li>출발 당일 취소: 항공요금의 50%</li>
+                    <li>출발 후 취소: 환불 불가</li>
+                </ul>
+                <p>2. 환불 처리는 취소 신청일로부터 영업일 기준 7~14일 소요됩니다.</p>
+                <p>3. 환불 금액은 결제 수단에 따라 원래 결제 수단으로 환불되며, 환불 수수료는 차감 후 환불됩니다.</p>
+                <p>4. 일부 특가 항공권은 환불이 불가능할 수 있으며, 이는 예약 시 고지됩니다.</p>
+
+                <h3>제3조 (수하물 규정)</h3>
+                <p>1. 위탁 수하물:</p>
+                <ul>
+                    <li>일반석: 1인당 20kg 이내, 1개 (가로+세로+높이 합계 158cm 이내)</li>
+                    <li>프리미엄 일반석: 1인당 30kg 이내, 2개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                    <li>비즈니스석: 1인당 40kg 이내, 2개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                    <li>퍼스트석: 1인당 50kg 이내, 3개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                </ul>
+                <p>2. 기내 수하물:</p>
+                <ul>
+                    <li>1인당 1개, 무게 10kg 이내, 가로+세로+높이 합계 115cm 이내</li>
+                    <li>기내 수하물은 좌석 위 수납함 또는 앞좌석 아래에 보관해야 합니다.</li>
+                </ul>
+                <p>3. 초과 수하물 요금:</p>
+                <ul>
+                    <li>무게 초과: 1kg당 20,000원</li>
+                    <li>개수 초과: 1개당 50,000원</li>
+                    <li>크기 초과: 1개당 100,000원</li>
+                </ul>
+                <p>4. 위탁 수하물 규격을 초과하는 경우 사전에 항공사에 문의하여 승인을 받아야 합니다.</p>
+
+                <h3>제4조 (금지 품목)</h3>
+                <p>다음 품목은 기내 및 위탁 수하물 모두에 반입이 금지됩니다:</p>
+                <ul>
+                    <li>폭발물, 가연성 물질, 독성 물질</li>
+                    <li>총기류 및 탄약</li>
+                    <li>날카로운 도구 (칼, 가위, 면도기 등)</li>
+                    <li>액체류 (100ml 이상, 기내 반입 시 100ml 이하만 가능)</li>
+                    <li>리튬 배터리 (위탁 수하물 반입 금지, 기내 수하물만 가능)</li>
+                    <li>기타 항공 보안 규정에 따라 금지된 품목</li>
+                </ul>
+
+                <h3>제5조 (수하물 분실 및 손상)</h3>
+                <p>1. 수하물이 분실되거나 손상된 경우 즉시 항공사 지상직원에게 신고해야 합니다.</p>
+                <p>2. 분실 신고는 도착 공항에서 즉시 처리되며, 신고서를 작성해야 합니다.</p>
+                <p>3. 수하물 분실 시 항공사는 최대 1,300 SDR(약 200만원)까지 배상 책임을 집니다.</p>
+                <p>4. 귀중품, 현금, 전자기기 등은 위탁 수하물에 포함하지 않는 것을 권장합니다.</p>
+
+                <h3>제6조 (특수 수하물)</h3>
+                <p>1. 골프용품, 자전거, 스키장비 등 특수 수하물은 사전 예약이 필요하며 추가 요금이 발생할 수 있습니다.</p>
+                <p>2. 반려동물 운송은 항공사 사전 승인이 필요하며, 별도의 요금과 규정이 적용됩니다.</p>
+                <p>3. 악기 등 취급에 주의가 필요한 수하물은 별도 규정이 적용될 수 있습니다.</p>
+
+                <h3>제7조 (기타 사항)</h3>
+                <p>1. 본 규정은 국제항공운송협약(몬트리올 협약) 및 각 항공사의 규정을 따릅니다.</p>
+                <p>2. 항공사별로 규정이 상이할 수 있으므로, 예약 시 확인이 필요합니다.</p>
+                <p>3. 본 규정은 2025년 1월 1일부터 시행되며, 변경 시 사전 공지됩니다.</p>
+                <p>4. 규정에 대한 문의사항은 고객센터(1588-0000)로 연락 주시기 바랍니다.</p>
+            </div>
         </div>
     </div>
 
     <script th:inline="javascript">
-
-        window.selectPayment = function (purchaseProductId) {
+        window.selectPayment = function () {
+            // 로그인 체크
+            if (!window.isLoggedIn) {
+                // 결제 정보 페이지로 이동할 정보를 세션에 저장
+                fetch('/api/save-payment-redirect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: '/air/purchase/payment' })
+                }).catch(err => console.error('Failed to save payment redirect:', err));
+                
+                // 로그인 모달 열기
+                addModal('/login', true);
+                return;
+            }
+            
+            // 로그인되어 있으면 결제 페이지로 이동
             addModal(`/air/purchase/payment`);
         }
 
@@ -287,19 +739,13 @@
         }
 
         window.openFlightChange = function (btn) {
-
             const idx = parseInt(btn.dataset.index);
             const depart = btn.dataset.depart;
             const arrive = btn.dataset.arrive;
             const date = btn.dataset.date;
             const exclude = btn.dataset.exclude;
 
-            console.log("변경 대상 index:", idx);
-            console.log("depart:", depart);
-            console.log("arrive:", arrive);
-            console.log("date:", date);
-
-            window.latestSegmentIndex = idx; // callback에서 사용
+            window.latestSegmentIndex = idx;
 
             const request = {
                 tripType: "ONE_WAY",
@@ -319,28 +765,57 @@
                 ]
             };
 
-            // 항공 선택 모달 열기
-            addModal('/air/search', false, request);  // 원하는 URL 적용
+            addModal('/air/search', false, request);
         };
 
-        // seatClassId 교체 후 재조회할 callback
         window.changeFlightCallback = function (newSeatClassId) {
-
-            console.log("새 seatClassId:", newSeatClassId);
-            console.log("변경 대상 index:", window.latestSegmentIndex);
-
             const idx = window.latestSegmentIndex;
-
-            // seatClassIds 배열의 해당 index만 교체
             detailRequest.seatClassIds[idx] = newSeatClassId;
-
-            console.log("detailRequest ", detailRequest);
             isChangeSearch = false;
-
-            // 다시 상세 페이지 로딩
             addModal('/air/detail', true, detailRequest);
         };
 
+        window.openPaymentPolicyModal = function() {
+            const modal = document.getElementById('paymentPolicyModal');
+            if (modal) {
+                // 모달이 열릴 때 스크롤을 맨 위로 이동
+                window.scrollTo(0, 0);
+                // 모달이 열릴 때 body 스크롤 방지
+                document.body.style.overflow = 'hidden';
+                
+                modal.classList.add('show');
+                // 모달이 열릴 때 하단 네비게이션 바 숨기기
+                const footerSection = document.getElementById('footerSection');
+                if (footerSection) {
+                    footerSection.classList.add('hidden');
+                }
+            }
+        }
 
+        window.closePaymentPolicyModal = function() {
+            const modal = document.getElementById('paymentPolicyModal');
+            if (modal) {
+                modal.classList.remove('show');
+                // 모달이 닫힐 때 body 스크롤 복원
+                document.body.style.overflow = '';
+                // 모달이 닫힐 때 하단 네비게이션 바 다시 보이기
+                const footerSection = document.getElementById('footerSection');
+                if (footerSection) {
+                    footerSection.classList.remove('hidden');
+                }
+            }
+        }
+
+        // 모달 배경 클릭 시 닫기
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('paymentPolicyModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closePaymentPolicyModal();
+                    }
+                });
+            }
+        });
     </script>
 </div>
