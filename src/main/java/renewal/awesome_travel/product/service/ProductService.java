@@ -94,6 +94,10 @@ public class ProductService {
     }
 
     public List<Product> findProductsByMenuCode(MenuCode menuCode) {
+        if (menuCode == null) {
+            return new ArrayList<>();
+        }
+        
         Set<String> cityCodes = new HashSet<>();
         Set<String> countryCodes = new HashSet<>();
         Set<Long> productIds = new HashSet<>();
@@ -130,7 +134,7 @@ public class ProductService {
 
     public void saveRecentViewToDB(User user, Long productId, LocalDateTime viewedAt) {
 
-        List<RecentViewedItem> list = user.getRecentProducts();
+        List<RecentViewedItem> list = new ArrayList<>(user.getRecentProducts());
 
         // 기존 동일 상품 제거하여 중복 방지
         list.removeIf(item -> item.getProductId().equals(productId));
@@ -138,9 +142,10 @@ public class ProductService {
         // 맨 앞에 추가
         list.add(0, new RecentViewedItem(productId, viewedAt));
 
-        // 최대 10개만 유지
-        if (list.size() > 10)
-            list = list.subList(0, 10);
+        // 최대 30개만 유지
+        if (list.size() > 30) {
+            list = new ArrayList<>(list.subList(0, 30));
+        }
 
         user.setRecentProducts(list);
         userRepo.save(user);

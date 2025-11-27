@@ -1,204 +1,591 @@
-<div>
-    <header class="section-header">
-        <h1>예약하기</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+<div class="reservation-form-container">
+    <header class="reservation-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="reservation-title">예약하기</h1>
+        <i class="fas fa-chevron-up header-icon"></i>
     </header>
 
-    <div class="section-body">
-        <div class="modal-content">
+    <div class="reservation-body">
+        <!-- 상품 정보 -->
+        <section class="reservation-section product-info-section">
+            <h2 class="section-title">상품정보</h2>
+            <div class="product-info-card">
+                <div class="product-image-wrapper">
+                    <img th:src="${product.image}" alt="상품 이미지" class="product-image" />
+                </div>
+                <div class="product-details">
+                    <p class="product-name" th:text="${product.title}">부산출발/ALL 포함 나트랑/달랏 풀패키지 마사지 60분 or 머드온천 선택 or 전신 마사지 120분</p>
+                    <p class="product-meta">
+                        <span class="meta-label">예약일:</span>
+                        <span class="meta-value" th:text="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy.MM.dd')}">2025.01.01</span>
+                    </p>
+                    <p class="product-meta">
+                        <span class="meta-label">여행일정:</span>
+                        <span class="meta-value" th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd(E)')} + '~' + ${#temporals.format(product.returnDateTime, 'yyyy.MM.dd(E)')} + ' ' + ${product.bak} + '박 ' + ${product.il} + '일'">2025.02.27(목)~2025.03.03(월) 3박 5일</span>
+                    </p>
+                    <p class="product-meta">
+                        <span class="meta-label">여행인원:</span>
+                        <span class="meta-value" th:text="'성인 ' + ${passengers.?[ageGroup.name() == 'ADULT'].size()} + '명/아동 ' + ${passengers.?[ageGroup.name() == 'YOUTH'].size()} + '명/소아 ' + ${passengers.?[ageGroup.name() == 'INFANT'].size()} + '명(' + (${passengers.?[ageGroup.name() == 'ADULT'].size()} + ${passengers.?[ageGroup.name() == 'YOUTH'].size()} + ${passengers.?[ageGroup.name() == 'INFANT'].size()}) + '인)'">성인 10명/아동 0명/소아 0명(10인)</span>
+                    </p>
+                    <p class="product-total-price">
+                        <span class="total-label">총 결제 금액:</span>
+                        <span class="total-value" th:text="${#numbers.formatDecimal(finalPrice, 0, 0) + '원'}">10,850,000원</span>
+                    </p>
+                </div>
+            </div>
+        </section>
 
-            <!-- 상품 정보 -->
-            <section id="product-info">
-                <h2>상품정보</h2>
-                <div class="product-detail">
-                    <div class="product-img">
-                        <img th:src="${product.image}" alt="상품 이미지" />
-                    </div>
-                    <div class="product-text">
-                        <p><strong>상품명:</strong> <span th:text="${product.title}"></span></p>
-                        <p><strong>예약일:</strong> <span th:text="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy.MM.dd')}"></span></p>
-                        <p><strong>여행일정:</strong>
-                            <span th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(product.returnDateTime, 'yyyy.MM.dd')}"></span>
-                            (<span th:text="${product.bak} + '박 ' + ${product.il} + '일'"></span>)
-                        </p>
-                        <p><strong>여행인원:</strong> 성인 <span th:text="${passengers.?[ageGroup.name() == 'ADULT'].size()}"></span>명 /
-                            아동 <span th:text="${passengers.?[ageGroup.name() == 'YOUTH'].size()}"></span>명 /
-                            소아 <span th:text="${passengers.?[ageGroup.name() == 'INFANT'].size()}"></span>명
-                        </p>
-                        <p><strong>총 결제 금액:</strong> <span th:text="${finalPrice} + '원'"></span></p>
-                    </div>
-                </div>
-            </section>
+        <!-- 예약자 정보 -->
+        <section class="reservation-section booker-info-section">
+            <h2 class="section-title">예약자 정보</h2>
+            <input type="hidden" name="productId" th:value="${product.id}" />
+            <input type="hidden" name="departDate" th:value="${product.departDateTime}" />
 
-            <!-- 예약자 정보 -->
-            <section id="booker-info">
-                <h2>예약자 정보</h2>
-                <input type="hidden" th:name="productId" th:value="${product.id}" />
-                <input type="hidden" th:name="departDate" th:value="${product.departDateTime}" />
+            <div class="form-group">
+                <label class="form-label">이름</label>
+                <input type="text" name="bookerName" class="form-input" placeholder="이름을 입력하세요." required />
+            </div>
 
-                <div>
-                    <label>이름</label>
-                    <input type="text" name="bookerName" placeholder="이름을 입력하세요." required />
-                </div>
-                <div>
-                    <label>생년월일</label>
-                    <input type="date" name="bookerBirth" placeholder="생년월일 8자리(ex.19900128)" required />
-                </div>
-                <div>
-                    <label>성별</label>
-                    <div class="button-group">
-                        <label class="btn selected">
-                            <input type="radio"
-                                name="bookerGender"
-                                value="MALE"
-                                checked hidden /> 남자
-                        </label>
-                        <label class="btn">
-                            <input type="radio"
-                                th:name="bookerGender"
-                                value="FEMALE"
-                                hidden /> 여자
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label>휴대폰 번호</label>
-                    <input type="text" name="bookerPhone" placeholder="휴대폰 번호(숫자만 입력)" required />
-                </div>
-                <div>
-                    <label>이메일</label>
-                    <input type="email" name="bookerEmail" placeholder="이메일(ex. abc@astravel.kr)" required />
-                </div>
-            </section>
+            <div class="form-group">
+                <label class="form-label">생년월일</label>
+                <input type="date" name="bookerBirth" class="form-input" required />
+            </div>
 
-            <section id="passenger-info">
-                <!-- 여행자 정보 반복 -->
-                <div class="passenger" th:each="passenger,iterStat : ${passengers}">
-                    <h3>여행자 [[${iterStat.index + 1}]]</h3> (<span th:text="${passenger.ageGroup}"></span>) <!-- AgeGroup 표시 -->
-                    <div>
-                        <label>이름</label>
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" placeholder="성을 입력하세요." required />
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" placeholder="이름을 입력하세요." required />
-                    </div>
-                    <div>
-                        <label>생년월일</label>
-                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" placeholder="생년월일 8자리(ex.19900128)" required />
-                    </div>
-                    <div>
-                        <label>연령 구분</label>
-                        <input type="text" th:value="${passenger.ageGroup}" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" readonly />
-                    </div>
-                    <label>성별</label>
-                    <div class="button-group">
-                        <label class="btn selected">
-                            <input type="radio"
-                                th:name="'passengers[' + ${iterStat.index} + '].gender'"
-                                value="MALE"
-                                checked hidden /> 남자
-                        </label>
-                        <label class="btn">
-                            <input type="radio"
-                                th:name="'passengers[' + ${iterStat.index} + '].gender'"
-                                value="FEMALE"
-                                hidden /> 여자
-                        </label>
-                    </div>
-                    <div>
-                        <label>휴대폰 번호</label>
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].phone'" placeholder="휴대폰 번호(숫자만 입력)" />
-                    </div>
-                    <div>
-                        <label>이메일</label>
-                        <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" placeholder="이메일(ex. abc@astravel.kr)" />
-                    </div>
+            <div class="form-group">
+                <label class="form-label">성별</label>
+                <div class="gender-buttons">
+                    <label class="gender-btn selected">
+                        <input type="radio" name="bookerGender" value="MALE" checked hidden />
+                        <span>남자</span>
+                    </label>
+                    <label class="gender-btn">
+                        <input type="radio" name="bookerGender" value="FEMALE" hidden />
+                        <span>여자</span>
+                    </label>
                 </div>
-            </section>
+            </div>
 
-            <footer class="modal-footer">
-                <button type="button"
-                    th:onclick="${isWaiting} ? 'openWaiterForm()' : 'submitReservationModal()'">
-                    예약신청
-                </button>
-            </footer>
+            <div class="form-group">
+                <label class="form-label">휴대폰 번호</label>
+                <input type="text" name="bookerPhone" class="form-input" placeholder="휴대폰 번호(숫자만 입력)" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">이메일</label>
+                <input type="email" name="bookerEmail" class="form-input" placeholder="이메일(ex. abc@astravel.kr)" required />
+            </div>
+        </section>
+
+        <!-- 여행자 정보 -->
+        <section class="reservation-section passenger-info-section">
+            <h2 class="section-title">여행자 정보</h2>
+            <div class="passenger-list">
+                <div class="passenger-item" th:each="passenger, iterStat : ${passengers}">
+                    <h3 class="passenger-title" th:text="'성인 ' + (${iterStat.index} + 1)">성인 1</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">이름</label>
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" class="form-input" placeholder="이름을 입력하세요." required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">생년월일</label>
+                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" class="form-input" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">성별</label>
+                        <div class="gender-buttons">
+                            <label class="gender-btn selected">
+                                <input type="radio" th:name="'passengers[' + ${iterStat.index} + '].gender'" value="MALE" checked hidden />
+                                <span>남자</span>
+                            </label>
+                            <label class="gender-btn">
+                                <input type="radio" th:name="'passengers[' + ${iterStat.index} + '].gender'" value="FEMALE" hidden />
+                                <span>여자</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">휴대폰 번호</label>
+                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].phone'" class="form-input" placeholder="휴대폰 번호(숫자만 입력)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">이메일</label>
+                        <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" class="form-input" placeholder="이메일(ex. abc@astravel.kr)" />
+                    </div>
+
+                    <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" th:value="${passenger.ageGroup}" />
+                </div>
+            </div>
+        </section>
+
+        <!-- 예약신청 버튼 -->
+        <div class="reservation-submit-wrapper">
+            <button type="button" class="reservation-submit-btn" th:onclick="${isWaiting} ? 'openWaiterForm()' : 'submitReservationModal()'">
+                예약신청
+            </button>
         </div>
     </div>
 
     <!-- 예약대기 추가정보 입력 모달 -->
     <template id="waiting-extra-template">
-        <div class="waiting-extra-modal">
-            <header class="section-header">
-                <h1>예약대기 추가정보</h1>
-                <div class="right">
-                    <i class="fas fa-times" onclick="backModal()"></i>
-                </div>
+        <div class="waitlist-modal-container">
+            <header class="waitlist-header">
+                <h1 class="waitlist-title">예약대기 신청</h1>
+                <i class="fas fa-times waitlist-close-btn" onclick="backModal()"></i>
             </header>
 
-            <div class="section-body">
-
-                <p class="desc">
-                    현재 상품은 예약대기 상태입니다.<br>
-                    예약 가능 시 연락받을 정보를 입력해주세요.
-                </p>
-
-                <h3>연락받을 수단</h3>
-
-                <div class="button-group waiting-type">
-                    <label class="btn selected" onclick="selectWaitType('phone')">
-                        <input type="radio" name="waitType" value="phone" checked hidden>
-                        휴대폰
-                    </label>
-
-                    <label class="btn" onclick="selectWaitType('email')">
-                        <input type="radio" name="waitType" value="email" hidden>
-                        이메일
-                    </label>
+            <div class="waitlist-body">
+                <div class="waitlist-section">
+                    <h2 class="waitlist-section-title">예약대기</h2>
+                    <div class="waitlist-description">
+                        <p>현재 이 상품은 예약 대기 상태입니다.</p>
+                        <p>예약 가능 상태가 되면, 알림을 보내드립니다.</p>
+                        <p>휴대폰 또는 이메일을 입력해주세요.</p>
+                    </div>
                 </div>
 
-                <div id="wait-phone-box">
-                    <input name="waiterNumber" type="text" placeholder="휴대폰 번호(ex.01012341234)">
+                <div class="waitlist-contact-section">
+                    <h3 class="waitlist-contact-title">연락받을 수단</h3>
+                    <div class="waitlist-contact-buttons">
+                        <button type="button" class="waitlist-contact-btn" id="phoneBtn" onclick="selectWaitType('phone')">
+                            휴대폰
+                        </button>
+                        <button type="button" class="waitlist-contact-btn" id="emailBtn" onclick="selectWaitType('email')">
+                            이메일
+                        </button>
+                    </div>
                 </div>
 
-                <div id="wait-email-box" style="display:none">
-                    <input name="waiterEmail" type="email" placeholder="이메일(ex.abc@astravel.kr)">
+                <div class="waitlist-input-section">
+                    <label class="waitlist-input-label" id="inputLabel">휴대폰</label>
+                    <div id="wait-phone-box">
+                        <input type="text" name="waiterNumber" class="waitlist-input" placeholder="휴대폰 번호를 입력해주세요.(ex.01012341234)">
+                    </div>
+                    <div id="wait-email-box" style="display:none">
+                        <input type="email" name="waiterEmail" class="waitlist-input" placeholder="이메일을 입력해주세요(ex.abc@astravel.kr)">
+                    </div>
                 </div>
 
-                <button class="submit-btn" onclick="submitReservationModal()">제출하기</button>
+                <button type="button" class="waitlist-submit-btn" onclick="submitReservationModal()">제출하기</button>
             </div>
         </div>
     </template>
 
+    <style>
+        .reservation-form-container {
+            width: 100%;
+            min-height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reservation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .reservation-header .back-btn {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .reservation-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-icon {
+            font-size: 18px;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .reservation-body {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 24px;
+        }
+
+        .reservation-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .reservation-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 16px 0;
+        }
+
+        /* 상품 정보 */
+        .product-info-card {
+            display: flex;
+            gap: 12px;
+        }
+
+        .product-image-wrapper {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .product-meta {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+
+        .meta-label {
+            font-weight: 500;
+        }
+
+        .meta-value {
+            margin-left: 4px;
+        }
+
+        .product-total-price {
+            margin-top: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .total-label {
+            margin-right: 8px;
+        }
+
+        .total-value {
+            color: #f44336;
+        }
+
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: #1976d2;
+        }
+
+        .form-input::placeholder {
+            color: #999;
+        }
+
+        /* 성별 버튼 */
+        .gender-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .gender-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            text-align: center;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gender-btn.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 600;
+        }
+
+        /* 여행자 정보 */
+        .passenger-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .passenger-item {
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .passenger-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 16px 0;
+        }
+
+        /* 예약신청 버튼 */
+        .reservation-submit-wrapper {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .reservation-submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reservation-submit-btn:hover {
+            background: #555;
+        }
+
+        /* 예약대기 모달 스타일 (기존 유지) */
+        .waitlist-modal-container {
+            width: 100%;
+            min-height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .waitlist-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .waitlist-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .waitlist-close-btn {
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .waitlist-body {
+            flex: 1;
+            padding: 24px 16px;
+            padding-bottom: 100px;
+        }
+
+        .waitlist-section {
+            margin-bottom: 32px;
+        }
+
+        .waitlist-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 16px 0;
+        }
+
+        .waitlist-description {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .waitlist-description p {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .waitlist-contact-section {
+            margin-bottom: 24px;
+        }
+
+        .waitlist-contact-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+
+        .waitlist-contact-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .waitlist-contact-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .waitlist-contact-btn.active {
+            border-color: #1976d2;
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 600;
+        }
+
+        .waitlist-input-section {
+            margin-bottom: 24px;
+        }
+
+        .waitlist-input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .waitlist-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .waitlist-input:focus {
+            border-color: #1976d2;
+        }
+
+        .waitlist-submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .waitlist-submit-btn:hover {
+            background: #555;
+        }
+    </style>
+
     <script>
         (function () {
             // 성별 버튼 선택
-            document.querySelectorAll('.button-group').forEach(group => {
-                group.querySelectorAll('.btn').forEach(btn => {
+            document.querySelectorAll('.gender-buttons').forEach(group => {
+                group.querySelectorAll('.gender-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        group.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+                        group.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
                         btn.classList.add('selected');
                         btn.querySelector('input[type=radio]').checked = true;
                     });
                 });
             });
 
-
-            window.submitReservationModal = function (type, delta) {
+            window.submitReservationModal = function () {
                 // 예약자 정보
                 const productId = document.querySelector('input[name="productId"]').value;
                 const departDate = document.querySelector('input[name="departDate"]').value;
                 const bookerName = document.querySelector('input[name="bookerName"]').value;
                 const bookerBirth = document.querySelector('input[name="bookerBirth"]').value;
-                const bookerGender = document.querySelector('input[name="bookerGender"]').value;
+                const bookerGender = document.querySelector('input[name="bookerGender"]:checked').value;
                 const bookerPhone = document.querySelector('input[name="bookerPhone"]').value;
                 const bookerEmail = document.querySelector('input[name="bookerEmail"]').value;
 
                 // 여행자 정보
-                const passengers = Array.from(document.querySelectorAll('.passenger')).map((div, index) => ({
-                    lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`).value,
+                const passengers = Array.from(document.querySelectorAll('.passenger-item')).map((div, index) => ({
                     firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`).value,
                     birth: div.querySelector(`input[name='passengers[${index}].birth']`).value,
-                    gender: div.querySelector(`input[name='passengers[${index}].gender']`).value,
+                    gender: div.querySelector(`input[name='passengers[${index}].gender']:checked`).value,
                     phone: div.querySelector(`input[name='passengers[${index}].phone']`).value,
                     email: div.querySelector(`input[name='passengers[${index}].email']`).value,
                     ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`).value
@@ -227,23 +614,38 @@
 
             window.openWaiterForm = function () {
                 const tpl = document.querySelector('#waiting-extra-template').innerHTML;
-                openModalHtml(tpl); // 모달 내부에 삽입 (당신 프로젝트용)
+                openModalHtml(tpl);
             }
 
             window.selectWaitType = function (type) {
-                document.querySelectorAll('.waiting-type .btn')
-                    .forEach(btn => btn.classList.remove('selected'));
+                const phoneBtn = document.getElementById('phoneBtn');
+                const emailBtn = document.getElementById('emailBtn');
+                const phoneBox = document.getElementById("wait-phone-box");
+                const emailBox = document.getElementById("wait-email-box");
+                const inputLabel = document.getElementById("inputLabel");
 
                 if (type === 'phone') {
-                    document.querySelector('.waiting-type .btn:nth-child(1)').classList.add('selected');
-                    document.getElementById("wait-phone-box").style.display = "";
-                    document.getElementById("wait-email-box").style.display = "none";
+                    phoneBtn.classList.add('active');
+                    emailBtn.classList.remove('active');
+                    phoneBox.style.display = "";
+                    emailBox.style.display = "none";
+                    inputLabel.textContent = "휴대폰";
                 } else {
-                    document.querySelector('.waiting-type .btn:nth-child(2)').classList.add('selected');
-                    document.getElementById("wait-phone-box").style.display = "none";
-                    document.getElementById("wait-email-box").style.display = "";
+                    phoneBtn.classList.remove('active');
+                    emailBtn.classList.add('active');
+                    phoneBox.style.display = "none";
+                    emailBox.style.display = "";
+                    inputLabel.textContent = "이메일";
                 }
             }
+
+            // 초기화: 휴대폰 선택 상태
+            setTimeout(() => {
+                const phoneBtn = document.getElementById('phoneBtn');
+                if (phoneBtn) {
+                    phoneBtn.classList.add('active');
+                }
+            }, 100);
 
         })();
     </script>

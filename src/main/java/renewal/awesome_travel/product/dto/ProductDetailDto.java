@@ -77,8 +77,26 @@ public class ProductDetailDto {
         this.priceInfant = product.getFinalPriceInfant();
 
         this.productStatus = product.getProductStatus();
-        this.airline = product.getTour().getSchedules().get(0).getLocations().get(0).getSeatClass().getAir()
-                .getAirline().getNameKor();
+        this.airline = null;
+        if (product.getTour() != null && product.getTour().getSchedules() != null) {
+            this.airline = product.getTour().getSchedules().stream()
+                    .filter(Objects::nonNull)
+                    .flatMap(schedule -> schedule.getLocations().stream())
+                    .filter(Objects::nonNull)
+                    .map(location -> location.getSeatClass())
+                    .filter(Objects::nonNull)
+                    .map(seatClass -> seatClass.getAir())
+                    .filter(Objects::nonNull)
+                    .map(air -> air.getAirline())
+                    .filter(Objects::nonNull)
+                    .map(airlineEntity -> airlineEntity.getNameKor())
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (this.airline == null && product.getAirline() != null) {
+            this.airline = product.getAirline().getNameKor();
+        }
         this.noShopping = product.isNoShopping();
         this.noOption = product.isNoOption();
 

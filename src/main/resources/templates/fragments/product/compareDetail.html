@@ -4,107 +4,126 @@
             width: 100%;
         }
 
-        .compare-columns {
-            display: flex;
-            justify-content: space-between;
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
         }
 
-        .compare-col {
-            width: 50%;
-            background: #fafafa;
-            border-radius: 12px;
-            padding: 12px;
+        .compare-date-summary {
+            text-align: center;
+            font-size: 13px;
+            color: #7d7d7d;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
         }
 
-        .thumb-wrap img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .title {
-            margin-top: 10px;
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 1.3;
-        }
-
-        .info-row {
+        .compare-card {
+            background: #f7f7f9;
+            border-radius: 18px;
+            padding: 18px 16px 20px;
             display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            font-size: 14px;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 100%;
         }
 
-        .label {
-            color: #777;
-        }
-
-        .value {
+        .compare-card-title {
+            font-size: 15px;
             font-weight: 600;
+            color: #111;
+            line-height: 1.4;
+        }
+
+        .compare-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .compare-field-label {
+            font-size: 12px;
+            color: #9e9e9e;
+            letter-spacing: -0.01em;
+        }
+
+        .compare-field-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            border: 1px solid #ededed;
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: #fff;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+        }
+
+        .compare-detail-btn {
+            width: 100%;
+            height: 44px;
+            border-radius: 12px;
+            background: #111;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: auto;
         }
     </style>
 
-    <div class="compare-columns">
-
-        <!-- ===========================
-             LEFT PRODUCT
-        ============================ -->
-        <div class="compare-col" th:with="p=${list[0]}">
-
-            <div class="thumb-wrap">
-                <img th:src="${p.thumbnail}" alt="상품1 이미지">
-            </div>
-
-            <h3 class="title" th:text="${p.title}"></h3>
-
-            <div class="info-row">
-                <span class="label">상품유형</span>
-                <span class="value" th:text="${p.productType}"></span>
-            </div>
-
-            <div class="info-row">
-                <span class="label">가격(성인)</span>
-                <span class="value"
-                    th:text="${#numbers.formatInteger(p.finalPriceAdult,3,'COMMA')} + '원'"></span>
-            </div>
-
-            <div class="info-row">
-                <span class="label">출발유형</span>
-                <span class="value" th:text="${p.departTimeType}"></span>
-            </div>
-        </div>
-
-
-        <!-- ===========================
-             RIGHT PRODUCT
-        ============================ -->
-        <div class="compare-col" th:with="p=${list[1]}">
-
-            <div class="thumb-wrap">
-                <img th:src="${p.thumbnail}" alt="상품2 이미지">
-            </div>
-
-            <h3 class="title" th:text="${p.title}"></h3>
-
-            <div class="info-row">
-                <span class="label">상품유형</span>
-                <span class="value" th:text="${p.productType}"></span>
-            </div>
-
-            <div class="info-row">
-                <span class="label">가격(성인)</span>
-                <span class="value"
-                    th:text="${#numbers.formatInteger(p.finalPriceAdult,3,'COMMA')} + '원'"></span>
-            </div>
-
-            <div class="info-row">
-                <span class="label">출발유형</span>
-                <span class="value" th:text="${p.departTimeType}"></span>
-            </div>
-        </div>
+    <div class="compare-date-summary" th:if="${compareDepartDate != null}">
+        <span th:text="${#temporals.format(compareDepartDate, 'yyyy.MM.dd')} + ' 출발 기준'">2025.03.02 출발 기준</span>
     </div>
 
+    <div class="compare-grid" th:if="${compareList != null}">
+        <div class="compare-card" th:each="item : ${compareList}">
+
+            <h3 class="compare-card-title" th:text="${item.title}">상품명</h3>
+
+            <div class="compare-field">
+                <span class="compare-field-label">가격</span>
+                <span class="compare-field-value" th:text="${item.priceLabel}">990,000원</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">출발일</span>
+                <span class="compare-field-value" th:text="${item.departDateLabel}">2025.03.02</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">귀국일</span>
+                <span class="compare-field-value" th:text="${item.returnDateLabel}">2025.03.03</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">출발지</span>
+                <span class="compare-field-value" th:text="${item.departLabel}">인천 (ICN)</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">도착지</span>
+                <span class="compare-field-value" th:text="${item.arriveLabel}">런던 (LON)</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">항공사</span>
+                <span class="compare-field-value" th:text="${item.airlineLabel}">아시아나항공</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">호텔명</span>
+                <span class="compare-field-value" th:text="${item.hotelLabel}">호텔명</span>
+            </div>
+
+            <div class="compare-field">
+                <span class="compare-field-label">여행일정</span>
+                <span class="compare-field-value" th:text="${item.tripLabel}">3일 2박</span>
+            </div>
+
+            <button type="button"
+                    class="compare-detail-btn"
+                    th:onclick="|openProductModal(${item.productId})|">상세보기</button>
+        </div>
+    </div>
 </div>
