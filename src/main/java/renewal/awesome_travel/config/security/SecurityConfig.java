@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.CustomOAuth2UserService;
+import renewal.awesome_travel.config.security.CustomAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +22,7 @@ public class SecurityConfig {
 
         private final CustomUserDetailsService customUserDetailsService;
         private final CustomOAuth2UserService customOAuth2UserService;
+        private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,7 +30,8 @@ public class SecurityConfig {
                                 .csrf(csrf -> csrf.disable())
                                 .formLogin(form -> form
                                                 .loginPage("/login")
-                                                .defaultSuccessUrl("/", true) // 추후 메인페이지로 바꿔야함
+                                                // .defaultSuccessUrl("/", true) // 추후 메인페이지로 바꿔야함
+                                                .successHandler(customAuthenticationSuccessHandler)
                                                 .permitAll())
                                 .rememberMe(remember -> remember
                                                 .key("awesomeawesomeawesome")
