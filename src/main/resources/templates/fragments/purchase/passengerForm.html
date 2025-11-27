@@ -1,180 +1,1142 @@
-<div>
-    <header class="section-header">
-        <h1>여권정보 등록</h1>
-        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+<div class="passport-form-container">
+    <style>
+        .passport-form-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .passport-form-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .passport-form-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .passport-form-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .passport-form-spacer {
+            width: 26px;
+        }
+
+        .passport-form-body {
+            padding: 16px;
+            padding-bottom: 60px;
+        }
+
+        .passenger-section {
+            margin-bottom: 32px;
+        }
+
+        .passenger-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .age-group-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .age-group-badge.adult {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .age-group-badge.youth {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .age-group-badge.infant {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .info-section {
+            margin-bottom: 24px;
+        }
+
+        .info-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .form-field {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .form-input::placeholder {
+            color: #999;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            background: white;
+            box-sizing: border-box;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .age-group-section {
+            margin-bottom: 32px;
+        }
+
+        .age-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .age-group-count {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .mate-select-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: #e3f2fd;
+            border: 1px solid #1976d2;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1976d2;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .mate-select-btn:hover {
+            background: #bbdefb;
+        }
+
+        .mate-select-btn i {
+            font-size: 14px;
+        }
+
+        .consent-section {
+            margin-top: 32px;
+            margin-bottom: 24px;
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .consent-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .consent-checkbox label {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .consent-notice {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+
+        .save-btn {
+            margin-top: 16px;
+        }
+
+        .save-btn button {
+            width: 100%;
+            padding: 14px;
+            background: #424242;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-btn button:hover {
+            background: #333;
+        }
+    </style>
+
+    <header class="passport-form-header">
+        <i class="fas fa-chevron-left passport-form-back" onclick="backModal()"></i>
+        <h1 class="passport-form-title">여권정보 등록</h1>
+        <div class="passport-form-spacer"></div>
     </header>
-    <div class="section-body">
+
+    <div class="passport-form-body">
         <div id="passportForm">
-            <div th:each="passenger, iterStat : ${passengers}">
-                <section class="passenger-card p-3 border mb-3 rounded">
+            <!-- 성인 그룹 -->
+            <div class="age-group-section" th:if="${#lists.size(passengers.?[ageGroup.name() == 'ADULT'])} > 0">
+                <h2 class="age-group-header">
+                    <span class="age-group-badge adult">성인</span>
+                    <span class="age-group-count" th:text="'(' + ${#lists.size(passengers.?[ageGroup.name() == 'ADULT'])} + '명)'">(1명)</span>
+                </h2>
+                <div th:each="passenger, iterStat : ${passengers}" th:if="${passenger.ageGroup?.name() == 'ADULT'}">
+                    <div class="passenger-section" th:attr="data-age-group=${passenger.ageGroup?.name()}" th:data-passenger-index="${iterStat.index}">
+                        <h3 class="passenger-section-title">
+                            <span class="age-group-badge adult">성인 <span class="passenger-number" th:text="${iterStat.index + 1}">1</span></span>
+                        </h3>
+                        <button type="button" class="mate-select-btn" th:data-passenger-index="${iterStat.index}">
+                            <i class="fas fa-user-friends"></i>
+                            여행메이트에서 가져오기
+                        </button>
 
-                    <h3 th:text="'탑승객 ' + ${iterStat.index + 1}"></h3>
-                    <button type="button" class="btn btn-secondary mt-2"
-                        onclick="openMateSelectModal(this)">
-                        여행메이트 입력
-                    </button>
+                        <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
 
-                    <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
+                        <!-- 기본 정보 -->
+                        <div class="info-section">
+                            <h3 class="info-section-title">기본 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">한글 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" th:value="${passenger.lastNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">한글 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" th:value="${passenger.firstNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">생년월일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">성별</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
+                                    <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
+                                    <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <label>여권번호
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required /><br>
-                    </label>
-                    <label>영문 성
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required /><br>
-                    </label>
-                    <label>영문 이름
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required /><br>
-                    </label>
-                    <label>국문 성
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" th:value="${passenger.lastNameKor}" required /><br>
-                    </label>
-                    <label>국문 이름
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" th:value="${passenger.firstNameKor}" required /><br>
-                    </label>
-                    <label>생년월일
-                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required /><br>
-                    </label>
-                    <label>연령구분
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].ageGroup'" th:value="${passenger.ageGroup}" readonly /><br>
-                    </label>
-                    <label>성별
-                        <select th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
-                            <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
-                            <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
-                        </select><br>
-                    </label>
+                        <!-- 여권 정보 -->
+                        <div class="info-section">
+                            <h3 class="info-section-title">여권 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">여권번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권발급일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].issue'" th:value="${passenger.issue}" />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권만료일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">국적</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].nationality'">
+                                    <option value="KR" th:selected="${passenger.nationality == 'KR'}">대한민국</option>
+                                    <option value="US">미국</option>
+                                    <option value="JP">일본</option>
+                                    <option value="CN">중국</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">발급관청</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].authority'" th:value="${passenger.authority ?: '대한민국'}" placeholder="발급관청 입력" />
+                            </div>
+                        </div>
 
-
-                    <label>국가코드
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].countryCode'" th:value="${passenger.countryCode?.code}" required /><br>
-                    </label>
-                    <label>국적
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].nationality'" th:value="${passenger.nationality}" required /><br>
-                    </label>
-                    <label>발급관청
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].authority'" th:value="${passenger.authority}" required /><br>
-                    </label>
-                    <label>여권 발급일
-                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].issue'" th:value="${passenger.issue}" required /><br>
-                    </label>
-                    <label>여권 만료일
-                        <input type="date" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required /><br>
-                    </label>
-
-
-                    <label>이메일
-                        <input type="email" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" required /><br>
-                    </label>
-                    <label>전화번호
-                        <input type="text" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" required /><br>
-                    </label>
-                    <label>특별 요구사항
-                        <textarea th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}"></textarea><br>
-                    </label>
-
-                </section>
+                        <!-- 추가 정보 -->
+                        <div class="info-section">
+                            <h3 class="info-section-title">추가 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">이메일</label>
+                                <input type="email" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" placeholder="이메일 입력" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">휴대폰 번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" placeholder="숫자 11자리(ex. 01000000000)" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">특별 요청사항</label>
+                                <textarea class="form-input" th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}" placeholder="휠체어, 특식 등 특별 요청사항을 입력해주세요" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="text-center mt-4">
+
+            <!-- 청소년 그룹 -->
+            <div class="age-group-section" th:if="${#lists.size(passengers.?[ageGroup.name() == 'YOUTH'])} > 0">
+                <h2 class="age-group-header">
+                    <span class="age-group-badge youth">청소년</span>
+                    <span class="age-group-count" th:text="'(' + ${#lists.size(passengers.?[ageGroup.name() == 'YOUTH'])} + '명)'">(1명)</span>
+                </h2>
+                <div th:each="passenger, iterStat : ${passengers}" th:if="${passenger.ageGroup?.name() == 'YOUTH'}">
+                    <div class="passenger-section" th:attr="data-age-group=${passenger.ageGroup?.name()}" th:data-passenger-index="${iterStat.index}">
+                        <h3 class="passenger-section-title">
+                            <span class="age-group-badge youth">청소년 <span class="passenger-number" th:text="${iterStat.index + 1}">1</span></span>
+                        </h3>
+                        <button type="button" class="mate-select-btn" th:data-passenger-index="${iterStat.index}">
+                            <i class="fas fa-user-friends"></i>
+                            여행메이트에서 가져오기
+                        </button>
+                        <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
+                        <!-- 기본 정보, 여권 정보, 추가 정보는 성인과 동일 -->
+                        <div class="info-section">
+                            <h3 class="info-section-title">기본 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">한글 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" th:value="${passenger.lastNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">한글 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" th:value="${passenger.firstNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">생년월일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">성별</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
+                                    <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
+                                    <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3 class="info-section-title">여권 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">여권번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권발급일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].issue'" th:value="${passenger.issue}" />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권만료일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">국적</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].nationality'">
+                                    <option value="KR" th:selected="${passenger.nationality == 'KR'}">대한민국</option>
+                                    <option value="US">미국</option>
+                                    <option value="JP">일본</option>
+                                    <option value="CN">중국</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">발급관청</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].authority'" th:value="${passenger.authority ?: '대한민국'}" placeholder="발급관청 입력" />
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3 class="info-section-title">추가 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">이메일</label>
+                                <input type="email" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" placeholder="이메일 입력" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">휴대폰 번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" placeholder="숫자 11자리(ex. 01000000000)" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">특별 요청사항</label>
+                                <textarea class="form-input" th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}" placeholder="휠체어, 특식 등 특별 요청사항을 입력해주세요" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 유아 그룹 -->
+            <div class="age-group-section" th:if="${#lists.size(passengers.?[ageGroup.name() == 'INFANT'])} > 0">
+                <h2 class="age-group-header">
+                    <span class="age-group-badge infant">유아</span>
+                    <span class="age-group-count" th:text="'(' + ${#lists.size(passengers.?[ageGroup.name() == 'INFANT'])} + '명)'">(1명)</span>
+                </h2>
+                <div th:each="passenger, iterStat : ${passengers}" th:if="${passenger.ageGroup?.name() == 'INFANT'}">
+                    <div class="passenger-section" th:attr="data-age-group=${passenger.ageGroup?.name()}" th:data-passenger-index="${iterStat.index}">
+                        <h3 class="passenger-section-title">
+                            <span class="age-group-badge infant">유아 <span class="passenger-number" th:text="${iterStat.index + 1}">1</span></span>
+                        </h3>
+                        <button type="button" class="mate-select-btn" th:data-passenger-index="${iterStat.index}">
+                            <i class="fas fa-user-friends"></i>
+                            여행메이트에서 가져오기
+                        </button>
+                        <input type="hidden" th:name="'passengers[' + ${iterStat.index} + '].id'" th:value="${passenger.id}" readonly />
+                        <!-- 기본 정보, 여권 정보, 추가 정보는 성인과 동일 -->
+                        <div class="info-section">
+                            <h3 class="info-section-title">기본 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">한글 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastNameKor'" th:value="${passenger.lastNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">한글 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstNameKor'" th:value="${passenger.firstNameKor}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 성</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].lastName'" th:value="${passenger.lastName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권 표기 영문 이름</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].firstName'" th:value="${passenger.firstName}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">생년월일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].birth'" th:value="${passenger.birth}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">성별</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].sex'" required>
+                                    <option value="MALE" th:selected="${passenger.sex?.name() == 'MALE' or passenger.sex == 'MALE'}">남성</option>
+                                    <option value="FEMALE" th:selected="${passenger.sex?.name() == 'FEMALE' or passenger.sex == 'FEMALE'}">여성</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3 class="info-section-title">여권 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">여권번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].passportNum'" th:value="${passenger.passportNum}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권발급일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].issue'" th:value="${passenger.issue}" />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">여권만료일</label>
+                                <input type="date" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].expire'" th:value="${passenger.expire}" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">국적</label>
+                                <select class="form-select" th:name="'passengers[' + ${iterStat.index} + '].nationality'">
+                                    <option value="KR" th:selected="${passenger.nationality == 'KR'}">대한민국</option>
+                                    <option value="US">미국</option>
+                                    <option value="JP">일본</option>
+                                    <option value="CN">중국</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">발급관청</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].authority'" th:value="${passenger.authority ?: '대한민국'}" placeholder="발급관청 입력" />
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3 class="info-section-title">추가 정보</h3>
+                            <div class="form-field">
+                                <label class="form-label">이메일</label>
+                                <input type="email" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].email'" th:value="${passenger.email}" placeholder="이메일 입력" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">휴대폰 번호</label>
+                                <input type="text" class="form-input" th:name="'passengers[' + ${iterStat.index} + '].number'" th:value="${passenger.number}" placeholder="숫자 11자리(ex. 01000000000)" required />
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">특별 요청사항</label>
+                                <textarea class="form-input" th:name="'passengers[' + ${iterStat.index} + '].specialRequests'" th:text="${passenger.specialRequests}" placeholder="휠체어, 특식 등 특별 요청사항을 입력해주세요" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 동의 섹션 -->
+            <div class="consent-section">
+                <div class="consent-checkbox">
+                    <input type="checkbox" id="consent" checked />
+                    <label for="consent">고유식별정보 수집 동의</label>
+                </div>
+                <p class="consent-notice">여권만료일이 출발일로부터 6개월 미만인 경우는 출국이 제한될 수 있습니다.</p>
+            </div>
+
+            <div class="save-btn">
                 <button type="button"
-                    class="btn btn-primary"
                     th:data-purchase="${purchaseBaseId}"
                     th:data-type="${type}"
                     onclick="submitPassportForm(this)">
-                    제출
+                    저장 후 닫기
                 </button>
             </div>
         </div>
     </div>
+
     <script>
+        // 즉시 실행하여 전역 함수 정의
+        window.openMateSelectModal = function (button) {
+            console.log('openMateSelectModal 호출됨');
+            if (!button) {
+                console.error('button이 null입니다');
+                return;
+            }
+            window.selectedPassengerCard = button.closest('.passenger-section');
+            console.log('selectedPassengerCard 설정:', window.selectedPassengerCard);
+            if (typeof addModal === 'function') {
+                addModal('/mypage/mateList/select');
+            } else {
+                console.error('addModal 함수를 찾을 수 없습니다');
+            }
+        };
+
+        // submitPassportForm 함수를 전역 스코프에 정의
+        window.submitPassportForm = function (button) {
+            const purchaseBaseId = button.dataset.purchase;
+            const type = button.dataset.type;
+
+            console.log('purchaseBaseId :', purchaseBaseId);
+            console.log('type :', type);
+
+            const passengers = Array.from(document.querySelectorAll('.passenger-section')).map((div, index) => {
+                const nationalityValue = div.querySelector(`select[name='passengers[${index}].nationality']`)?.value || null;
+                return {
+                    id: div.querySelector(`input[name='passengers[${index}].id']`)?.value || null,
+                    passportNum: div.querySelector(`input[name='passengers[${index}].passportNum']`)?.value || null,
+                    lastName: div.querySelector(`input[name='passengers[${index}].lastName']`)?.value || null,
+                    firstName: div.querySelector(`input[name='passengers[${index}].firstName']`)?.value || null,
+                    lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`)?.value || null,
+                    firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`)?.value || null,
+                    birth: div.querySelector(`input[name='passengers[${index}].birth']`)?.value || null,
+                    sex: div.querySelector(`select[name='passengers[${index}].sex']`)?.value || null,
+                    countryCode: nationalityValue, // nationality 값을 countryCode로도 사용
+                    nationality: nationalityValue,
+                    authority: div.querySelector(`input[name='passengers[${index}].authority']`)?.value || null,
+                    issue: div.querySelector(`input[name='passengers[${index}].issue']`)?.value || null,
+                    expire: div.querySelector(`input[name='passengers[${index}].expire']`)?.value || null,
+                    email: div.querySelector(`input[name='passengers[${index}].email']`)?.value || null,
+                    number: div.querySelector(`input[name='passengers[${index}].number']`)?.value || null,
+                    specialRequests: div.querySelector(`textarea[name='passengers[${index}].specialRequests']`)?.value || null
+                };
+            });
+
+            const payload = { passengers };
+            
+            fetch(`/purchase/${type}/${purchaseBaseId}/passport`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('저장 실패');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // 모달 닫기
+                if (typeof backModal === 'function') {
+                    backModal();
+                }
+                
+                // 원래 페이지 업데이트 (이전 모달의 내용을 새로고침)
+                setTimeout(() => {
+                    const modalBody = document.getElementById('modalBody');
+                    if (modalBody && !modalBody.classList.contains('hide')) {
+                        // 현재 모달이 purchaseProductDetail 또는 purchaseAirDetail인 경우 업데이트
+                        const currentUrl = window.location.pathname;
+                        let updateUrl = null;
+                        
+                        if (currentUrl.includes('/purchase/product/')) {
+                            const purchaseId = currentUrl.match(/\/purchase\/product\/(\d+)/)?.[1];
+                            if (purchaseId) {
+                                updateUrl = `/product/purchase/${purchaseId}`;
+                            }
+                        } else if (currentUrl.includes('/purchase/air/')) {
+                            const purchaseId = currentUrl.match(/\/purchase\/air\/(\d+)/)?.[1];
+                            if (purchaseId) {
+                                updateUrl = `/air/purchase/${purchaseId}`;
+                            }
+                        }
+                        
+                        if (updateUrl) {
+                            fetch(updateUrl)
+                                .then(res => res.text())
+                                .then(updatedHtml => {
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(updatedHtml, 'text/html');
+                                    const newContent = doc.querySelector('.reservation-detail-body, .air-purchase-detail-body, body');
+                                    if (newContent && modalBody) {
+                                        modalBody.innerHTML = newContent.innerHTML || newContent.outerHTML;
+                                    }
+                                })
+                                .catch(err => console.error('페이지 업데이트 실패:', err));
+                        }
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('저장 중 오류:', error);
+                alert('여권정보 저장 중 오류가 발생했습니다.');
+            });
+        };
 
         (function () {
-            window.submitPassportForm = function (button) {
-
-                const purchaseBaseId = button.dataset.purchase;
-                const type = button.dataset.type;
-
-                console.log('purchaseBaseId :', purchaseBaseId);
-                console.log('type :', type);
-
-                const passengers = Array.from(document.querySelectorAll('.passenger-card')).map((div, index) => ({
-                    id: div.querySelector(`input[name='passengers[${index}].id']`)?.value || '',
-
-                    passportNum: div.querySelector(`input[name='passengers[${index}].passportNum']`)?.value || '',
-
-                    lastName: div.querySelector(`input[name='passengers[${index}].lastName']`)?.value || '',
-                    firstName: div.querySelector(`input[name='passengers[${index}].firstName']`)?.value || '',
-                    lastNameKor: div.querySelector(`input[name='passengers[${index}].lastNameKor']`)?.value || '',
-                    firstNameKor: div.querySelector(`input[name='passengers[${index}].firstNameKor']`)?.value || '',
-
-                    birth: div.querySelector(`input[name='passengers[${index}].birth']`)?.value || '',
-                    sex: div.querySelector(`select[name='passengers[${index}].sex']`)?.value || '',
-
-                    countryCode: div.querySelector(`input[name='passengers[${index}].countryCode']`)?.value || '',
-                    nationality: div.querySelector(`input[name='passengers[${index}].nationality']`)?.value || '',
-                    authority: div.querySelector(`input[name='passengers[${index}].authority']`)?.value || '',
-                    issue: div.querySelector(`input[name='passengers[${index}].issue']`)?.value || '',
-                    expire: div.querySelector(`input[name='passengers[${index}].expire']`)?.value || '',
-
-                    email: div.querySelector(`input[name='passengers[${index}].email']`)?.value || '',
-                    number: div.querySelector(`input[name='passengers[${index}].number']`)?.value || '',
-                    specialRequests: div.querySelector(`textarea[name='passengers[${index}].specialRequests']`)?.value || '',
-                    ageGroup: div.querySelector(`input[name='passengers[${index}].ageGroup']`)?.value || ''
-                }));
-
-                const payload = { passengers };
-
-                addModal(`/purchase/${type}/${purchaseBaseId}/passport`, true, payload);
-            }
-
-            // 여행메이트 팝업 열기
-            window.openMateSelectModal = function (button) {
-                // 어떤 passenger-card 에서 눌렀는지 저장
-                window.selectedPassengerCard = button.closest('.passenger-card');
-
-                addModal('/mypage/mateList/select');
-            }
-
-            // 메이트 선택 결과 받기
-            window.addEventListener("message", function (event) {
-                if (event.data?.type === "mateSelected") {
-                    const mateId = event.data.id;
-
-                    if (mateId === 0) {
-                        // 내 여권 정보를 자동 입력
-                        fetch(`/mypage/api/myPassport`)
-                            .then(res => res.json())
-                            .then(data => fillMateData(data));
-                        return;
+            // closest 폴리필 (IE 지원)
+            if (!Element.prototype.closest) {
+                Element.prototype.closest = function(selector) {
+                    var element = this;
+                    while (element && element.nodeType === 1) {
+                        if (element.matches(selector)) {
+                            return element;
+                        }
+                        element = element.parentElement;
                     }
+                    return null;
+                };
+            }
 
-                    fetch(`/mypage/api/matePassport/${mateId}`)
-                        .then(res => res.json())
-                        .then(data => fillMateData(data));
+            // 여행메이트 입력 버튼 이벤트 리스너 (이벤트 위임 사용)
+            // document 레벨에서 클릭 이벤트를 감지하여 동적으로 추가된 버튼에도 작동
+            if (document.addEventListener) {
+                document.addEventListener('click', function(e) {
+                    // .mate-select-btn 클래스를 가진 요소 또는 그 자식 요소 클릭 시
+                    const button = e.target.closest('.mate-select-btn');
+                    if (button) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('여행메이트 입력 버튼 클릭됨');
+                        window.selectedPassengerCard = button.closest('.passenger-section');
+                        console.log('selectedPassengerCard 설정:', window.selectedPassengerCard);
+                        if (typeof addModal === 'function') {
+                            addModal('/mypage/mateList/select');
+                        } else {
+                            console.error('addModal 함수를 찾을 수 없습니다');
+                        }
+                    }
+                }, true); // 캡처 단계에서 이벤트 처리
+            }
+            // handleMateSelection 함수를 먼저 정의
+            function handleMateSelection(mateId) {
+                console.log('handleMateSelection 호출:', mateId);
+                if (!window.selectedPassengerCard) {
+                    console.error('selectedPassengerCard가 설정되지 않음');
+                    return;
+                }
+
+                if (mateId === 0) {
+                    console.log('내 여권 정보 로드 시작');
+                    fetch(`/mypage/api/myPassport`)
+                        .then(res => {
+                            console.log('내 여권 정보 응답:', res);
+                            return res.json();
+                        })
+                        .then(data => {
+                            console.log('내 여권 정보 데이터:', data);
+                            fillMateData(data);
+                        })
+                        .catch(err => console.error('내 여권 정보 로드 실패:', err));
+                    return;
+                }
+
+                console.log('여행메이트 정보 로드 시작:', mateId);
+                fetch(`/mypage/api/matePassport/${mateId}`)
+                    .then(res => {
+                        console.log('여행메이트 정보 응답:', res);
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log('여행메이트 정보 데이터:', data);
+                        fillMateData(data);
+                    })
+                    .catch(err => console.error('여행메이트 정보 로드 실패:', err));
+            }
+
+            function fillMateData(mate) {
+                console.log('fillMateData 호출:', mate);
+                console.log('API 응답 전체 데이터:', JSON.stringify(mate, null, 2));
+                if (!window.selectedPassengerCard) {
+                    console.error('selectedPassengerCard가 없음');
+                    return;
+                }
+                const card = window.selectedPassengerCard;
+                console.log('선택된 카드:', card);
+                console.log('영문 성 API 값:', mate.lastName);
+                console.log('영문 이름 API 값:', mate.firstName);
+                
+                // 모든 입력 필드를 찾기 위해 더 포괄적인 선택자 사용
+                const allInputs = card.querySelectorAll('input, select, textarea');
+                console.log('카드 내 모든 입력 필드:', allInputs.length);
+                
+                // name 속성으로 필드 찾기 (passengers[숫자].fieldName 형식)
+                function findInput(fieldName) {
+                    // fieldName이 .으로 시작하면 제거 (예: .lastName -> lastName)
+                    const cleanFieldName = fieldName.startsWith('.') ? fieldName.substring(1) : fieldName;
+                    
+                    // 더 간단하고 확실한 방법: name 속성에 .fieldName이 포함되어 있는지 확인
+                    for (let input of allInputs) {
+                        if (input.name) {
+                            // passengers[숫자].fieldName 패턴 매칭
+                            // 예: passengers[0].lastName -> .lastName 포함
+                            if (input.name.includes('.' + cleanFieldName) || input.name.endsWith('.' + cleanFieldName)) {
+                                console.log('필드 찾음:', fieldName, '->', input.name, '타입:', input.tagName, '현재값:', input.value);
+                                return input;
+                            }
+                        }
+                    }
+                    console.warn('필드를 찾을 수 없음:', fieldName, '(검색어:', cleanFieldName + ')');
+                    // 디버깅: 모든 입력 필드의 name 출력
+                    console.log('카드 내 모든 입력 필드 name 목록:');
+                    allInputs.forEach(inp => {
+                        if (inp.name) {
+                            console.log('  -', inp.name, '(' + inp.tagName + ')');
+                        }
+                    });
+                    return null;
+                }
+                
+                // 기본 정보
+                const passportNumInput = findInput('.passportNum');
+                if (passportNumInput) {
+                    passportNumInput.value = mate.passportNum || '';
+                    console.log('여권번호 설정:', mate.passportNum);
+                } else {
+                    console.warn('여권번호 입력 필드를 찾을 수 없음');
+                }
+                
+                // 영문 성 - 정확한 패턴으로 찾기
+                let lastNameInput = null;
+                const allInputsArray = Array.from(card.querySelectorAll('input[type="text"]'));
+                console.log('모든 text input 개수:', allInputsArray.length);
+                
+                // 정확한 패턴: passengers[숫자].lastName (lastNameKor 제외)
+                for (let inp of allInputsArray) {
+                    if (inp.name) {
+                        // passengers[숫자].lastName 패턴 매칭 (lastNameKor 제외)
+                        const match = inp.name.match(/^passengers\[\d+\]\.lastName$/);
+                        if (match) {
+                            lastNameInput = inp;
+                            console.log('영문 성 필드 찾음:', inp.name);
+                            break;
+                        }
+                    }
+                }
+                
+                if (lastNameInput) {
+                    const value = mate.lastName || '';
+                    console.log('영문 성 API 값:', mate.lastName, '설정할 값:', value);
+                    if (value) {
+                        lastNameInput.value = value;
+                        // 여러 이벤트 트리거
+                        lastNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        lastNameInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        lastNameInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                        // 강제로 값 설정 (readonly 속성 제거 후 설정)
+                        const wasReadonly = lastNameInput.readOnly;
+                        lastNameInput.readOnly = false;
+                        lastNameInput.value = value;
+                        if (wasReadonly) lastNameInput.readOnly = true;
+                        
+                        console.log('영문 성 설정 완료:', value, '-> 실제 설정된 값:', lastNameInput.value, 'name:', lastNameInput.name);
+                        // 값이 제대로 설정되었는지 확인
+                        if (lastNameInput.value !== value) {
+                            console.error('영문 성 값 설정 실패! 예상:', value, '실제:', lastNameInput.value);
+                        }
+                    } else {
+                        console.warn('영문 성 값이 비어있음');
+                    }
+                } else {
+                    console.error('영문 성 입력 필드를 찾을 수 없음');
+                    // 디버깅: 모든 input의 name 출력
+                    console.log('카드 내 모든 text input name 목록:');
+                    allInputsArray.forEach(inp => {
+                        if (inp.name) {
+                            console.log('  -', inp.name, '(type:', inp.type + ')');
+                        }
+                    });
+                }
+                
+                // 영문 이름 - 정확한 패턴으로 찾기
+                let firstNameInput = null;
+                
+                // 정확한 패턴: passengers[숫자].firstName (firstNameKor 제외)
+                for (let inp of allInputsArray) {
+                    if (inp.name) {
+                        // passengers[숫자].firstName 패턴 매칭 (firstNameKor 제외)
+                        const match = inp.name.match(/^passengers\[\d+\]\.firstName$/);
+                        if (match) {
+                            firstNameInput = inp;
+                            console.log('영문 이름 필드 찾음:', inp.name);
+                            break;
+                        }
+                    }
+                }
+                
+                if (firstNameInput) {
+                    const value = mate.firstName || '';
+                    console.log('영문 이름 API 값:', mate.firstName, '설정할 값:', value);
+                    if (value) {
+                        firstNameInput.value = value;
+                        // 여러 이벤트 트리거
+                        firstNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        firstNameInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        firstNameInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                        // 강제로 값 설정 (readonly 속성 제거 후 설정)
+                        const wasReadonly = firstNameInput.readOnly;
+                        firstNameInput.readOnly = false;
+                        firstNameInput.value = value;
+                        if (wasReadonly) firstNameInput.readOnly = true;
+                        
+                        console.log('영문 이름 설정 완료:', value, '-> 실제 설정된 값:', firstNameInput.value, 'name:', firstNameInput.name);
+                        // 값이 제대로 설정되었는지 확인
+                        if (firstNameInput.value !== value) {
+                            console.error('영문 이름 값 설정 실패! 예상:', value, '실제:', firstNameInput.value);
+                        }
+                    } else {
+                        console.warn('영문 이름 값이 비어있음');
+                    }
+                } else {
+                    console.error('영문 이름 입력 필드를 찾을 수 없음');
+                    // 디버깅: 모든 input의 name 출력
+                    console.log('카드 내 모든 text input name 목록:');
+                    allInputsArray.forEach(inp => {
+                        if (inp.name) {
+                            console.log('  -', inp.name, '(type:', inp.type + ')');
+                        }
+                    });
+                }
+                
+                const lastNameKorInput = findInput('.lastNameKor');
+                if (lastNameKorInput) {
+                    lastNameKorInput.value = mate.lastNameKor || '';
+                    console.log('한글 성 설정:', mate.lastNameKor);
+                }
+                
+                const firstNameKorInput = findInput('.firstNameKor');
+                if (firstNameKorInput) {
+                    firstNameKorInput.value = mate.firstNameKor || '';
+                    console.log('한글 이름 설정:', mate.firstNameKor);
+                }
+                
+                // 생년월일 (날짜 형식 변환)
+                const birthInput = findInput('.birth');
+                if (birthInput && mate.birth) {
+                    // LocalDate.toString()은 "yyyy-MM-dd" 형식이므로 그대로 사용 가능
+                    if (typeof mate.birth === 'string' && mate.birth.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        birthInput.value = mate.birth;
+                    } else {
+                        // 다른 형식인 경우 Date 객체로 변환 시도
+                        const birthDate = new Date(mate.birth);
+                        if (!isNaN(birthDate.getTime())) {
+                            const year = birthDate.getFullYear();
+                            const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(birthDate.getDate()).padStart(2, '0');
+                            birthInput.value = `${year}-${month}-${day}`;
+                        } else {
+                            birthInput.value = mate.birth;
+                        }
+                    }
+                    console.log('생년월일 설정:', birthInput.value);
+                }
+                
+                // 성별
+                const sexSelect = findInput('.sex');
+                if (sexSelect && mate.sex) {
+                    const sexValue = mate.sex.toUpperCase();
+                    sexSelect.value = sexValue;
+                    console.log('성별 설정:', sexValue);
+                }
+                
+                // 국적 (countryCode를 nationality로 매핑) - 더 직접적인 방법으로 찾기
+                let nationalitySelect = findInput('.nationality');
+                if (!nationalitySelect) {
+                    // 대체 방법: name 속성에 nationality가 포함된 select 찾기
+                    nationalitySelect = card.querySelector('select[name*="nationality"]');
+                }
+                console.log('국적 select 요소 찾기:', nationalitySelect);
+                if (nationalitySelect) {
+                    // countryCode를 우선적으로 사용 (nationality가 없을 경우)
+                    let nationalityValue = mate.nationality || mate.countryCode;
+                    console.log('국적 값 확인 - nationality:', mate.nationality, 'countryCode:', mate.countryCode, '최종값:', nationalityValue);
+                    if (nationalityValue) {
+                        // select의 option value와 매칭되는지 확인
+                        const optionExists = Array.from(nationalitySelect.options).some(opt => opt.value === nationalityValue);
+                        if (optionExists) {
+                            nationalitySelect.value = nationalityValue;
+                            // change 이벤트 트리거하여 값이 확실히 반영되도록
+                            nationalitySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            console.log('국적 설정 완료:', nationalityValue, '-> 실제 설정된 값:', nationalitySelect.value);
+                        } else {
+                            console.warn('국적 값이 select option에 없음:', nationalityValue);
+                            console.log('select의 option 목록:');
+                            Array.from(nationalitySelect.options).forEach(opt => {
+                                console.log('  - value:', opt.value, 'text:', opt.text);
+                            });
+                        }
+                        // 값이 제대로 설정되었는지 확인
+                        if (nationalitySelect.value !== nationalityValue && optionExists) {
+                            console.error('국적 값 설정 실패! 예상:', nationalityValue, '실제:', nationalitySelect.value);
+                        }
+                    } else {
+                        console.warn('국적 값이 없음:', mate);
+                    }
+                } else {
+                    console.error('국적 select 요소를 찾을 수 없음');
+                    // 디버깅: 모든 select 요소 출력
+                    const allSelects = card.querySelectorAll('select');
+                    console.log('카드 내 모든 select 요소:', allSelects.length, '개');
+                    allSelects.forEach(sel => {
+                        console.log('select name:', sel.name, 'id:', sel.id, 'value:', sel.value);
+                    });
+                }
+                
+                // 발급관청
+                const authorityInput = findInput('.authority');
+                if (authorityInput) {
+                    authorityInput.value = mate.authority || '';
+                    console.log('발급관청 설정:', mate.authority);
+                }
+                
+                // 여권 발급일
+                const issueInput = findInput('.issue');
+                if (issueInput && mate.issue) {
+                    if (typeof mate.issue === 'string' && mate.issue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        issueInput.value = mate.issue;
+                    } else {
+                        const issueDate = new Date(mate.issue);
+                        if (!isNaN(issueDate.getTime())) {
+                            const year = issueDate.getFullYear();
+                            const month = String(issueDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(issueDate.getDate()).padStart(2, '0');
+                            issueInput.value = `${year}-${month}-${day}`;
+                        } else {
+                            issueInput.value = mate.issue;
+                        }
+                    }
+                    console.log('여권 발급일 설정:', issueInput.value);
+                }
+                
+                // 여권 만료일
+                const expireInput = findInput('.expire');
+                if (expireInput && mate.expire) {
+                    if (typeof mate.expire === 'string' && mate.expire.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        expireInput.value = mate.expire;
+                    } else {
+                        const expireDate = new Date(mate.expire);
+                        if (!isNaN(expireDate.getTime())) {
+                            const year = expireDate.getFullYear();
+                            const month = String(expireDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(expireDate.getDate()).padStart(2, '0');
+                            expireInput.value = `${year}-${month}-${day}`;
+                        } else {
+                            expireInput.value = mate.expire;
+                        }
+                    }
+                    console.log('여권 만료일 설정:', expireInput.value);
+                }
+                
+                // 이메일
+                const emailInput = findInput('.email');
+                if (emailInput) {
+                    emailInput.value = mate.email || '';
+                    console.log('이메일 설정:', mate.email);
+                }
+                
+                // 전화번호
+                const numberInput = findInput('.number');
+                if (numberInput) {
+                    numberInput.value = mate.number || '';
+                    console.log('전화번호 설정:', mate.number);
+                }
+                
+                // 특별 요청사항
+                const specialRequestsTextarea = findInput('.specialRequests');
+                if (specialRequestsTextarea) {
+                    specialRequestsTextarea.value = mate.specialRequests || '';
+                    console.log('특별 요청사항 설정:', mate.specialRequests);
+                }
+                
+                console.log('fillMateData 완료');
+            }
+
+
+            // postMessage 이벤트 리스너
+            window.addEventListener("message", function (event) {
+                console.log('postMessage 이벤트 수신:', event.data);
+                if (event.data?.type === "mateSelected") {
+                    console.log('여행메이트 선택됨 (postMessage):', event.data.id);
+                    handleMateSelection(event.data.id);
                 }
             });
 
-            // 선택한 메이트 정보를 passenger-card에 입력
-            function fillMateData(mate) {
-                if (!window.selectedPassengerCard) return;
+            // 커스텀 이벤트 리스너 (같은 창에서 모달이 열린 경우)
+            window.addEventListener("mateSelected", function (event) {
+                console.log('여행메이트 선택됨 (커스텀 이벤트):', event.detail.id);
+                handleMateSelection(event.detail.id);
+            });
 
-                const card = window.selectedPassengerCard;
+            // 모달이 닫힌 후 전역 변수 확인 (fallback)
+            // 주기적으로 전역 변수 확인 (모달이 열려있을 때만)
+            let checkInterval = null;
+            
+            function startCheckingMateSelection() {
+                if (checkInterval) return;
+                checkInterval = setInterval(() => {
+                    const modalBody = document.getElementById('modalBody');
+                    if (modalBody && !modalBody.classList.contains('hide')) {
+                        // 모달이 열려있을 때만 확인
+                        if (window.selectedMateId !== undefined) {
+                            console.log('주기적 확인 - 전역 변수 발견:', window.selectedMateId);
+                            handleMateSelection(window.selectedMateId);
+                            delete window.selectedMateId;
+                            if (checkInterval) {
+                                clearInterval(checkInterval);
+                                checkInterval = null;
+                            }
+                        }
+                    } else {
+                        // 모달이 닫혔으면 인터벌 정리
+                        if (checkInterval) {
+                            clearInterval(checkInterval);
+                            checkInterval = null;
+                        }
+                    }
+                }, 300);
+            }
+            
+            // 모달이 열릴 때 확인 시작
+            const modalBody = document.getElementById('modalBody');
+            if (modalBody) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            if (!modalBody.classList.contains('hide')) {
+                                // 모달이 열렸을 때 확인 시작
+                                startCheckingMateSelection();
+                            } else {
+                                // 모달이 닫혔을 때 전역 변수 최종 확인
+                                setTimeout(() => {
+                                    if (window.selectedMateId !== undefined) {
+                                        console.log('모달 닫힘 후 최종 확인:', window.selectedMateId);
+                                        handleMateSelection(window.selectedMateId);
+                                        delete window.selectedMateId;
+                                    }
+                                }, 200);
+                            }
+                        }
+                    });
+                });
+                observer.observe(modalBody, { attributes: true, attributeFilter: ['class'] });
+            }
+        })();
 
-                card.querySelector(`input[name$='.passportNum']`).value = mate.passportNum;
-                card.querySelector(`input[name$='.lastName']`).value = mate.lastName;
-                card.querySelector(`input[name$='.firstName']`).value = mate.firstName;
-                card.querySelector(`input[name$='.lastNameKor']`).value = mate.lastNameKor;
-                card.querySelector(`input[name$='.firstNameKor']`).value = mate.firstNameKor;
-                card.querySelector(`input[name$='.birth']`).value = mate.birth;
-                card.querySelector(`select[name$='.sex']`).value = mate.sex;
-                card.querySelector(`input[name$='.countryCode']`).value = mate.countryCode;
-                card.querySelector(`input[name$='.nationality']`).value = mate.nationality;
-                card.querySelector(`input[name$='.authority']`).value = mate.authority;
-                card.querySelector(`input[name$='.issue']`).value = mate.issue;
-                card.querySelector(`input[name$='.expire']`).value = mate.expire;
-                card.querySelector(`input[name$='.email']`).value = mate.email;
-                card.querySelector(`input[name$='.number']`).value = mate.number;
+        // 페이지 로드 시 각 연령 그룹별 번호 매기기
+        (function() {
+            function updatePassengerNumbers() {
+                const ageGroupSections = document.querySelectorAll('.age-group-section');
+                
+                ageGroupSections.forEach(ageGroupSection => {
+                    const passengerSections = ageGroupSection.querySelectorAll('.passenger-section');
+                    let counter = 0;
+                    
+                    passengerSections.forEach((section, index) => {
+                        counter++;
+                        const numberSpan = section.querySelector('.passenger-number');
+                        if (numberSpan) {
+                            numberSpan.textContent = ' ' + counter;
+                        }
+                    });
+                });
             }
 
-        })(); 
+            // DOMContentLoaded 또는 약간의 지연 후 실행
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updatePassengerNumbers);
+            } else {
+                setTimeout(updatePassengerNumbers, 100);
+            }
+        })();
     </script>
 </div>

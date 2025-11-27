@@ -21,4 +21,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             Payment.PaymentStatus status,
             LocalDateTime from,
             LocalDateTime to);
+    
+    java.util.Optional<Payment> findByPurchaseAirId(Long purchaseAirId);
+    
+    java.util.Optional<Payment> findByPurchaseProductId(Long purchaseProductId);
 }
