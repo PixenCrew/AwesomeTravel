@@ -350,6 +350,57 @@
         <div class="no-result-content">
             <p class="no-result-title">검색 결과가 없습니다</p>
             <p class="no-result-message">다른 검색어로 다시 검색해주세요.</p>
+    <div th:if="${image != null}">
+        <img th:src=${image}>
+    </div>
+
+    <ul class="product-list">
+        <li th:each="product : ${products}" class="product-item">
+
+            <div class="left-area" th:onclick="|addModal('/product/${product.id}')|">
+                <img th:src="${product.thumbnail}" alt="썸네일"
+                    class="thumb" />
+
+                <div class="info">
+
+                    <div class="title" th:text="${product.title}"></div>
+                    <div class="type" th:text="${product.productType}"></div>
+
+                    <!-- 타임딜이 있을 경우 -->
+                    <div th:if="${product.timeDeal != null and product.timeDeal.active}">
+
+                        <!-- 기존 가격 (취소선) -->
+                        <div class="old-price">
+                            <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                        </div>
+
+                        <!-- 할인 표시 -->
+                        <div class="discount-info">
+                            <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
+                                th:text="${product.timeDeal.value + '%↓'}"></span>
+                            <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
+                                th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
+                        </div>
+
+                        <!-- 최종 가격 -->
+                        <div class="price final-price">
+                            <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                        </div>
+
+                        <!-- 남은 시간 -->
+                        <div class="time-left"
+                            th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
+                                        ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
+                                        : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                        </div>
+                    </div>
+
+                    <!-- 타임딜이 없을 경우 일반 가격 -->
+                    <div th:if="${product.timeDeal == null or !product.timeDeal.active}">
+                        <div class="price" th:text="${#numbers.formatInteger(product.finalPriceAdult,3,'COMMA') + '원'}"></div>
+                    </div>
+
+                    <div class="depart" th:text="${product.departTimeType}"></div>
                 </div>
             </div>
 
@@ -423,7 +474,6 @@
             </div>
 
             <ul class="compare-list">
-                <!-- 선택된 상품명이 JS로 채워짐 -->
             </ul>
 
             <div class="compare-date-picker">
@@ -671,30 +721,40 @@
         // Compare Sheet 생성 함수
         // =========================
         function createCompareSheet() {
-            if (compareSheetEl) return; // 이미 존재하면 생성하지 않음
+            if (compareSheetEl) return; // 이미 존재하면 생성 안 함
 
             const template = document.getElementById("compare-sheet-template");
             const clone = template.content.cloneNode(true);
 
             compareSheetEl = clone.querySelector(".compare-sheet");
 
-            // 이벤트 연결
+            // 이벤트 바인딩
             compareSheetEl.querySelector(".close-sheet").onclick = closeCompareSheet;
             compareSheetEl.querySelector(".compare-btn").onclick = openCompareModal;
 
             document.body.appendChild(compareSheetEl);
             initializeCompareDatePicker();
+            // ⬇⬇ 여기만 변경됨
+            document.querySelector("#halfModalBody").appendChild(compareSheetEl);
+
+            // 하프 모달 보이게
+            document.getElementById("halfModal").classList.remove("hide");
         }
+
 
 
         // =========================
         // Compare Sheet 제거
         // =========================
         function closeCompareSheet() {
+
+            // 1) Compare sheet DOM 제거
             if (compareSheetEl) {
                 compareSheetEl.remove();
                 compareSheetEl = null;
             }
+
+            // 2) 선택 배열 초기화
             compareSelected = [];
             document.querySelectorAll(".compare-box input, .product-grid-compare input").forEach(cb => cb.checked = false);
         }
@@ -722,6 +782,7 @@
         }
 
 
+
         // =========================
         // Compare Sheet 갱신
         // =========================
@@ -733,13 +794,15 @@
                 return;
             }
 
-            // sheet 없으면 생성
-            if (!compareSheetEl) {
-                createCompareSheet();
+            // 1개 선택된 경우 → sheet는 보이면 안됨
+            if (compareSelected.length === 1) {
+                // sheet가 떠 있었다면 닫기
+                if (compareSheetEl) closeCompareSheet();
+                return;
             }
 
-            const listEl = compareSheetEl.querySelector(".compare-list");
-            const compareBtn = compareSheetEl.querySelector(".compare-btn");
+            // sheet 없으면 생성
+            if (compareSelected.length === 2) {
 
             // list 렌더링
             listEl.innerHTML = compareSelected
@@ -751,11 +814,7 @@
         `)
                 .join("");
 
-            // compare 버튼 활성화 / 비활성
-            if (compareSelected.length === 2) {
                 compareBtn.classList.remove("disabled");
-            } else {
-                compareBtn.classList.add("disabled");
             }
         }
 
@@ -801,7 +860,6 @@
         // 비교항목 삭제
         // =========================
         function removeCompare(id) {
-            compareSelected = compareSelected.filter(p => p.id !== id);
 
             // 리스트 뷰와 그리드 뷰 모두에서 체크박스 찾기
             const checkboxList = document.getElementById(`compare-list-${id}`);
@@ -816,9 +874,9 @@
         }
 
 
-        // =========================
-        // Compare Modal (Template 기반)
-        // =========================
+
+
+        // Compare Modal 
         async function openCompareModal() {
 
             if (compareSelected.length !== 2) {

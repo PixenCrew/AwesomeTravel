@@ -3,6 +3,7 @@ package renewal.awesome_travel.product.service;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -16,8 +17,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -46,13 +45,15 @@ public class ProductService {
     private final UserRepository userRepo;
     private final ProductServiceCommon productServiceCommon;
 
-    public Page<Product> searchProducts(ProductSearchRequestDto filter, Pageable pageable) {
+    public List<Product> searchProducts(ProductSearchRequestDto filter) {
         Specification<Product> spec = Specification.where(null);
 
         if (filter.getKeyword() != null && !filter.getKeyword().isEmpty()) {
-            spec = spec.and(ProductSpecification.keywordContains(filter.getKeyword()));
+            String normalized = Normalizer.normalize(filter.getKeyword().trim(), Normalizer.Form.NFC);
+
+            spec = spec.and(ProductSpecification.keywordContains(normalized));
         }
-        return productRepo.findAll(spec, pageable);
+        return productRepo.findAll(spec);
     }
 
     // private final ProductRepository productRepo;

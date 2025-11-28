@@ -43,6 +43,7 @@ import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.CountryCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Passenger.Sex;
+import renewal.common.entity.Passport;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;

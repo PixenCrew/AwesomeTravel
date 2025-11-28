@@ -1,0 +1,42 @@
+<div>
+    <header class="section-header">
+        <h1 th:text="${promotion.title}"></h1>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <div class="section-body">
+        <div>
+            <img th:src="${promotion.contentImg}">
+        </div>
+        <div th:text="${promotion.description}"> 기획전 설명</div>
+        <div> 시작일 <span th:text="${promotion.startTime}"></span></div>
+        <div> 종료일 <span th:text="${promotion.endTime}"></span></div>
+
+        <h2>관련 상품</h2>
+
+        <div>
+            <ul>
+                <li th:each="product : ${products}"
+                    th:onclick="|openModal('/product/${product.id}')|">
+
+                    <div th:style="|background-image: url('${product.thumbnail}');|">
+                        <div>
+                            <div th:text="${product.title}"></div>
+
+                            <div>
+                                <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA')}"></span>원~
+                            </div>
+
+                            <div th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')}">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+
+</div>

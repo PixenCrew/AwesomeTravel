@@ -1,0 +1,112 @@
+<div>
+    <!-- 헤더 -->
+    <header class="section-header">
+        <h2>상품비교</h2>
+        <div class="right">
+            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+        </div>
+    </header>
+
+    <!-- 본문 -->
+    <div class="section-body">
+
+        <!-- 제목 영역 -->
+        <div class="compare-title-row">
+            <div class="compare-title">기본 정보</div>
+        </div>
+
+        <!-- 2개 상품 비교 -->
+        <div class="compare-grid">
+
+            <!-- 왼쪽 -->
+            <div class="compare-col compare-left">
+                <div class="compare-item-title" th:text="${productA.title}"></div>
+
+                <div class="compare-field">
+                    <label>가격</label>
+                    <input type="text" readonly th:value="${productA.finalPriceAdult}">
+                </div>
+
+                <div class="compare-field">
+                    <label>출발일</label>
+                    <input type="text" readonly th:value="${productA.departDateTime}">
+                </div>
+
+                <div class="compare-field">
+                    <label>귀국일</label>
+                    <input type="text" readonly th:value="${productA.returnDateTime}">
+                </div>
+
+                <div class="compare-field">
+                    <label>출발지</label>
+                    <input type="text" readonly th:value="${aDepart}">
+                </div>
+
+                <div class="compare-field">
+                    <label>도착지</label>
+                    <input type="text" readonly th:value="${aArrive}">
+                </div>
+
+                <div class="compare-field">
+                    <label>항공사</label>
+                    <input type="text" readonly th:value="${productA.airline.nameKor}">
+                </div>
+
+                <div class="compare-field">
+                    <label>호텔등급</label>
+                    <input type="text" readonly th:value="${aHotel}">
+                </div>
+
+                <button class="detail-btn"
+                    th:onclick="'addModal(\'/product/' + ${productA.id} + '\')'">
+                    상세보기
+                </button>
+            </div>
+
+            <!-- 오른쪽 -->
+            <div class="compare-col compare-right">
+                <div class="compare-item-title" th:text="${productB.title}"></div>
+
+                <div class="compare-field">
+                    <label>가격</label>
+                    <input type="text" readonly th:value="${productB.finalPriceAdult}">
+                </div>
+
+                <div class="compare-field">
+                    <label>출발일</label>
+                    <input type="text" readonly th:value="${productB.departDateTime}">
+                </div>
+
+                <div class="compare-field">
+                    <label>귀국일</label>
+                    <input type="text" readonly th:value="${productB.returnDateTime}">
+                </div>
+
+                <div class="compare-field">
+                    <label>출발지</label>
+                    <input type="text" readonly th:value="${bDepart}">
+                </div>
+
+                <div class="compare-field">
+                    <label>도착지</label>
+                    <input type="text" readonly th:value="${bArrive}">
+                </div>
+
+                <div class="compare-field">
+                    <label>항공사</label>
+                    <input type="text" readonly th:value="${productB.airline.nameKor}">
+                </div>
+
+                <div class="compare-field">
+                    <label>호텔등급</label>
+                    <input type="text" readonly th:value="${bHotel}">
+                </div>
+
+                <button class="detail-btn"
+                    th:onclick="'addModal(\'/product/' + ${productB.id} + '\')'">
+                    상세보기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

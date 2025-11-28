@@ -28,9 +28,11 @@ import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.Banner;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
+import renewal.common.entity.Promotion;
 import renewal.common.entity.User;
 import renewal.common.repository.MenuCodeRepository;
 import renewal.common.repository.ProductRepository;
+import renewal.common.repository.PromotionRepository;
 import renewal.common.service.ProductServiceCommon;
 import renewal.awesome_travel.banner.dto.repository.BannerRepository;
 import renewal.awesome_travel.popup.entity.Popup;
@@ -44,6 +46,8 @@ public class MainController {
     private final UserService userService;
     private final UserRepository userRepo;
     private final ProductService productService;
+    private final ProductRepository productRepo;
+    private final PromotionRepository promotionRepo;
     private final MenuCodeRepository menuCodeRepo;
     private final BannerRepository bannerRepo;
     private final PopupRepository popupRepo;
@@ -88,6 +92,44 @@ public class MainController {
             model.addAttribute("recentProducts", recentProducts);
             model.addAttribute("likedProducts", Collections.emptyList());
         }
+
+        // 타임딜 5개
+        List<Product> resulProducts = new ArrayList<>();
+        List<Product> timeDealProducts = productRepo.findActiveTimeDealProducts();
+
+        for (Product product : timeDealProducts) {
+
+            Product calcedProduct = null;
+            int plusDays = product.getCutoffDays().intValue();
+            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+
+            while (calcedProduct == null && plusDays < maxPlusDays) {
+                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                plusDays++;
+            }
+
+            if (calcedProduct != null) {
+                resulProducts.add(calcedProduct);
+            }
+
+            if (resulProducts.size() >= 5) {
+                break;
+            }
+
+        }
+        model.addAttribute("timeDealProducts", resulProducts);
+
+        // 기획전 5개
+        List<Promotion> promotions = promotionRepo.findActivePromotions();
+        List<Promotion> resultPromotions = new ArrayList<>();
+
+        for (Promotion promotion : promotions) {
+            resultPromotions.add(promotion);
+            if (resultPromotions.size() >= 5) {
+                break;
+            }
+        }
+        model.addAttribute("promotions", resultPromotions);
 
         return "layout";
     }
@@ -231,6 +273,77 @@ public class MainController {
             return java.util.Map.of("url", redirectUrl);
         }
         return java.util.Collections.emptyMap();
+        return "fragments/product/productResult";
+    }
+
+    @GetMapping("timedeal")
+    public String getTimeDealList(Model model) {
+
+        // 타임딜 5개
+        List<Product> resulProducts = new ArrayList<>();
+        List<Product> timeDealProducts = productRepo.findActiveTimeDealProducts();
+
+        for (Product product : timeDealProducts) {
+
+            Product calcedProduct = null;
+            int plusDays = product.getCutoffDays().intValue();
+            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+
+            while (calcedProduct == null && plusDays < maxPlusDays) {
+                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                plusDays++;
+            }
+
+            if (calcedProduct != null) {
+                resulProducts.add(calcedProduct);
+            }
+        }
+        model.addAttribute("title", "타임딜");
+        model.addAttribute("image", "/images/timedeal/banner.png");
+        model.addAttribute("products", resulProducts);
+
+        return "fragments/product/productResult";
+    }
+
+    @GetMapping("promotion")
+    public String getPromotionList(Model model) {
+
+        List<Promotion> promotions = promotionRepo.findActivePromotions();
+        model.addAttribute("promotions", promotions);
+
+        return "fragments/product/promotionList";
+    }
+
+    @GetMapping("promotion/{id}")
+    public String getPromotionDetail(@PathVariable Long id, Model model) {
+
+        Promotion promotion = promotionRepo.findById(id).orElseThrow();
+        MenuCode targetCode = promotion.getMenuCode();
+
+        List<Product> codeProducts = productService.findProductsByMenuCode(targetCode);
+        List<Product> resulProducts = new ArrayList<>();
+
+        for (Product product : codeProducts) {
+
+            Product calcedProduct = null;
+            int plusDays = product.getCutoffDays().intValue();
+            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+
+            while (calcedProduct == null && plusDays < maxPlusDays) {
+                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                plusDays++;
+            }
+
+            if (calcedProduct != null) {
+                resulProducts.add(calcedProduct);
+            }
+
+        }
+
+        model.addAttribute("promotion", promotion);
+        model.addAttribute("products", resulProducts);
+
+        return "fragments/product/promotionDetail";
     }
 
 }
