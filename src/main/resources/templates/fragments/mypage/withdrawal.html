@@ -1,60 +1,246 @@
-<div>
-    <header class="section-header">
-        <h1>회원탈퇴</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+<div class="withdrawal-container">
+    <style>
+        .withdrawal-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .withdrawal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .withdrawal-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .withdrawal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .withdrawal-spacer {
+            width: 26px;
+        }
+
+        .withdrawal-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .withdrawal-guide-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .withdrawal-guide-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px 0;
+        }
+
+        .withdrawal-guide-item {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .withdrawal-guide-item::before {
+            content: counter(item);
+            counter-increment: item;
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+        }
+
+        .withdrawal-guide-list {
+            counter-reset: item;
+        }
+
+        .withdrawal-form-group {
+            margin-bottom: 24px;
+        }
+
+        .withdrawal-form-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .withdrawal-form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .withdrawal-form-input:focus {
+            border-color: #333;
+        }
+
+        .withdrawal-warning {
+            font-size: 14px;
+            color: #f44336;
+            margin-bottom: 8px;
+        }
+
+        .withdrawal-confirm-text {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .withdrawal-agree-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .withdrawal-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .withdrawal-checkbox-input {
+            display: none;
+        }
+
+        .withdrawal-checkbox-input:checked + .withdrawal-checkbox {
+            background: #333;
+            border-color: #333;
+        }
+
+        .withdrawal-checkbox-input:checked + .withdrawal-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .withdrawal-agree-text {
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+
+        .withdrawal-submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .withdrawal-submit-btn:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .withdrawal-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .field-error {
+            font-size: 13px;
+            color: #f44336;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+    </style>
+
+    <header class="withdrawal-header">
+        <i class="fas fa-chevron-left withdrawal-back" onclick="prevSection()"></i>
+        <h1 class="withdrawal-title">회원탈퇴</h1>
+        <div class="withdrawal-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div>
-            <h4>회원 탈퇴 안내 사항</h4>
-            <ul>
-                <li>탈퇴 시, 계정과 관련된 모든 권한이 삭제되며 복구가
-                    불가능합니다.</li>
+    <div class="withdrawal-body">
+        <h2 class="withdrawal-guide-title">회원 탈퇴 안내 사항</h2>
+        <ol class="withdrawal-guide-list">
+            <li class="withdrawal-guide-item">탈퇴 시, 계정과 관련된 모든 권한이 삭제되며 복구가 불가능합니다.</li>
+            <li class="withdrawal-guide-item">직접 작성한 콘텐츠(강의, 게시물, 댓글 등)는 자동으로 삭제되지 않습니다. 삭제를 원하시는 경우 탈퇴 전 직접 삭제해주시기 바랍니다.</li>
+            <li class="withdrawal-guide-item">탈퇴 후에는 동일한 이메일 주소로 재가입이 가능하지만, 기존 계정의 데이터 및 기록은 연동되지 않습니다.</li>
+            <li class="withdrawal-guide-item">소셜 로그인(카카오, 네이버, 구글 등)으로 가입한 경우, 탈퇴 시 해당 소셜 계정과의 연결도 해제되며 이후 소셜 로그인으로 기존 계정 접근이 불가합니다.</li>
+            <li class="withdrawal-guide-item">체크박스에 표시 후 탈퇴하시면, 위 사항에 모두 동의한 것으로 간주합니다.</li>
+        </ol>
 
-                <li>직접 작성한 콘텐츠(강의, 게시물, 댓글 등)는 자동으로
-                    삭제되지 않습니다. 삭제를 원하시는 경우 탈퇴 전 직
-                    접 삭제해주시기 바랍니다.</li>
-
-                <li>탈퇴 후에는 동일한 이메일 주소로 재가입이 가능하지
-                    만, 기존 계정의 데이터 및 기록은 연동되지 않습니다.</li>
-
-                <li>소셜 로그인(카카오, 네이버, 구글 등)으로 가입한 경
-                    우, 탈퇴 시 해당 소셜 계정과의 연결도 해제되며 이후
-                    소셜 로그인으로 기존 계정 접근이 불가합니다.</li>
-
-                <li>체크박스에 표시 후 탈퇴하시면, 위 사항에 모두 동의
-                    한 것으로 간주합니다.</li>
-            </ul>
+        <div class="withdrawal-form-group">
+            <label class="withdrawal-form-label">비밀번호 재입력</label>
+            <input type="password" id="withdrawalPassword" class="withdrawal-form-input" placeholder="확인을 위해, 비밀번호를 입력해주세요." />
+            <p class="field-error" id="passwordError"></p>
         </div>
 
-        <!-- 기존 암호 -->
-        <label>비밀번호 재입력</label>
+        <p class="withdrawal-warning">탈퇴 시, 위 혜택이 모두 사라집니다.</p>
+        <p class="withdrawal-confirm-text">내용을 모두 확인하셨나요?</p>
 
-        <div>
-            <input type="password" id="password" />
+        <div class="withdrawal-agree-group">
+            <input type="checkbox" id="withdrawalAgree" class="withdrawal-checkbox-input" />
+            <label for="withdrawalAgree" class="withdrawal-checkbox"></label>
+            <span class="withdrawal-agree-text">모두 동의하며, 회원탈퇴를 진행하겠습니다.</span>
         </div>
 
-        <h4>탈퇴 시, 위 혜택이 모두 사라집니다. 내용을 모두 확인하셨나요?</h4>
-
-        <input type="checkbox" id="agree" />모두 동의하며, 회원탈퇴를 진행하겠습니다.
-
-        <button onclick="submitWithdrawal()">탈퇴하기</button>
+        <button id="withdrawalSubmitBtn" class="withdrawal-submit-btn" onclick="submitWithdrawal()">탈퇴하기</button>
     </div>
 
     <script>
-
         (function () {
-            isSubmitting = false;
+            let isSubmitting = false;
 
             window.submitWithdrawal = async function () {
-
                 if (isSubmitting) return;
                 isSubmitting = true;
 
-                const password = document.getElementById("password").value.trim();
-                const agree = document.getElementById("agree").checked;
+                const password = document.getElementById("withdrawalPassword").value.trim();
+                const agree = document.getElementById("withdrawalAgree").checked;
+                const passwordError = document.getElementById("passwordError");
+
+                passwordError.textContent = "";
+                passwordError.classList.remove("show");
 
                 if (!agree) {
                     alert("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
@@ -62,38 +248,43 @@
                     return;
                 }
 
-                const payload = {
-                    password: password
+                if (!password) {
+                    passwordError.textContent = "비밀번호를 입력해주세요.";
+                    passwordError.classList.add("show");
+                    isSubmitting = false;
+                    return;
                 }
 
+                const payload = {
+                    password: password
+                };
+
                 try {
-                    // 서버 요청
                     const response = await fetch("/mypage/withdrawal", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
+
                     const result = await response.json();
 
                     if (!response.ok || !result.success) {
-                        alert(result.message || "회원탈퇴 중 오류가 발생했습니다.");
+                        passwordError.textContent = result.message || "회원탈퇴 중 오류가 발생했습니다.";
+                        passwordError.classList.add("show");
                         isSubmitting = false;
                         return;
                     }
 
-                    alert('회원탈퇴가 완료되었습니다.');
-                    addModal('/mypage/withdrawal/done', true);
+                    fetchSection('/mypage/withdrawal/done');
 
                 } catch (err) {
-
                     console.error(err);
-                    alert("회원탈퇴 중 오류가 발생했습니다.");
-
+                    passwordError.textContent = "회원탈퇴 중 오류가 발생했습니다.";
+                    passwordError.classList.add("show");
                 } finally {
                     isSubmitting = false;
                 }
-            }
+            };
         })();
-
     </script>
 </div>

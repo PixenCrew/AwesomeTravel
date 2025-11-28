@@ -1,26 +1,372 @@
-<div>
-    <header class="section-header">
-        <h1>예약 내역</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
+<div class="reservation-list-container">
+    <style>
+        .reservation-list-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
 
+        .reservation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .reservation-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .reservation-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .reservation-spacer {
+            width: 26px;
+        }
+
+        .reservation-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .reservation-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            background: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reservation-tab.active {
+            background: white;
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reservation-filters {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .reservation-filter {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+        }
+
+        .reservation-filter.active {
+            background: #1976d2;
+            color: white;
+        }
+
+        .reservation-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .reservation-card {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .reservation-image {
+            width: 80px;
+            height: 80px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .reservation-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .reservation-status {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .reservation-title-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .reservation-info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .reservation-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .reservation-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            background: white;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .reservation-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .reservation-btn.primary {
+            border-color: #333;
+        }
+
+        .reservation-btn.secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .reservation-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+    </style>
+
+    <header class="reservation-header">
+        <i class="fas fa-chevron-left reservation-back" onclick="prevSection()"></i>
+        <h1 class="reservation-title">예약 내역</h1>
+        <div class="reservation-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div th:each="purchaseProduct : ${purchaseProducts}">
-            <ul>
-                <li th:onclick="'openModal(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">
-                    <span th:text="${purchaseProduct.product.title}">상품명</span>
-                </li>
-            </ul>
-        </div>
+    <!-- 탭 -->
+    <div class="reservation-tabs">
+        <button class="reservation-tab active" onclick="switchTab('package')">패키지</button>
+        <button class="reservation-tab" onclick="switchTab('air')">항공</button>
+    </div>
 
-        <div th:each="purchaseAir : ${purchaseAirs}">
-            <ul>
-                <li th:onclick="'openModal(\'/air/purchase/' + ${purchaseAir.id} + '\')'">
-                    <span th:text="${purchaseAir.title}">상품명</span>
-                </li>
-            </ul>
+    <!-- 필터 -->
+    <div class="reservation-filters" id="packageFilters">
+        <button class="reservation-filter active" onclick="filterReservations('all')">전체</button>
+        <button class="reservation-filter" onclick="filterReservations('paid')">결제완료</button>
+        <button class="reservation-filter" onclick="filterReservations('cancelled')">예약취소</button>
+        <button class="reservation-filter" onclick="filterReservations('progress')">결제진행</button>
+        <button class="reservation-filter" onclick="filterReservations('confirmed')">예약확정</button>
+    </div>
+
+    <!-- 항공 필터 -->
+    <div class="reservation-filters" id="airFilters" style="display: none;">
+        <button class="reservation-filter active" onclick="filterAirReservations('all')">전체</button>
+        <button class="reservation-filter" onclick="filterAirReservations('issued')">발권 완료</button>
+        <button class="reservation-filter" onclick="filterAirReservations('paid')">결제 완료</button>
+        <button class="reservation-filter" onclick="filterAirReservations('reserved')">예약 완료</button>
+        <button class="reservation-filter" onclick="filterAirReservations('waiting')">대기 예약</button>
+    </div>
+
+    <!-- 패키지 예약 목록 -->
+    <div class="reservation-body" id="packageList">
+        <div th:each="purchaseProduct : ${purchaseProducts}" class="reservation-card" th:data-status="${purchaseProduct.purchaseStatus.name()}">
+            <img th:src="${purchaseProduct.product?.image ?: purchaseProduct.product?.thumbnail ?: '/images/placeholder.jpg'}" 
+                 class="reservation-image" 
+                 alt="상품 이미지" />
+            <div class="reservation-content">
+                <div class="reservation-status" th:text="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID ? '결제완료' : 
+                                                              (purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).CANCELLED ? '예약 취소' : 
+                                                              (purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).RESERVED ? '결제진행' : '예약확정'))}">결제완료</div>
+                <div class="reservation-title-text" th:text="${purchaseProduct.product?.title ?: purchaseProduct.title}">나트랑 3박 4일</div>
+                <div class="reservation-info" th:text="'예약번호 : ' + ${purchaseProduct.id}">예약번호 : 3672234</div>
+                <div class="reservation-info" th:text="'기간: ' + ${#temporals.format(purchaseProduct.departDateTime, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(purchaseProduct.returnDateTime, 'yyyy.MM.dd')}">기간: 2025.04.27 ~ 2025.05.01</div>
+                <div class="reservation-actions">
+                    <button class="reservation-btn primary" 
+                            th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
+                            th:onclick="'addModal(\'/product/purchase/' + ${purchaseProduct.id} + '/review\')'">후기 작성</button>
+                    <button class="reservation-btn primary" 
+                            th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID && purchaseProduct.purchaseStatus != T(renewal.common.entity.PurchaseBase.PurchaseStatus).CANCELLED}"
+                            th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">취소하기</button>
+                    <button class="reservation-btn secondary" 
+                            th:onclick="'addModal(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">상세 보기</button>
+                </div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(purchaseProducts)}" class="reservation-empty">
+            예약 내역이 없습니다.
         </div>
     </div>
+
+    <!-- 항공 예약 목록 -->
+    <div class="reservation-body" id="airList" style="display: none;">
+        <div th:each="purchaseAir : ${purchaseAirs}" class="reservation-card" th:data-status="${purchaseAir.purchaseStatus.name()}">
+            <img src="/images/placeholder.jpg" class="reservation-image" alt="항공 이미지" />
+            <div class="reservation-content">
+                <div class="reservation-status" th:text="${purchaseAir.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID ? '발권완료' : 
+                                                          (purchaseAir.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).CANCELLED ? '예약 취소' : 
+                                                          (purchaseAir.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).RESERVED ? '예약 완료' : '결제 완료'))}">발권완료</div>
+                <div class="reservation-title-text" 
+                     th:text="${purchaseAir.finalSeatClasses.size() > 0 ? (purchaseAir.finalSeatClasses[0].departAirport + '(' + purchaseAir.finalSeatClasses[0].departAirport + ') → ' + purchaseAir.finalSeatClasses[0].arriveAirport + '(' + purchaseAir.finalSeatClasses[0].arriveAirport + ')') : purchaseAir.title}">제주(CJU) → 김포(GMP)</div>
+                <div class="reservation-info" th:text="'예약번호 : ' + ${purchaseAir.id}">예약번호 : 3672234</div>
+                <div class="reservation-info" 
+                     th:text="'기간 : ' + ${purchaseAir.finalSeatClasses.size() > 0 ? (#temporals.format(purchaseAir.finalSeatClasses[0].departDateTime, 'yyyy.MM.dd') + (purchaseAir.finalSeatClasses.size() > 1 ? ' ~ ' + #temporals.format(purchaseAir.finalSeatClasses[purchaseAir.finalSeatClasses.size()-1].arriveDateTime, 'yyyy.MM.dd') : '')) : ''}">기간 : 2025.04.27 ~ 2025.04.27</div>
+                <div class="reservation-actions">
+                    <button class="reservation-btn secondary" 
+                            th:onclick="'addModal(\'/air/purchase/' + ${purchaseAir.id} + '\')'">상세보기</button>
+                </div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(purchaseAirs)}" class="reservation-empty">
+            예약 내역이 없습니다.
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        (function() {
+            let currentTab = 'package';
+            let currentFilter = 'all';
+
+            window.switchTab = function(tab) {
+                currentTab = tab;
+                document.querySelectorAll('.reservation-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                if (tab === 'package') {
+                    document.getElementById('packageList').style.display = 'block';
+                    document.getElementById('airList').style.display = 'none';
+                    document.getElementById('packageFilters').style.display = 'flex';
+                    document.getElementById('airFilters').style.display = 'none';
+                } else {
+                    document.getElementById('packageList').style.display = 'none';
+                    document.getElementById('airList').style.display = 'block';
+                    document.getElementById('packageFilters').style.display = 'none';
+                    document.getElementById('airFilters').style.display = 'flex';
+                }
+                if (tab === 'package') {
+                    filterReservations(currentFilter);
+                } else {
+                    filterAirReservations('all');
+                }
+            }
+
+            window.filterReservations = function(filter) {
+                currentFilter = filter;
+                document.querySelectorAll('.reservation-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                const listId = currentTab === 'package' ? 'packageList' : 'airList';
+                const cards = document.querySelectorAll(`#${listId} .reservation-card`);
+
+                cards.forEach(card => {
+                    const status = card.getAttribute('data-status');
+                    let show = false;
+
+                    if (filter === 'all') {
+                        show = true;
+                    } else if (filter === 'paid' && status === 'PAID') {
+                        show = true;
+                    } else if (filter === 'cancelled' && status === 'CANCELLED') {
+                        show = true;
+                    } else if (filter === 'progress' && status === 'RESERVED') {
+                        show = true;
+                    } else if (filter === 'confirmed' && status === 'CONFIRMED') {
+                        show = true;
+                    }
+
+                    card.style.display = show ? 'flex' : 'none';
+                });
+            }
+
+            window.filterAirReservations = function(filter) {
+                currentFilter = filter;
+                document.querySelectorAll('#airFilters .reservation-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                const cards = document.querySelectorAll('#airList .reservation-card');
+
+                cards.forEach(card => {
+                    const status = card.getAttribute('data-status');
+                    let show = false;
+
+                    if (filter === 'all') {
+                        show = true;
+                    } else if (filter === 'issued' && status === 'PAID') {
+                        show = true;
+                    } else if (filter === 'paid' && status === 'PAID') {
+                        show = true;
+                    } else if (filter === 'reserved' && status === 'RESERVED') {
+                        show = true;
+                    } else if (filter === 'waiting' && status === 'HOLDING') {
+                        show = true;
+                    }
+
+                    card.style.display = show ? 'flex' : 'none';
+                });
+            }
+
+            window.cancelProductReservation = async function(id) {
+                if (confirm('예약을 취소하시겠습니까?')) {
+                    try {
+                        const response = await fetch(`/product/purchase/${id}/cancel`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({})
+                        });
+                        if (response.ok) {
+                            alert('예약이 취소되었습니다.');
+                            location.reload();
+                        } else {
+                            alert('예약 취소에 실패했습니다.');
+                        }
+                    } catch (error) {
+                        console.error('예약 취소 실패:', error);
+                        alert('예약 취소 중 오류가 발생했습니다.');
+                    }
+                }
+            }
+        })();
+    </script>
+</div>

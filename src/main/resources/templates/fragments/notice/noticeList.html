@@ -1,0 +1,159 @@
+<div class="notice-list-container">
+    <style>
+        .notice-list-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .notice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .notice-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .notice-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .notice-spacer {
+            width: 26px;
+        }
+
+        .notice-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .notice-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .notice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+        }
+
+        .notice-item:last-child {
+            border-bottom: none;
+        }
+
+        .notice-item-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notice-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .notice-item-title {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .notice-item-date {
+            font-size: 13px;
+            color: #666;
+            margin-left: 16px;
+            white-space: nowrap;
+        }
+
+        .notice-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+    </style>
+
+    <header class="notice-header">
+        <i class="fas fa-chevron-left notice-back" onclick="prevSection()"></i>
+        <h1 class="notice-title">공지사항</h1>
+        <div class="notice-spacer"></div>
+    </header>
+
+    <div class="notice-body">
+        <h2 class="notice-section-title">공지사항 목록</h2>
+
+        <div th:each="notice : ${notices}" class="notice-item" th:onclick="'fetchSection(\'/notice/' + ${notice.id} + '\')'">
+            <div class="notice-item-left">
+                <div class="notice-label">공지</div>
+                <div class="notice-item-title" th:text="${notice.title}">봄 카드 할인 이벤트 당첨자 발표</div>
+            </div>
+            <div class="notice-item-date" th:attr="data-date=${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm:ss')}">3일 전</div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(notices)}" class="notice-empty">
+            공지사항이 없습니다.
+        </div>
+    </div>
+
+    <script>
+        // 날짜를 "N일 전" 형식으로 변환
+        function formatDateAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                if (diffHours === 0) {
+                    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                    return diffMinutes === 0 ? '방금 전' : diffMinutes + '분 전';
+                }
+                return diffHours + '시간 전';
+            } else if (diffDays < 7) {
+                return diffDays + '일 전';
+            } else if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                return weeks + '주 전';
+            } else if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                return months + '개월 전';
+            } else {
+                const years = Math.floor(diffDays / 365);
+                return years + '년 전';
+            }
+        }
+
+        // 페이지 로드 시 날짜 변환
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.notice-item-date[data-date]').forEach(function(el) {
+                const dateString = el.getAttribute('data-date');
+                if (dateString) {
+                    el.textContent = formatDateAgo(dateString);
+                }
+            });
+        });
+    </script>
+</div>
+

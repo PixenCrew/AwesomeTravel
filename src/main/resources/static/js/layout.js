@@ -18,15 +18,96 @@ const sectionMap = {
 
 const sectionNavMaxLength = 3;
 
+// 스크롤 방향 추적을 위한 변수
+let lastScrollTop = 0;
+let scrollThreshold = 10; // 스크롤 최소 거리 (너무 작은 움직임은 무시)
+
 document.addEventListener('DOMContentLoaded', () => {
     loadRecentSearches();
     initSearchForm();
     updateAutoSaveText();
+    // 초기 푸터 네비게이션 활성화 상태 설정 (홈)
+    updateFooterNav(1);
+    // 스크롤 이벤트 리스너 초기화
+    initScrollHideNav();
+    
+    // 로그인 후 예약 정보 확인
+    checkReservationAfterLogin();
 });
+
+// 로그인 후 예약 정보 확인 및 모달 열기
+async function checkReservationAfterLogin() {
+    try {
+        // 결제 페이지로 리다이렉트 확인 (다음 단계 버튼 클릭 후 로그인)
+        const paymentRedirectResponse = await fetch('/api/check-payment-redirect');
+        if (paymentRedirectResponse.ok) {
+            const paymentRedirectData = await paymentRedirectResponse.json();
+            if (paymentRedirectData && paymentRedirectData.url) {
+                // 결제 페이지로 이동
+                setTimeout(() => {
+                    if (typeof addModal === 'function') {
+                        addModal(paymentRedirectData.url);
+                    } else if (typeof fetchSection === 'function') {
+                        fetchSection(paymentRedirectData.url);
+                    }
+                }, 500);
+                return; // 결제 페이지로 리다이렉트가 있으면 다른 정보는 확인하지 않음
+            }
+        }
+        
+        // 항공편 예약 정보 확인
+        const airResponse = await fetch('/api/check-air-reservation');
+        if (airResponse.ok) {
+            const airReservationData = await airResponse.json();
+            if (airReservationData && Object.keys(airReservationData).length > 0) {
+                // 항공편 예약 정보가 있으면 항공편 상세 페이지로 이동 후 결제 페이지로 이동
+                setTimeout(() => {
+                    // 먼저 항공편 상세 페이지로 요청하여 detailResult를 세션에 저장
+                    fetch('/air/detail', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(airReservationData)
+                    })
+                    .then(() => {
+                        // 결제 페이지로 이동
+                        if (typeof fetchSection === 'function') {
+                            fetchSection('/air/purchase/payment');
+                        } else if (typeof addModal === 'function') {
+                            addModal('/air/purchase/payment');
+                        }
+                    })
+                    .catch(err => console.error('항공편 상세 정보 로드 실패:', err));
+                }, 500);
+                return; // 항공편 예약 정보가 있으면 일반 예약 정보는 확인하지 않음
+            }
+        }
+        
+        // 일반 상품 예약 정보 확인
+        const response = await fetch('/product/reservation/check');
+        if (response.ok) {
+            const reservationData = await response.json();
+            if (reservationData && Object.keys(reservationData).length > 0) {
+                // 예약 정보가 있으면 예약 모달 열기
+                setTimeout(() => {
+                    if (typeof addModal === 'function') {
+                        addModal('product/reservation', false, reservationData);
+                    }
+                }, 500); // 페이지 로드 후 약간의 지연
+            }
+        }
+    } catch (error) {
+        console.error('예약 정보 확인 실패:', error);
+    }
+}
 
 function showSection(sectionIndex, push = true) {
     if (currentSection === sectionIndex) return;
     if (isAnimating) return;
+
+    // 모달이 열려있으면 먼저 닫기
+    if (fullModal && !fullModal.classList.contains('hide')) {
+        closeModal();
+    }
 
     isAnimating = true;
 
@@ -47,6 +128,21 @@ function showSection(sectionIndex, push = true) {
     targetSection.classList.remove('exit');
     targetSection.classList.add('active');
 
+    // 푸터 네비게이션 활성화 상태 업데이트
+    updateFooterNav(sectionIndex);
+
+    // 섹션 변경 시 네비게이션 바 보이기 및 스크롤 위치 초기화
+    const footer = document.getElementById('footerSection');
+    if (footer) {
+        footer.classList.remove('hidden');
+    }
+    lastScrollTop = 0;
+    
+    // 섹션 변경 후 스크롤 리스너 재설정
+    setTimeout(() => {
+        addScrollListeners();
+    }, 100);
+
     // 애니메이팅 완료 처리
     setTimeout(() => {
         startSection.classList.remove('exit');
@@ -56,50 +152,182 @@ function showSection(sectionIndex, push = true) {
     currentSection = sectionIndex;
 }
 
+// 푸터 네비게이션 활성화 상태 업데이트
+function updateFooterNav(sectionIndex) {
+    const navItems = document.querySelectorAll('#footerSection .nav-item');
+    navItems.forEach(item => {
+        const itemSection = parseInt(item.getAttribute('data-section'));
+        if (itemSection === sectionIndex) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// 스크롤 가능한 모든 요소에 리스너 추가
+function addScrollListeners() {
+    // 메인 섹션 스크롤 이벤트
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection && !mainSection.hasAttribute('data-scroll-listener')) {
+        mainSection.addEventListener('scroll', handleScroll, { passive: true });
+        mainSection.setAttribute('data-scroll-listener', 'true');
+    }
+
+    // 모든 섹션의 section-body 스크롤 이벤트
+    const sectionBodies = document.querySelectorAll('.section-body');
+    sectionBodies.forEach(body => {
+        if (!body.hasAttribute('data-scroll-listener')) {
+            body.addEventListener('scroll', handleScroll, { passive: true });
+            body.setAttribute('data-scroll-listener', 'true');
+        }
+    });
+
+    // 모달 내부의 스크롤 가능한 요소들도 감지
+    const modalBody = document.getElementById('modalBody');
+    if (modalBody) {
+        // modal-slide 자체도 스크롤 가능할 수 있음
+        const modalSlides = modalBody.querySelectorAll('.modal-slide');
+        modalSlides.forEach(slide => {
+            const style = window.getComputedStyle(slide);
+            if ((style.overflowY === 'auto' || style.overflowY === 'scroll' || style.overflow === 'auto' || style.overflow === 'scroll') && 
+                !slide.hasAttribute('data-scroll-listener')) {
+                slide.addEventListener('scroll', handleScroll, { passive: true });
+                slide.setAttribute('data-scroll-listener', 'true');
+            }
+        });
+        
+        // 모달 내부의 다른 스크롤 가능한 요소들
+        const modalScrollable = modalBody.querySelectorAll('.payment-container, .payment-body, [style*="overflow-y"], [style*="overflow"]');
+        modalScrollable.forEach(el => {
+            const style = window.getComputedStyle(el);
+            if ((style.overflowY === 'auto' || style.overflowY === 'scroll' || 
+                 el.classList.contains('payment-container') || el.classList.contains('payment-body')) && 
+                !el.hasAttribute('data-scroll-listener')) {
+                el.addEventListener('scroll', handleScroll, { passive: true });
+                el.setAttribute('data-scroll-listener', 'true');
+            }
+        });
+    }
+
+    // 스크롤 가능한 다른 컨테이너들도 감지 (overflow-y: auto 또는 scroll인 요소)
+    const scrollableElements = document.querySelectorAll('[style*="overflow-y"], [style*="overflow"]');
+    scrollableElements.forEach(el => {
+        const style = window.getComputedStyle(el);
+        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && 
+            !el.hasAttribute('data-scroll-listener')) {
+            el.addEventListener('scroll', handleScroll, { passive: true });
+            el.setAttribute('data-scroll-listener', 'true');
+        }
+    });
+}
+
+// 스크롤에 따라 네비게이션 바 숨기기/보이기 초기화
+function initScrollHideNav() {
+    // 초기 리스너 추가
+    addScrollListeners();
+
+    // 동적 섹션 및 전체 문서 변경 감지
+    const observer = new MutationObserver(() => {
+        // 새로운 스크롤 가능한 요소가 추가될 때마다 리스너 추가
+        addScrollListeners();
+    });
+
+    // 전체 문서를 관찰 (모든 섹션 변경 감지)
+    observer.observe(document.body, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+}
+
+// 스크롤 이벤트 핸들러
+function handleScroll(event) {
+    const footer = document.getElementById('footerSection');
+    if (!footer) return;
+
+    // 홈 화면에서는 스크롤 감지 비활성화
+    const homeSection = document.getElementById('homeSection');
+    if (homeSection && homeSection.classList.contains('active')) {
+        footer.classList.remove('hidden');
+        return;
+    }
+
+    const scrollContainer = event.target;
+    const currentScrollTop = scrollContainer.scrollTop;
+
+    // 맨 위에 있으면 항상 네비게이션 바 보이기
+    if (currentScrollTop <= scrollThreshold) {
+        footer.classList.remove('hidden');
+        lastScrollTop = 0;
+        return;
+    }
+
+    // 스크롤 방향 감지
+    if (Math.abs(currentScrollTop - lastScrollTop) < scrollThreshold) {
+        return; // 최소 스크롤 거리 미만이면 무시
+    }
+
+    if (currentScrollTop > lastScrollTop) {
+        // 아래로 스크롤 (위로 올라감) → 네비게이션 바 숨기기
+        footer.classList.add('hidden');
+    } else if (currentScrollTop < lastScrollTop) {
+        // 위로 스크롤 (아래로 내려감) → 네비게이션 바 보이기
+        footer.classList.remove('hidden');
+    }
+
+    lastScrollTop = currentScrollTop;
+}
+
 function fetchSection(endPoint, payload = null) {
     fetchContent(endPoint, payload).then(html => {
-        // const dynamicSection = document.getElementById('dynamicSection');
-
-        // if (currentSection !== 6) {
-        //     showSection(6);
-        //     dynamicSection.innerHTML = html;
-        // } else {
-        //     // 기존 다이내믹 섹션 기록
-        //     sectionStack.push({
-        //         type: 'dynamic',
-        //         content: dynamicSection.innerHTML
-        //     });
-        //     if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
-
-        //     dynamicSection.innerHTML = html;
-
-        //     executeScripts(dynamicSection);
-        // }
         const container = document.getElementById('dynamicSection');
-
-        // 새 섹션 div 생성
-        const newSection = document.createElement('div');
-        newSection.classList.add('dynamic-section-new');
-        newSection.innerHTML = html;
-
-        // 기존 내용 스택에 저장
-        if (currentSection === 6) {
-            sectionStack.push({
-                type: 'dynamic',
-                content: container.innerHTML
-            });
-            if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+        if (!container) {
+            console.error('dynamicSection not found');
+            return;
         }
+        
+        const sectionBody = container.querySelector('.section-body > div');
+        
+        // section-body > div가 없으면 fallback: 기존 방식 사용
+        if (!sectionBody) {
+            console.warn('section-body > div not found, using fallback');
+            // 기존 내용 스택에 저장
+            if (currentSection === 6) {
+                sectionStack.push({
+                    type: 'dynamic',
+                    content: container.innerHTML
+                });
+                if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+            }
+            // 전체 교체 (fallback)
+            container.innerHTML = html;
+            executeScripts(container);
+        } else {
+            // 기존 내용 스택에 저장
+            if (currentSection === 6) {
+                sectionStack.push({
+                    type: 'dynamic',
+                    content: sectionBody.innerHTML
+                });
+                if (sectionStack.length > sectionNavMaxLength) sectionStack.shift();
+            }
 
-        // 기존 dynamicSection 내용 교체
-        container.innerHTML = ''; // 기존 내용 제거
-        container.appendChild(newSection);
+            // section-body 안의 div에만 내용 교체 (section-header, section-body 구조 유지)
+            sectionBody.innerHTML = html;
 
-        // 스크립트 실행
-        executeScripts(newSection);
+            // 스크립트 실행
+            executeScripts(sectionBody);
+        }
 
         // 현재 섹션 표시
         if (currentSection !== 6) showSection(6);
+        
+        // 동적 섹션 로드 후 스크롤 리스너 재설정
+        setTimeout(() => {
+            addScrollListeners();
+        }, 100);
     });
 }
 
@@ -117,11 +345,29 @@ function prevSection() {
         // push 방지 옵션 사용
         showSection(prev.id, false);
     } else if (prev.type === 'dynamic') {
-        document.getElementById('dynamicSection').innerHTML = prev.content;
+        const container = document.getElementById('dynamicSection');
+        if (!container) {
+            console.error('dynamicSection not found');
+            return;
+        }
+        
+        const sectionBody = container.querySelector('.section-body > div');
+        if (sectionBody) {
+            // section-body > div에만 복원
+            sectionBody.innerHTML = prev.content;
+        } else {
+            // fallback: 전체 복원
+            container.innerHTML = prev.content;
+        }
 
         // 모든 section 상태 초기화 후 dynamicSection만 active
-        document.getElementById('dynamicSection').classList.add('active');
+        container.classList.add('active');
         currentSection = 6;
+        
+        // 섹션 복원 후 스크롤 리스너 재설정
+        setTimeout(() => {
+            addScrollListeners();
+        }, 100);
     }
 }
 
@@ -152,6 +398,11 @@ async function refreshSectionsAfterLogin() {
                 target.innerHTML = htmlFragments[index];
             }
         });
+        
+        // 섹션 새로고침 후 스크롤 리스너 재설정
+        setTimeout(() => {
+            addScrollListeners();
+        }, 100);
 
         console.log("refreshSectionsAfterLogin2");
 
@@ -163,7 +414,9 @@ async function refreshSectionsAfterLogin() {
 // ===========================섹션 - 메뉴 탭=================
 function showMenuTab(tabId) {
     const tabs = ['menu-travel', 'menu-support'];
+    const tabButtons = ['tab-travel', 'tab-support'];
 
+    // 탭 내용 전환
     tabs.forEach(id => {
         const menuElement = document.getElementById(id);
         if (!menuElement) return;
@@ -174,6 +427,37 @@ function showMenuTab(tabId) {
             menuElement.classList.remove('active');
         }
     });
+
+    // 탭 버튼 활성화 상태 전환
+    tabButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        
+        if ((btnId === 'tab-travel' && tabId === 'menu-travel') ||
+            (btnId === 'tab-support' && tabId === 'menu-support')) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// 메뉴 카테고리 확장/축소
+function toggleMenuCategory(btn) {
+    const category = btn.closest('.menu-category');
+    const subcategory = category.querySelector('.menu-subcategory');
+    const icon = btn.querySelector('.category-icon');
+    
+    if (subcategory) {
+        subcategory.classList.toggle('active');
+        if (subcategory.classList.contains('active')) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
 }
 
 // ===========================모달제어========================
@@ -196,10 +480,17 @@ function openModal(endPoint, payload = null) {
     fetchContent(endPoint, payload).then(html => {
         newModal.innerHTML = html
         executeScripts(newModal);
+        // 모달 내용 로드 후 스크롤 리스너 추가
+        setTimeout(() => {
+            addScrollListeners();
+        }, 100);
     }); // 모달 내용물 fetch
     modalBody.appendChild(newModal);
     currentModal = newModal;
 }
+
+// 전역 스코프에 노출
+window.openModal = openModal;
 
 // 문자열 모달 열기
 function openModalHtml(htmlString) {
@@ -219,6 +510,12 @@ function openModalHtml(htmlString) {
 
 // 새 모달 내용 생성
 function addModal(endPoint, flush = false, payload = null) {
+    // 모달이 열려있지 않으면 먼저 열기
+    if (!currentModal || fullModal.classList.contains('hide')) {
+        openModal(endPoint, payload);
+        return;
+    }
+    
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'leave');
 
@@ -239,6 +536,10 @@ function addModal(endPoint, flush = false, payload = null) {
             setTimeout(() => {
                 newModal.classList.remove('leave');
                 newModal.classList.add('show');
+                // 모달 내용 로드 후 스크롤 리스너 추가
+                setTimeout(() => {
+                    addScrollListeners();
+                }, 100);
             }, 0);
 
             // fetch 성공시 flush
@@ -264,6 +565,9 @@ function addModal(endPoint, flush = false, payload = null) {
             backModal();
         });
 }
+
+// 전역 스코프에 노출
+window.addModal = addModal;
 
 
 // 뒤로가기
@@ -293,6 +597,9 @@ function closeModal() {
     fullModal.classList.add('hide');
     modalStack = [];
     currentModal = null;
+    // 하단 네비게이션 바 다시 보이기 (모달이 모두 닫혔을 때)
+    const footer = document.getElementById('footerSection');
+    if (footer) footer.classList.remove('hidden');
     setTimeout(() => {
         modalBody.innerHTML = '';
     }, 500);
@@ -360,6 +667,29 @@ function fetchContent(endPoint, payload = null) {
         })
         .then(html => {
             if (!html) throw new Error('Fetch returned empty content');
+            
+            // 로그인 페이지 HTML인지 확인 (로그인 페이지로 리다이렉트된 경우)
+            if (html.includes('login-container') || html.includes('login-submit-btn') || 
+                (html.includes('로그인') && html.includes('username') && html.includes('password'))) {
+                
+                // 항공편 상세 페이지인 경우 (payload가 있고 seatClassIds가 있는 경우)
+                if (endPoint === '/air/detail' && payload && payload.seatClassIds) {
+                    // 항공편 예약 정보를 세션에 저장
+                    fetch('/api/save-air-reservation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).catch(err => console.error('Failed to save air reservation:', err));
+                } else {
+                    // 일반 상품의 경우 원래 URL 저장 (하지만 사용하지 않음 - 홈으로 이동)
+                    // fetch('/api/save-original-url', {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify({ url: endPoint })
+                    // }).catch(err => console.error('Failed to save original URL:', err));
+                }
+            }
+            
             return html;
         })
         .catch(err => {

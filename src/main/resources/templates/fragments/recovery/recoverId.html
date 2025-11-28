@@ -1,35 +1,41 @@
-<div>
-
-    <header class="section-header">
-        <h1>아이디 찾기</h1>
-        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+<div class="recovery-id-container">
+    <header class="recovery-id-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="recovery-id-title">아이디 찾기</h1>
+        <div class="header-spacer" style="width: 26px;"></div>
     </header>
 
-    <div class="section-body">
-        <div class="title">아이디 찾기</div>
-
-        <div>
-            회원정보에 등록된 휴대폰번호 인증을 통해
-
-            아이디를 찾을 수 있습니다.</div>
-
-        <!-- 휴대폰 번호 -->
-        <label class="input-label">휴대폰 번호</label>
-        <div class="phone-box">
-            <input type="text" id="number" placeholder="휴대폰 번호를 입력해주세요" />
-            <button id="requestBtn" class="btn-black" onclick="requestCode()">인증 요청</button>
+    <div class="recovery-id-body">
+        <h2 class="recovery-id-main-title">아이디 찾기</h2>
+        <div class="recovery-id-instruction">
+            <p style="margin: 0;">회원정보에 등록된 휴대폰번호 인증을 통해</p>
+            <p style="margin: 0;">아이디를 찾을 수 있습니다.</p>
         </div>
 
-        <!-- 인증번호 -->
-        <label class="input-label">인증번호</label>
-        <div class="verify-box">
-            <input type="text" id="verifyCode" placeholder="인증번호를 입력하세요." />
-            <button id="checkBtn" class="btn-black" onclick="checkCode()">확인하기</button>
+        <div class="recovery-id-form">
+            <div class="recovery-id-input-group">
+                <label for="number" class="recovery-label">휴대폰 번호</label>
+                <div class="recovery-id-input-wrapper" style="display: flex; gap: 8px; align-items: flex-start;">
+                    <input type="text" id="number" class="recovery-input" placeholder="휴대폰 번호를 입력해주세요" style="flex: 1;" />
+                    <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                        <button id="requestBtn" class="recovery-btn-black" onclick="requestCode()">인증 요청</button>
+                        <button id="resendBtn" class="recovery-btn-gray" onclick="requestCode()" style="display: none;">재전송</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recovery-id-input-group">
+                <label for="verifyCode" class="recovery-label">인증번호</label>
+                <div class="recovery-id-input-wrapper" style="display: flex; gap: 8px; align-items: flex-start;">
+                    <input type="text" id="verifyCode" class="recovery-input" placeholder="인증번호를 입력하세요." style="flex: 1;" />
+                    <button id="checkBtn" class="recovery-btn-black" onclick="checkCode()" style="flex-shrink: 0;">확인하기</button>
+                </div>
+            </div>
         </div>
-        <h4 id="errorMsg"></h4>
 
-        <button id="registerBtn" class="btn-primary" onclick="submitRecoverId()" disabled>아이디 찾기</button>
+        <div id="errorMsg" class="recovery-error-msg"></div>
 
+        <button id="registerBtn" class="recovery-id-submit-btn" onclick="submitRecoverId()" disabled>아이디 찾기</button>
     </div>
 
     <script>
@@ -81,7 +87,8 @@
             window.requestCode = async function () {
 
                 const number = document.getElementById("number").value.trim();
-                const btn = document.getElementById("requestBtn");
+                const requestBtn = document.getElementById("requestBtn");
+                const resendBtn = document.getElementById("resendBtn");
 
                 if (!number) {
                     alert("휴대폰 번호를 입력해주세요.");
@@ -89,9 +96,9 @@
                 }
 
                 // 중복 클릭 방지
-                if (btn.dataset.loading === "true") return;
-                btn.dataset.loading = "true";
-                btn.textContent = "요청 중...";
+                if (requestBtn.dataset.loading === "true") return;
+                requestBtn.dataset.loading = "true";
+                requestBtn.textContent = "요청 중...";
 
                 try {
                     // 서버 요청 (예시)
@@ -109,7 +116,8 @@
                         alert("인증번호가 발송되었습니다.");
 
                         // 버튼을 재전송 모드로 변경
-                        btn.textContent = "재전송";
+                        requestBtn.style.display = "none";
+                        resendBtn.style.display = "block";
                         isRequested = true;
 
                     } else {
@@ -121,8 +129,10 @@
                     alert("인증 요청 중 오류가 발생했습니다.");
 
                 } finally {
-                    btn.dataset.loading = "false";
-                    if (!isRequested) btn.textContent = "인증 요청";
+                    requestBtn.dataset.loading = "false";
+                    if (!isRequested) {
+                        requestBtn.textContent = "인증 요청";
+                    }
                 }
             };
 

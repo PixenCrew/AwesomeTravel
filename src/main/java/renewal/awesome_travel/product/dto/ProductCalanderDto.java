@@ -26,6 +26,9 @@ public class ProductCalanderDto {
     private LocalDateTime returnDateTime;
 
     private Long price;
+    private Long finalPriceAdult;
+    private Long finalPriceYouth;
+    private Long finalPriceInfant;
     private Long remainSeats;
     private ProductStatus status;
 
@@ -42,6 +45,9 @@ public class ProductCalanderDto {
         this.departDateTimeType = product.getDepartTimeType();
         this.departDateTime = product.getDepartDateTime();
         this.returnDateTime = product.getReturnDateTime();
+        this.finalPriceAdult = product.getFinalPriceAdult();
+        this.finalPriceYouth = product.getFinalPriceYouth();
+        this.finalPriceInfant = product.getFinalPriceInfant();
         this.price = product.getFinalPriceAdult();
         this.remainSeats = product.getAvailableSeats();
         this.status = product.getProductStatus();

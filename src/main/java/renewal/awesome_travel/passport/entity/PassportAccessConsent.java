@@ -30,8 +30,8 @@ public class PassportAccessConsent {
     private User user;
 
     // 접근하고자 하는 여권
-    @OneToOne
-    private Passport passport = new Passport();
+    @OneToOne(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private Passport passport;
 
     private String email;
     private String number;

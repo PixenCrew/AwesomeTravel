@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,9 +34,13 @@ import renewal.awesome_travel.product.dto.ProductCalanderDto;
 import renewal.awesome_travel.product.dto.ProductDetailDto;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
 import renewal.awesome_travel.product.dto.ReservationFormDto;
+import renewal.common.dto.ReservationRequestDto;
 import renewal.awesome_travel.product.service.ProductService;
+import renewal.awesome_travel.review.repository.ReviewRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
+import renewal.awesome_travel.product.dto.ProductCompareViewDto;
+import renewal.awesome_travel.product.service.ProductCompareService;
 import renewal.common.dto.ReservationRequestDto;
 import renewal.common.entity.AirportCode;
 import renewal.common.entity.Inquiry;
@@ -59,6 +65,7 @@ import renewal.common.repository.PurchaseProductRepository;
 import renewal.common.service.EmailService;
 import renewal.common.service.PassengerServiceCommon;
 import renewal.common.service.ProductServiceCommon;
+import org.hibernate.Hibernate;
 
 @Controller
 @RequiredArgsConstructor
@@ -75,21 +82,31 @@ public class ProductController {
     private final PaymentRepository paymentRepo;
     private final InquiryRepository inquiryRepo;
     private final EmailService emailService;
+    private final ReviewRepository reviewRepo;
+    private final ProductCompareService productCompareService;
 
-    // @GetMapping
-    // public String getProductSearch(Model model) {
+    @GetMapping("/search")
+    public String getProductSearch(@RequestParam(required = false) String keyword, Model model) {
+        model.addAttribute("menuCode", null);
 
-    // model.addAttribute("searchRequest", new ProductSearchRequestDto());
+        if (keyword != null && !keyword.isBlank()) {
+            ProductSearchRequestDto searchRequest = new ProductSearchRequestDto();
+            searchRequest.setKeyword(keyword.trim());
+            searchRequest.setPage(0);
 
-    // List<Product> products = productRepo.findAll(); // 전체 상품들
-    // LocalDate today = LocalDate.now();
+            Sort sort = Sort.by("id").ascending();
+            Pageable pageable = PageRequest.of(0, 50, sort);
 
-    // List<Product> availProducts = productService.calcProduct(products, today);
+            Page<Product> result = productService.searchProducts(searchRequest, pageable);
+            model.addAttribute("searchResult", result);
+            model.addAttribute("title", keyword.trim() + " 검색결과");
+        } else {
+            model.addAttribute("searchResult", null);
+            model.addAttribute("title", "패키지 검색");
+        }
 
-    // model.addAttribute("products", availProducts);
-
-    // return "product/productSearch";
-    // }
+        return "fragments/product/productResult";
+    }
 
     @PostMapping("/search")
     public String postProductSearch(@RequestBody ProductSearchRequestDto searchRequest, Model model) {
@@ -130,7 +147,22 @@ public class ProductController {
         List<ProductCalanderDto> result = new ArrayList<>();
 
         // 특정 상품에 대해 6개월간 calc해서 return
-        LocalDate minDepartDate = LocalDate.now().plusDays(target.getCutoffDays()); // 기본 cutoff 계산
+        long cutoff = target.getCutoffDays() != null ? target.getCutoffDays() : 0L;
+        LocalDate minDepartDate = LocalDate.now().plusDays(cutoff); // 기본 cutoff 계산
+        int itineraryDays = target.getTour() != null && target.getTour().getSchedules() != null
+                ? target.getTour().getSchedules().size()
+                : 1;
+        Long defaultRemainSeats = target.getTour() != null && target.getTour().getMaxCapacity() != null
+                ? target.getTour().getMaxCapacity()
+                : 0L;
+        Long defaultAdultPrice = target.getPrice() != null ? target.getPrice() : 0L;
+        Long defaultYouthPrice = target.getTour() != null && target.getTour().getPriceYouth() != null
+                ? target.getTour().getPriceYouth()
+                : defaultAdultPrice;
+        Long defaultInfantPrice = target.getTour() != null && target.getTour().getPriceInfant() != null
+                ? target.getTour().getPriceInfant()
+                : 0L;
+
         for (int i = 0; i < 180; i++) {
             LocalDate targetDate = minDepartDate.plusDays(i);
 
@@ -139,8 +171,41 @@ public class ProductController {
             Product calcProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
             if (calcProduct != null) {
                 ProductCalanderDto productDto = new ProductCalanderDto(calcProduct);
+                if (productDto.getDepartDateTime() == null) {
+                    productDto.setDepartDateTime(targetDate.atStartOfDay());
+                }
+                if (productDto.getReturnDateTime() == null) {
+                    int itineraryDaysForFallback = Math.max(1, itineraryDays);
+                    productDto.setReturnDateTime(productDto.getDepartDateTime().plusDays(itineraryDaysForFallback));
+                }
+                if (productDto.getPrice() == null) {
+                    productDto.setPrice(productDto.getFinalPriceAdult());
+                }
+                if (productDto.getRemainSeats() == null) {
+                    productDto.setRemainSeats(defaultRemainSeats);
+                }
+                if (productDto.getStatus() == null) {
+                    productDto.setStatus(ProductStatus.AVAILABLE);
+                }
                 result.add(productDto);
                 calcProduct.setDepartDateTime(null); // 한 Product에 대해 출발일 필드 초기화 / 안하면 출국시간 첫 값 고정
+            } else {
+                LocalDateTime departDateTime = targetDate.atStartOfDay();
+                LocalDateTime returnDateTime = departDateTime.plusDays(Math.max(1, itineraryDays));
+
+                ProductCalanderDto fallbackDto = new ProductCalanderDto(
+                        target.getId(),
+                        target.getTitle(),
+                        target.getDepartTimeType(),
+                        departDateTime,
+                        returnDateTime,
+                        defaultAdultPrice,
+                        defaultAdultPrice,
+                        defaultYouthPrice,
+                        defaultInfantPrice,
+                        defaultRemainSeats,
+                        ProductStatus.AVAILABLE);
+                result.add(fallbackDto);
             }
 
             calcProduct = null;
@@ -163,10 +228,87 @@ public class ProductController {
             HttpServletResponse response) {
 
         Product target = productRepo.findById(id).orElseThrow();
-        Product calcProduct = productServiceCommon.calcSingleProduct(target, departDate);
+        Product productCopy;
+        try {
+            productCopy = (Product) target.clone();
+        } catch (CloneNotSupportedException e) {
+            productCopy = target;
+        }
+
+        Product calcProduct = productServiceCommon.calcSingleProduct(productCopy, departDate);
+        if (calcProduct == null) {
+            calcProduct = productCopy;
+            LocalDateTime departDateTime = departDate.atStartOfDay();
+            int itineraryDays = target.getTour() != null && target.getTour().getSchedules() != null
+                    ? target.getTour().getSchedules().size()
+                    : 1;
+
+            calcProduct.setDepartDateTime(departDateTime);
+            calcProduct.setReturnDateTime(departDateTime.plusDays(Math.max(1, itineraryDays)));
+
+            Long basePrice = target.getPrice() != null ? target.getPrice() : 0L;
+            Long youthPrice = target.getTour() != null && target.getTour().getPriceYouth() != null
+                    ? target.getTour().getPriceYouth()
+                    : basePrice;
+            Long infantPrice = target.getTour() != null && target.getTour().getPriceInfant() != null
+                    ? target.getTour().getPriceInfant()
+                    : 0L;
+
+            calcProduct.setFinalPriceAdult(basePrice);
+            calcProduct.setFinalPriceYouth(youthPrice);
+            calcProduct.setFinalPriceInfant(infantPrice);
+            calcProduct.setAvailableSeats(target.getTour() != null && target.getTour().getMaxCapacity() != null
+                    ? target.getTour().getMaxCapacity()
+                    : 0L);
+            calcProduct.setReservedSeats(0L);
+            calcProduct.setProductStatus(ProductStatus.AVAILABLE);
+        }
+
+        // 리뷰 조회
+        Pageable reviewPageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<renewal.common.entity.Review> reviewPage = reviewRepo.findByProductId(id, reviewPageable);
+        List<renewal.common.entity.Review> reviews = reviewPage.getContent();
+        
+        // 리뷰의 writer 초기화 (LAZY 로딩 해제)
+        for (renewal.common.entity.Review review : reviews) {
+            Hibernate.initialize(review.getWriter());
+        }
 
         // DTO 생성
         ProductDetailDto productDto = new ProductDetailDto(calcProduct);
+        productDto.setReviews(reviews);
+
+        List<ReviewRepository.RatingCount> ratingCounts = reviewRepo.countByProductIdGroupByRating(id);
+        long star1 = 0L, star2 = 0L, star3 = 0L, star4 = 0L, star5 = 0L;
+        for (ReviewRepository.RatingCount rc : ratingCounts) {
+            if (rc == null || rc.getRating() == null || rc.getCount() == null) {
+                continue;
+            }
+            switch (rc.getRating()) {
+                case 1:
+                    star1 = rc.getCount();
+                    break;
+                case 2:
+                    star2 = rc.getCount();
+                    break;
+                case 3:
+                    star3 = rc.getCount();
+                    break;
+                case 4:
+                    star4 = rc.getCount();
+                    break;
+                case 5:
+                    star5 = rc.getCount();
+                    break;
+                default:
+                    break;
+            }
+        }
+        productDto.setStar1(star1);
+        productDto.setStar2(star2);
+        productDto.setStar3(star3);
+        productDto.setStar4(star4);
+        productDto.setStar5(star5);
 
         // 세션에 저장
         session.setAttribute("calcProduct", calcProduct);
@@ -194,27 +336,90 @@ public class ProductController {
 
     @PostMapping("/detail/{id}/wish")
     @ResponseBody
+    @Transactional
     public Map<String, Boolean> toggleWish(
             @PathVariable Long id,
             Principal principal) {
 
         User user = userRepo.findByEmail(principal.getName()).orElseThrow();
-        List<RecentViewedItem> list = user.getLikedProducts();
-
-        boolean removed = list.removeIf(item -> id.equals(item.getProductId()));
-        if (!removed) {
-            list.add(new RecentViewedItem(id, LocalDateTime.now()));
+        
+        // 영속성 컨텍스트에서 다시 로드하여 최신 상태 보장
+        user = userRepo.findById(user.getId()).orElseThrow();
+        
+        List<RecentViewedItem> currentList = user.getLikedProducts();
+        
+        // 기존 리스트에서 해당 상품이 있는지 확인
+        boolean wasWished = currentList.stream().anyMatch(item -> id.equals(item.getProductId()));
+        
+        // 새로운 리스트 생성 (ElementCollection 변경 감지를 위해)
+        List<RecentViewedItem> newList = new ArrayList<>();
+        
+        if (wasWished) {
+            // 찜 해제: 해당 상품 제외하고 새 리스트 생성
+            currentList.stream()
+                    .filter(item -> !id.equals(item.getProductId()))
+                    .forEach(newList::add);
+        } else {
+            // 찜 추가: 기존 리스트 복사 후 새 항목 추가
+            newList.addAll(currentList);
+            newList.add(new RecentViewedItem(id, LocalDateTime.now()));
         }
-        userRepo.save(user);
+        
+        // 리스트 교체 (ElementCollection 변경 감지)
+        user.setLikedProducts(newList);
+        userRepo.saveAndFlush(user); // 즉시 DB에 반영
 
-        return Map.of("wished", !removed);
+        return Map.of("wished", !wasWished);
+    }
+
+    @PostMapping("/reservation/save")
+    @ResponseBody
+    public ResponseEntity<?> saveReservationInfo(@RequestBody Map<String, Object> request, HttpSession session) {
+        // 예약 정보를 세션에 저장 (로그인 전)
+        session.setAttribute("pendingReservation", request);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/reservation/check")
+    @ResponseBody
+    public ResponseEntity<?> checkReservationInfo(HttpSession session) {
+        // 세션에 저장된 예약 정보 확인
+        @SuppressWarnings("unchecked")
+        Map<String, Object> reservationInfo = (Map<String, Object>) session.getAttribute("reservationData");
+        if (reservationInfo != null) {
+            session.removeAttribute("reservationData");
+            session.removeAttribute("redirectToReservation");
+            return ResponseEntity.ok(reservationInfo);
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/reservation")
-    public String showPurchasePage(@RequestBody ReservationFormDto request, Model model, HttpSession session) {
+    public String showPurchasePage(@RequestBody ReservationFormDto request, Model model, HttpSession session, Principal principal) {
 
         // 세션에서 상품 불러오기
         Product calcedProduct = (Product) session.getAttribute("calcProduct");
+        
+        // 세션에 calcProduct가 없고 예약 정보가 있으면 상품 상세 페이지를 다시 로드
+        if (calcedProduct == null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> reservationData = (Map<String, Object>) session.getAttribute("reservationData");
+            if (reservationData != null && reservationData.get("productId") != null && reservationData.get("departDate") != null) {
+                try {
+                    Long productId = Long.valueOf(reservationData.get("productId").toString());
+                    LocalDate departDate = LocalDate.parse(reservationData.get("departDate").toString());
+                    
+                    Product target = productRepo.findById(productId).orElseThrow();
+                    calcedProduct = productServiceCommon.calcSingleProduct(target, departDate);
+                    session.setAttribute("calcProduct", calcedProduct);
+                    session.setAttribute("departDate", departDate);
+                } catch (Exception e) {
+                    // 상품을 찾을 수 없으면 에러 처리
+                    model.addAttribute("error", "상품 정보를 찾을 수 없습니다.");
+                    return "error/error";
+                }
+            }
+        }
 
         Long adult = request.getAdult();
         Long youth = request.getYouth();
@@ -316,11 +521,11 @@ public class ProductController {
         List<ConfirmedSeatClass> finalSeatClasses = new ArrayList<>();
         for (Schedule schedule : calcedProduct.getTour().getSchedules()) {
             for (Location location : schedule.getLocations()) {
-                if (location.getLocationType() == LocationType.AIR) {
+                if (location.getLocationType() == LocationType.AIR && location.getSeatClass() != null) {
                     finalSeatClasses.add(new ConfirmedSeatClass(location.getSeatClass(), adult, youth, infant));
 
                     // 첫 항공권 항공사 저장
-                    if (purchaseProduct.getAirline() == null) {
+                    if (purchaseProduct.getAirline() == null && location.getSeatClass().getAir() != null) {
                         purchaseProduct.setAirline(location.getSeatClass().getAir().getAirline());
                     }
                 }
@@ -364,11 +569,22 @@ public class ProductController {
     }
 
     @GetMapping("/purchase/{id}")
-    String getPurchaseDetail(@PathVariable Long id, Model model) {
+    String getPurchaseDetail(@PathVariable Long id, Principal principal, Model model) {
 
-        // TODO Principal principal로 해당 구매id 조회 가능한 사용자인지 확인
+        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).orElse(null);
+        if (purchaseProduct == null) {
+            return "error/error";
+        }
 
-        PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).get();
+        // 본인의 예약인지 확인
+        if (principal != null) {
+            User user = userRepo.findByEmail(principal.getName()).orElse(null);
+            if (user != null && !purchaseProduct.getUser().getId().equals(user.getId())) {
+                return "error/error"; // 다른 사용자의 예약 접근 시 에러
+            }
+        } else {
+            return "error/error"; // 로그인하지 않은 사용자 접근 시 에러
+        }
 
         model.addAttribute("purchaseProduct", purchaseProduct);
 
@@ -458,89 +674,63 @@ public class ProductController {
     @PostMapping("/purchase/{id}/cancel")
     ResponseEntity<?> cancelPurchase(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> dummyload,
+            @RequestBody Map<String, Object> request,
             Principal principal) {
-        // TODO Principal로 해당 id의 PurchaseProduct 취소 가능한지 체크
 
-        productServiceCommon.cancelPurchase(id);
-        return ResponseEntity.ok().build();
+        // 본인의 예약인지 확인
+        if (principal != null) {
+            User user = userRepo.findByEmail(principal.getName()).orElse(null);
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).orElse(null);
+            if (user == null || purchaseProduct == null || !purchaseProduct.getUser().getId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "권한이 없습니다."));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+        }
+
+        // 환불 금액과 사유 추출
+        Long amount = request.get("amount") != null ? 
+                Long.parseLong(request.get("amount").toString()) : null;
+        String reason = request.get("reason") != null ? 
+                request.get("reason").toString() : "예약 취소 요청";
+
+        // Payment에서 금액 조회 (결제 전이면 null일 수 있음)
+        Payment payment = paymentRepo.findByPurchaseProductId(id).orElse(null);
+        
+        if (payment != null) {
+            // 결제가 완료된 경우: 환불 요청 생성
+            if (amount == null) {
+                amount = payment.getPrice();
+            }
+            try {
+                productServiceCommon.requestRefund(id, amount, reason);
+                return ResponseEntity.ok(Map.of("success", true, "message", "환불 요청이 접수되었습니다. 관리자 승인 후 처리됩니다."));
+            } catch (IllegalStateException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", e.getMessage()));
+            }
+        } else {
+            // 결제 전 예약 취소: 예약 상태만 변경
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).orElseThrow();
+            purchaseProduct.setPurchaseStatus(PurchaseStatus.CANCELLED);
+            purchaseProductRepo.save(purchaseProduct);
+            return ResponseEntity.ok(Map.of("success", true, "message", "예약이 취소되었습니다."));
+        }
     }
 
     // 상품 비교정보 요청
+
     @GetMapping("/compare")
-    public String compare(@RequestParam List<Long> ids, Model model) {
-        if (ids.size() != 2) {
-            return "error/error";
-        }
-
-        List<Product> list = productRepo.findAllById(ids);
-        Product a = list.get(0);
-        Product b = list.get(1);
-
-        Product calcedProductA = null;
-        Product calcedProductB = null;
-        int cutOffDays = Math.max(a.getCutoffDays().intValue(), b.getCutoffDays().intValue());
-        int plusDays = cutOffDays;
-        int maxPlusDays = cutOffDays + 30;
-
-        while ((calcedProductA == null || calcedProductB == null) && plusDays < maxPlusDays) {
-            calcedProductA = productServiceCommon.calcSingleProduct(a, LocalDate.now().plusDays(plusDays));
-            calcedProductB = productServiceCommon.calcSingleProduct(b, LocalDate.now().plusDays(plusDays));
-            plusDays++;
-        }
-
-        AirportCode aDepart = null;
-        AirportCode aArrive = null;
-        String aHotel = null;
-
-        for (Schedule schedule : a.getTour().getSchedules()) {
-            for (Location location : schedule.getLocations()) {
-
-                LocationType type = location.getLocationType();
-
-                if (type == LocationType.AIR) {
-                    if (aDepart == null) {
-                        aDepart = location.getDepartAirport();
-                    }
-                    aArrive = location.getArriveAirport();
-                }
-                if (aHotel == null && type == LocationType.HOTEL) {
-                    aHotel = location.getHotel().getName();
-                }
-            }
-        }
-
-        AirportCode bDepart = null;
-        AirportCode bArrive = null;
-        String bHotel = null;
-
-        for (Schedule schedule : b.getTour().getSchedules()) {
-            for (Location location : schedule.getLocations()) {
-
-                LocationType type = location.getLocationType();
-
-                if (type == LocationType.AIR) {
-                    if (bDepart == null) {
-                        bDepart = location.getDepartAirport();
-                    }
-                    bArrive = location.getArriveAirport();
-                }
-                if (bHotel == null && type == LocationType.HOTEL) {
-                    bHotel = location.getHotel().getName();
-                }
-            }
-        }
-
-        model.addAttribute("productA", calcedProductA);
-        model.addAttribute("aDepart", aDepart.getAirportKor());
-        model.addAttribute("aArrive", aArrive.getAirportKor());
-        model.addAttribute("aHotel", aHotel);
-
-        model.addAttribute("productB", calcedProductB);
-        model.addAttribute("bDepart", bDepart.getAirportKor());
-        model.addAttribute("bArrive", bArrive.getAirportKor());
-        model.addAttribute("bHotel", bHotel);
-
-        return "fragments/product/productCompare";
+    public String compareProducts(
+            @RequestParam List<Long> ids,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate,
+            Model model) {
+        List<ProductCompareViewDto> compareList = productCompareService.buildCompareList(ids, departDate);
+        model.addAttribute("compareList", compareList);
+        model.addAttribute("compareDepartDate", departDate);
+        return "fragments/product/compareDetail";
     }
+
 }

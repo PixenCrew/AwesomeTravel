@@ -1,244 +1,795 @@
-<div>
-    <style>
-        .current-status {
-            background-color: lightblue;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            background: #f9f9f9;
-        }
-
-        .modal-footer button {
-            flex: 1 1 100%;
-            padding: 12px 0;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        button {
-            flex: 1 1 100%;
-            padding: 12px 0;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .modal-footer button:hover {
-            background: #eee;
-        }
-
-        /* 선택적으로 버튼 색상 다르게 */
-        .modal-footer button:nth-child(1) {
-            background: #4caf50;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(2) {
-            background: #f44336;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(3) {
-            background: #ff9800;
-            color: #fff;
-        }
-
-        .modal-footer button:nth-child(4) {
-            background: #2196f3;
-            color: #fff;
-        }
-    </style>
-    <header class="section-header">
-        <h1>예약상세</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+<div class="reservation-detail-container">
+    <header class="reservation-detail-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="reservation-detail-title">예약 상세</h1>
+        <div class="header-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div class="modal-content">
-            <!-- 예약 상태 진행바 -->
-            <section class="status-bar">
-                <ul>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 0 ? 'current-status' : ''}">예약접수</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 1 ? 'current-status' : ''}">담당자확인</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 2 ? 'current-status' : ''}">결제진행</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 3 ? 'current-status' : ''}">결제완료</li>
-                    <li th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 4 ? 'current-status' : ''}">취소됨</li>
-                </ul>
-                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 0}">
-                    예약이 접수되었습니다. 담당자 배정중입니다.
-                </p>
-                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 1}">
-                    담당자가 예약 확인중입니다. 담당자 확인 후 연락 드릴 예정입니다.
-                </p>
-                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}">
-                    담당자 확인이 완료되었습니다. 결제를 진행해 주세요.
-                </p>
-                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 3}">
-                    결제가 완료되었습니다. 즐거운 여행 되세요!
-                </p>
-                <p th:if="${purchaseProduct.purchaseStatus.ordinal() == 4}">
-                    취소된 주문입니다.
-                </p>
-                <p th:if="${purchaseProduct.waiting}">
-                    예약 대기중입니다. 순번 도달시 연락 드릴 예정입니다.
-                </p>
-            </section>
-
-            <!-- 예약 상세 -->
-            <section class="purchase-summary">
-                <div class="product-info">
-                    <img th:src="@{${purchaseProduct.product.thumbnail}}" alt="상품 이미지" />
-                    <p th:text="${purchaseProduct.product.title}"></p>
+    <div class="reservation-detail-body">
+        <!-- 예약 진행 상태 바 -->
+        <section class="status-progress-bar">
+            <div class="progress-steps">
+                <div class="progress-step" th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 0} ? 'active' : ''">
+                    <div class="step-circle"></div>
+                    <div class="step-label">예약접수</div>
                 </div>
-                <ul>
-                    <li>예약일: <span th:text="${#temporals.format(purchaseProduct.purchaseDate, 'yyyy.MM.dd')}"></span></li>
-                    <li>총 결제 금액: <span th:text="${#numbers.formatInteger(purchaseProduct.price, 0, 'COMMA')}"></span>원</li>
-                    <li>기본상품가: <span th:text="${#numbers.formatInteger(purchaseProduct.finalPriceAdult, 0, 'COMMA')}"></span>원 (성인 1인 기준)</li>
-                    <li>여행인원: <span th:text="'성인 ' + ${purchaseProduct.adultCount} + '명 / 아동 ' + ${purchaseProduct.youthCount} + '명 / 소아 ' + ${purchaseProduct.infantCount} + '명'"></span></li>
-                    <li>여행일정: <span th:utext="
-                            ${#temporals.format(purchaseProduct.departDateTime, 'yyyy.MM.dd(EE)')} + ' ~ ' + 
-                            ${#temporals.format(purchaseProduct.returnDateTime, 'yyyy.MM.dd(EE)')} + '<br>' +
-                            ${purchaseProduct.bak} + '박 ' + ${purchaseProduct.il} + '일'
-                        "></span>
-                    </li>
-                </ul>
-            </section>
-
-            <!-- 여행자 정보 -->
-            <section class="traveler-info">
-                <h3>여행자 정보</h3>
-                <div></div>
-                <div th:each="passenger, iterStat : ${purchaseProduct.passengers}">
-                    <ul>
-                        <li>이름: <span th:text="${passenger.lastNameKor + ' ' + passenger.FirstNameKor}"></span></li>
-                        <li>생년월일/성별: <span th:text="${passenger.birth} + ' / ' + ${passenger.sex}"></span></li>
-                        <li>연령구분: <span th:text="${passenger.ageGroup.displayName()}"></span></li>
-                        <li>여권정보: <span th:text="${passenger.completed ? '등록완료' : '미등록'}">
-                        <li>금액: <span th:text="
-                                ${passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).ADULT} ? ${#numbers.formatInteger(purchaseProduct.finalPriceAdult, 0, 'COMMA')} :
-                                (${passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).YOUTH} ? ${#numbers.formatInteger(purchaseProduct.finalPriceYouth, 0, 'COMMA')} :
-                                ${#numbers.formatInteger(purchaseProduct.finalPriceInfant, 0, 'COMMA')})
-                            "></span>원
-                        </li>
-                    </ul>
+                <div class="progress-step" th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 1} ? 'active' : ''">
+                    <div class="step-circle"></div>
+                    <div class="step-label">담당자확인</div>
                 </div>
-                <button th:onclick="|openModal('/purchase/product/${purchaseProduct.id}/passport')|">여권정보 등록</button>
+                <div class="progress-step" th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 2} ? 'active' : ''">
+                    <div class="step-circle"></div>
+                    <div class="step-label">예약확정</div>
+                </div>
+                <div class="progress-step" th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 2} ? 'active' : ''">
+                    <div class="step-circle"></div>
+                    <div class="step-label">결제진행</div>
+                </div>
+                <div class="progress-step" th:classappend="${purchaseProduct.purchaseStatus.ordinal() == 3} ? 'active' : ''">
+                    <div class="step-circle"></div>
+                    <div class="step-label">결제완료</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 예약 접수 메시지 -->
+        <section class="reservation-message" th:if="${purchaseProduct.purchaseStatus.ordinal() == 0}">
+            <div class="message-box">
+                <p class="message-text">예약이 접수되었습니다.</p>
+                <p class="message-text">담당자 확인 후 연락 드릴 예정입니다.</p>
+            </div>
+        </section>
+
+        <!-- 담당자 확인 중 메시지 -->
+        <section class="reservation-message" th:if="${purchaseProduct.purchaseStatus.ordinal() == 1}">
+            <div class="message-box">
+                <p class="message-text">담당자 확인 중입니다.</p>
+                <p class="message-text">진행 안내전화 드릴 예정입니다.</p>
+            </div>
+        </section>
+
+        <!-- 예약 확정 메시지 -->
+        <section class="reservation-message" th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}">
+            <div class="message-box">
+                <p class="message-text">예약이 확정되었습니다. 결제 완료하시면 됩니다.</p>
+            </div>
+        </section>
+
+        <!-- 결제 완료 메시지 -->
+        <section class="reservation-message" th:if="${purchaseProduct.purchaseStatus.ordinal() == 3}">
+            <div class="message-box">
+                <p class="message-text">결제가 모두 완료되었습니다. 즐거운 여행 되시길 바랍니다.</p>
+        </div>
             </section>
 
-            <!-- 항공 정보 -->
-            <section class="air-info">
-                <h3>항공 정보</h3>
+        <!-- 예약 상세 (접을 수 있는 섹션) -->
+        <section class="collapsible-section">
+            <div class="section-header-collapsible" onclick="toggleSection(this)">
+                <h2 class="section-title-collapsible">예약 상세</h2>
+                <i class="fas fa-chevron-up collapse-icon"></i>
+            </div>
+            <div class="section-content-collapsible">
+                <div class="reservation-detail-card">
+                    <div class="product-image-wrapper">
+                        <img th:src="${purchaseProduct.product?.image ?: purchaseProduct.product?.thumbnail}" alt="상품 이미지" class="product-image" />
+                    </div>
+                    <div class="product-details">
+                        <p class="product-name" th:text="${purchaseProduct.product?.title ?: purchaseProduct.title}">부산출발/ALL 포함 나트랑/달랏 풀패키지 마사지 60분 or 머드온천 선택 or 전신 마사지 120분</p>
+                        <div class="detail-item">
+                            <span class="detail-label">예약일:</span>
+                            <span class="detail-value" th:text="${#temporals.format(purchaseProduct.purchaseDate, 'yyyy.MM.dd')}">2025.01.01</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">총 결제 금액:</span>
+                            <span class="detail-value price-value" th:text="${#numbers.formatDecimal(purchaseProduct.price, 0, 0) + '원'}">10,850,000원</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">기본상품가:</span>
+                            <span class="detail-value" th:text="${'성인 1인기준 ' + #numbers.formatDecimal(purchaseProduct.finalPriceAdult, 0, 0) + '원'}">성인 1인기준 1,345,000원</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">총 상품가격:</span>
+                            <span class="detail-value" th:text="${'성인 1인기준 ' + #numbers.formatDecimal(purchaseProduct.finalPriceAdult ?: 0, 0, 0) + '원'}">성인 1인기준 1,409,000원</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">여행인원:</span>
+                            <span class="detail-value" th:text="${'성인 ' + purchaseProduct.adultCount + '명/아동 ' + purchaseProduct.youthCount + '명/소아 ' + purchaseProduct.infantCount + '명(' + (purchaseProduct.adultCount + purchaseProduct.youthCount + purchaseProduct.infantCount) + '인)'}">성인 10명/아동 0명/소아 0명(10인)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">여행일정:</span>
+                            <span class="detail-value" th:text="${#temporals.format(purchaseProduct.departDateTime, 'yyyy.MM.dd(E)') + '~' + #temporals.format(purchaseProduct.returnDateTime, 'yyyy.MM.dd(E)') + ' ' + purchaseProduct.bak + '박 ' + purchaseProduct.il + '일'}">2025.02.27(목)~2025.03.03(월) 3박 5일</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </section>
 
-                <div th:if="${purchaseProduct.finalSeatClasses.size() > 0}">
+        <!-- 여행자 정보 (접을 수 있는 섹션) -->
+        <section class="collapsible-section">
+            <div class="section-header-collapsible" onclick="toggleSection(this)">
+                <h2 class="section-title-collapsible">여행자 정보</h2>
+                <i class="fas fa-chevron-up collapse-icon"></i>
+            </div>
+            <div class="section-content-collapsible">
+                <div class="traveler-summary">
+                    <p class="traveler-count" th:text="${'총 ' + (purchaseProduct.passengers?.size() ?: 0) + '명 (성인 ' + purchaseProduct.adultCount + '명, 어린이 ' + purchaseProduct.youthCount + '명, 유아 ' + purchaseProduct.infantCount + '명)'}">총 1명 (성인 1명, 어린이 0명, 유아 0명)</p>
+                </div>
+                <div class="traveler-list" th:if="${purchaseProduct.passengers != null}">
+                    <div class="traveler-item" th:each="passenger, iterStat : ${purchaseProduct.passengers}">
+                        <h3 class="traveler-item-title" th:text="${'탑승객 ' + (iterStat.index + 1)}">탑승객 1</h3>
+                        <div class="traveler-details">
+                            <div class="detail-item">
+                                <span class="detail-label">회원구분:</span>
+                                <span class="detail-value" th:text="${purchaseProduct.user != null ? '회원(' + purchaseProduct.user.email.substring(0, 2) + '****@' + purchaseProduct.user.email.split('@')[1] + ')' : '비회원'}">회원(eu****@naver.com)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">이름:</span>
+                                <span class="detail-value" th:text="${passenger.lastNameKor + ' ' + passenger.firstNameKor}">유지민</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">생년월일/성별:</span>
+                                <span class="detail-value" th:text="${#temporals.format(passenger.birth, 'yyyy.MM.dd')} + '/' + ${passenger.sex == 'MALE' ? '남' : '여'}">2000.04.11/여</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">연령구분:</span>
+                                <span class="detail-value" th:text="${passenger.ageGroup.displayName()}">성인</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">여권정보:</span>
+                                <span class="detail-value" th:text="${passenger.completed ? '등록완료' : '미등록'}">미등록</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">금액:</span>
+                                <span class="detail-value" th:text="${#numbers.formatDecimal(
+                                    (passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).ADULT) ? purchaseProduct.finalPriceAdult :
+                                    ((passenger.ageGroup == T(renewal.common.entity.Passenger.AgeGroup).YOUTH) ? purchaseProduct.finalPriceYouth :
+                                    purchaseProduct.finalPriceInfant), 0, 0) + '원'}">299,000원</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 여권정보 입력 버튼 -->
+                <div class="passport-input-section" th:if="${purchaseProduct.passengers != null && !purchaseProduct.isPassengerInfoComplete}">
+                    <button type="button" class="passport-input-btn"
+                            th:attr="data-url='/purchase/product/' + ${purchaseProduct.id} + '/passport'"
+                            onclick="addModal(this.dataset.url)">
+                        <i class="fas fa-passport"></i> 여권정보 입력하기
+                    </button>
+                </div>
+                </div>
+            </section>
+
+        <!-- 항공정보 (접을 수 있는 섹션) -->
+        <section class="collapsible-section" th:if="${purchaseProduct.finalSeatClasses != null && !purchaseProduct.finalSeatClasses.isEmpty()}">
+            <div class="section-header-collapsible" onclick="toggleSection(this)">
+                <h2 class="section-title-collapsible">항공정보</h2>
+                <i class="fas fa-chevron-up collapse-icon"></i>
+            </div>
+            <div class="section-content-collapsible">
                     <!-- 출발 구간 -->
-                    <div>
-                        <strong>한국출발</strong>
-                        <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime, 'yyyy.MM.dd(EE) HH:mm')}"></span>
-                        <div>
-                            <span th:text="${purchaseProduct.airline.nameKor}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[0].flightNumber}"></span><br>
-                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[0].departAirport}"></span><br>
-                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].arriveDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[0].arriveAirport}"></span><br>
-                            <span th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration / 60, 2)} 
-                                + ':' + 
-                                ${#numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration % 60, 2)}
-                                + ' 소요'">
-                            </span>
+                <div class="flight-section" th:if="${purchaseProduct.finalSeatClasses.size() > 0}">
+                    <h3 class="flight-section-title">한국출발</h3>
+                    <p class="flight-date" th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.02.02(목) 23:35</p>
+                    <div class="flight-details">
+                        <p class="flight-info">
+                            <span th:text="${purchaseProduct.airline?.nameKor}">티웨이항공</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].flightNumber}">TW161편</span>
+                        </p>
+                        <p class="flight-route">
+                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].departDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.02.02(목) 23:35</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].departAirport}">부산</span>
+                        </p>
+                        <p class="flight-route">
+                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[0].arriveDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.02.03(금) 03:35</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[0].arriveAirport}">나드랑</span>
+                        </p>
+                        <p class="flight-duration" th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration / 60, 2) + ':' + #numbers.formatInteger(purchaseProduct.finalSeatClasses[0].flightDuration % 60, 2) + ' 소요'}">05:00 소요</p>
                         </div>
                     </div>
 
                     <!-- 도착 구간 -->
-                    <div th:if="${purchaseProduct.finalSeatClasses.size() > 1}">
-                        <strong>한국도착</strong>
-                        <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime, 'yyyy.MM.dd(EE) HH:mm')}"></span>
-                        <div>
-                            <span th:text="${purchaseProduct.airline.nameKor}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size() - 1].flightNumber}"></span><br>
-                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departAirport}"></span><br>
-                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveDateTime,'yyyy.MM.dd(EE) HH:mm')}"></span>
-                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveAirport}"></span><br>
-                            <span th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration / 60, 2)} 
-                                + ':' + 
-                                ${#numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration % 60, 2)}
-                                + ' 소요'">
-                            </span>
+                <div class="flight-section" th:if="${purchaseProduct.finalSeatClasses.size() > 1}">
+                    <h3 class="flight-section-title">한국도착</h3>
+                    <p class="flight-date" th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.03.03(월) 08:10</p>
+                    <div class="flight-details">
+                        <p class="flight-info">
+                            <span th:text="${purchaseProduct.airline?.nameKor}">티웨이항공</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightNumber}">TW162편</span>
+                        </p>
+                        <p class="flight-route">
+                            출발 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.03.03(목) 23:35</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].departAirport}">나트랑</span>
+                        </p>
+                        <p class="flight-route">
+                            도착 <span th:text="${#temporals.format(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveDateTime, 'yyyy.MM.dd(E) HH:mm')}">2025.02.03(금) 08:10</span>
+                            <span th:text="${purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].arriveAirport}">부산</span>
+                        </p>
+                        <p class="flight-duration" th:text="${#numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration / 60, 2) + ':' + #numbers.formatInteger(purchaseProduct.finalSeatClasses[purchaseProduct.finalSeatClasses.size()-1].flightDuration % 60, 2) + ' 소요'}">05:00 소요</p>
                         </div>
                     </div>
                 </div>
-
-
             </section>
 
-            <!-- 결제 정보 -->
-            <section class="payment-info">
-                <h3>결제 정보</h3>
-                <ul>
-                    <span>상품가격</span>
-                    <li th:if="${purchaseProduct.adultCount > 0}">
-                        <span th:text="${'성인 x ' + purchaseProduct.adultCount + '명'}"></span>
-                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 'COMMA') + '원'}"></span>
-                    </li>
-                    <li th:if="${purchaseProduct.youthCount > 0}">
-                        <span th:text="${'청소년 x ' + purchaseProduct.youthCount + '명'}"></span>
-                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 'COMMA') + '원'}"></span>
-                    </li>
-                    <li th:if="${purchaseProduct.infantCount > 0}">
-                        <span th:text="${'영유아 x ' + purchaseProduct.infantCount + '명'}"></span>
-                        <span th:text="${'= ' + #numbers.formatInteger(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 'COMMA') + '원'}"></span>
-                    </li>
-                </ul>
-                <p>총 금액: <span th:text="${#numbers.formatInteger(purchaseProduct.price,0,'COMMA')}"></span>원</p>
+        <!-- 결제정보 (접을 수 있는 섹션) -->
+        <section class="collapsible-section">
+            <div class="section-header-collapsible" onclick="toggleSection(this)">
+                <h2 class="section-title-collapsible">결제정보</h2>
+                <i class="fas fa-chevron-up collapse-icon"></i>
+            </div>
+            <div class="section-content-collapsible">
+                <div class="payment-details">
+                    <p class="payment-section-label">상품가격</p>
+                    <div class="payment-item" th:if="${purchaseProduct.adultCount > 0}">
+                        <span class="payment-label" th:text="${'성인 ' + #numbers.formatDecimal(purchaseProduct.finalPriceAdult, 0, 0) + ' X ' + purchaseProduct.adultCount + '명'}">성인 1,509,000 X 1명</span>
+                        <span class="payment-value" th:text="${'= ' + #numbers.formatDecimal(purchaseProduct.finalPriceAdult * purchaseProduct.adultCount, 0, 0) + '원'}">= 8,454,000원</span>
+                    </div>
+                    <div class="payment-item" th:if="${purchaseProduct.youthCount > 0}">
+                        <span class="payment-label" th:text="${'청소년 ' + #numbers.formatDecimal(purchaseProduct.finalPriceYouth, 0, 0) + ' X ' + purchaseProduct.youthCount + '명'}">성인 574,000원 X 4명</span>
+                        <span class="payment-value" th:text="${'= ' + #numbers.formatDecimal(purchaseProduct.finalPriceYouth * purchaseProduct.youthCount, 0, 0) + '원'}">= 2,296,000원</span>
+                    </div>
+                    <div class="payment-item" th:if="${purchaseProduct.infantCount > 0}">
+                        <span class="payment-label" th:text="${'유아 ' + #numbers.formatDecimal(purchaseProduct.finalPriceInfant, 0, 0) + ' X ' + purchaseProduct.infantCount + '명'}">유아 X 명</span>
+                        <span class="payment-value" th:text="${'= ' + #numbers.formatDecimal(purchaseProduct.finalPriceInfant * purchaseProduct.infantCount, 0, 0) + '원'}">= 원</span>
+                    </div>
+                    <div class="payment-total">
+                        <span class="total-label">총 금액:</span>
+                        <span class="total-value" th:text="${#numbers.formatDecimal(purchaseProduct.price, 0, 0) + '원'}">10,850,000원</span>
+                    </div>
+                </div>
+            </div>
             </section>
 
-            <!-- 담당자 정보 -->
-            <section class="handler-info" th:if="${purchaseProduct.handler != null}">
-                <h3>담당자 정보</h3>
-                <ul>
-                    <li>상품담당: <span th:text="${purchaseProduct.handler.position + ' / ' + purchaseProduct.handler.name}"></span></li>
-                    <li>이메일: <span th:text="${purchaseProduct.handler.email}"></span></li>
-                    <li>전화: <span th:text="${purchaseProduct.handler.number}"></span></li>
-                    <li>팩스: <span th:text="${purchaseProduct.handler.fax}"></span></li>
-                </ul>
+        <!-- 담당자 정보 (접을 수 있는 섹션) -->
+        <section class="collapsible-section" th:if="${purchaseProduct.handler != null}">
+            <div class="section-header-collapsible" onclick="toggleSection(this)">
+                <h2 class="section-title-collapsible">담당자 정보</h2>
+                <i class="fas fa-chevron-up collapse-icon"></i>
+            </div>
+            <div class="section-content-collapsible">
+                <div class="handler-details">
+                    <div class="detail-item">
+                        <span class="detail-label">상품담당:</span>
+                        <span class="detail-value" th:text="${purchaseProduct.handler.position + ' / ' + purchaseProduct.handler.name}">이사/김종국</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">이메일:</span>
+                        <span class="detail-value" th:text="${purchaseProduct.handler.email}">jk@astravel.kr</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">담당자 전화:</span>
+                        <span class="detail-value" th:text="${purchaseProduct.handler.number}">02-000-0000</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">팩스번호:</span>
+                        <span class="detail-value" th:text="${purchaseProduct.handler.fax}">02-111-1234</span>
+                    </div>
+                </div>
+            </div>
             </section>
 
-            <!-- 하단 버튼 -->
-            <footer class="modal-footer">
-                <button th:if="${purchaseProduct.purchaseStatus.ordinal() == 2}"
-                    type="button" th:onclick="'selectPayment(' + ${purchaseProduct.id} + ')'">결제하기</button>
-                <button th:if="${purchaseProduct.purchaseStatus.ordinal() >= 3 && purchaseProduct.purchaseStatus.ordinal() != 4 }"
-                    type="button" th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">결제취소</button>
-                <button th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}"
-                    type="button" th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">예약취소</button>
-                <button th:if="${purchaseProduct.handler != null}"
-                    type="button" th:onclick="'sendInquiry(' + ${purchaseProduct.id} + ')'">1:1 문의하기</button>
-            </footer>
+        <!-- 하단 버튼 (reservation-detail-body 내부) -->
+        <div class="reservation-detail-buttons">
+            <button type="button" class="inquiry-btn"
+                    th:attr="data-url='/inquiry/new?purchaseId=' + ${purchaseProduct.id}"
+                    onclick="addModal(this.dataset.url)">
+                1:1 문의하기
+            </button>
+            <button type="button" class="payment-btn"
+                    th:attr="data-id=${purchaseProduct.id}"
+                    onclick="selectPayment(this.dataset.id)"
+                    th:if="${purchaseProduct.purchaseStatus.ordinal() == 2 or purchaseProduct.purchaseStatus.ordinal() == 1}">
+                결제하기
+            </button>
+            <button type="button" class="cancel-reservation-btn"
+                    th:attr="data-id=${purchaseProduct.id}"
+                    onclick="cancelProductReservation(this.dataset.id)"
+                    th:if="${purchaseProduct.purchaseStatus.ordinal() < 3}">
+                예약취소
+            </button>
+            <button type="button" class="cancel-payment-btn"
+                    th:attr="data-id=${purchaseProduct.id}"
+                    onclick="cancelProductReservation(this.dataset.id)"
+                    th:if="${purchaseProduct.purchaseStatus.ordinal() == 3}">
+                결제취소
+            </button>
         </div>
+    </div>
+
+            <!-- 하단 버튼 (footer) -->
+    <footer class="reservation-detail-footer">
+            </footer>
+
+    <style>
+        .reservation-detail-container {
+            width: 100%;
+            min-height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reservation-detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .reservation-detail-header .back-btn {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .reservation-detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-spacer {
+            width: 26px;
+        }
+
+        .reservation-detail-body {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .reservation-detail-buttons {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .reservation-detail-buttons .inquiry-btn,
+        .reservation-detail-buttons .payment-btn,
+        .reservation-detail-buttons .cancel-reservation-btn,
+        .reservation-detail-buttons .cancel-payment-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        /* 예약 진행 상태 바 */
+        .status-progress-bar {
+            margin-bottom: 20px;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-step.active .step-circle {
+            background: #1976d2;
+            border-color: #1976d2;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+
+        .progress-step.active .step-label {
+            color: #1976d2;
+            font-weight: 600;
+        }
+
+        /* 예약 접수 메시지 */
+        .reservation-message {
+            margin-bottom: 20px;
+        }
+
+        .message-box {
+            padding: 16px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .message-text {
+            font-size: 14px;
+            color: #1976d2;
+            margin: 4px 0;
+            line-height: 1.6;
+        }
+
+        /* 접을 수 있는 섹션 */
+        .collapsible-section {
+            margin-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .section-header-collapsible {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            cursor: pointer;
+        }
+
+        .section-title-collapsible {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .collapse-icon {
+            font-size: 16px;
+            color: #999;
+            transition: transform 0.3s;
+        }
+
+        .collapsible-section.collapsed .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content-collapsible {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-section.collapsed .section-content-collapsible {
+            max-height: 0;
+            padding: 0;
+        }
+
+        /* 예약 상세 카드 */
+        .reservation-detail-card {
+            display: flex;
+            gap: 12px;
+            padding: 16px 0;
+        }
+
+        .product-image-wrapper {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .detail-item {
+            font-size: 13px;
+            color: #666;
+            margin: 4px 0;
+        }
+
+        .detail-label {
+            font-weight: 500;
+        }
+
+        .detail-value {
+            margin-left: 4px;
+        }
+
+        .price-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* 여행자 정보 */
+        .traveler-summary {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 16px;
+        }
+
+        .traveler-count {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+
+        .traveler-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .traveler-item {
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .traveler-item-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+
+        .traveler-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 여권정보 입력 버튼 */
+        .passport-input-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .passport-input-btn {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .passport-input-btn:hover {
+            background: #1565c0;
+        }
+
+        .passport-input-btn i {
+            font-size: 16px;
+        }
+
+        /* 항공정보 */
+        .flight-section {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .flight-section:last-child {
+            border-bottom: none;
+        }
+
+        .flight-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+
+        .flight-date {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 12px 0;
+        }
+
+        .flight-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .flight-info {
+            font-size: 14px;
+            color: #333;
+            margin: 0;
+        }
+
+        .flight-route {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+
+        .flight-duration {
+            font-size: 13px;
+            color: #999;
+            margin: 0;
+        }
+
+        /* 결제정보 */
+        .payment-details {
+            padding: 16px 0;
+        }
+
+        .payment-section-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .payment-label {
+            flex: 1;
+        }
+
+        .payment-value {
+            font-weight: 500;
+        }
+
+        .payment-total {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* 담당자 정보 */
+        .handler-details {
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 하단 버튼 */
+        .reservation-detail-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: white;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .inquiry-btn,
+        .cancel-reservation-btn,
+        .cancel-payment-btn,
+        .payment-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .inquiry-btn {
+            background: #424242;
+            color: white;
+        }
+
+        .inquiry-btn:hover {
+            background: #333;
+        }
+
+        .payment-btn {
+            background: #1976d2;
+            color: white;
+        }
+
+        .payment-btn:hover {
+            background: #1565c0;
+        }
+
+        .cancel-reservation-btn,
+        .cancel-payment-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .cancel-reservation-btn:hover,
+        .cancel-payment-btn:hover {
+            background: #e0e0e0;
+        }
+    </style>
+
         <script>
             (function () {
-                window.selectPayment = function (purchaseProductId) {
+            // 섹션 접기/펼치기
+            window.toggleSection = function(header) {
+                const section = header.closest('.collapsible-section');
+                section.classList.toggle('collapsed');
+            };
+
+            // 초기화: 모든 섹션 펼침
+            document.querySelectorAll('.collapsible-section').forEach(section => {
+                section.classList.remove('collapsed');
+            });
+
+            window.selectPayment = function(purchaseProductId) {
                     addModal(`/product/purchase/${purchaseProductId}/payment`);
-                }
+            };
 
-                window.sendInquiry = function (purchaseProductId) {
+            window.sendInquiry = function(purchaseProductId) {
                     addModal(`/product/purchase/${purchaseProductId}/inquiry`);
-                }
+            };
 
-                window.cancelProductReservation = async function (purchaseProductId) {
+            window.cancelProductReservation = async function(purchaseProductId) {
                     if (confirm("예약을 취소하시겠습니까?")) {
                         const dummyload = {};
                         try {
@@ -260,7 +811,7 @@
                             alert('예약 취소중 오류가 발생했습니다.');
                         }
                     }
-                }
+            };
 
             })(); 
         </script>

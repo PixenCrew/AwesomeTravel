@@ -1,20 +1,204 @@
-<div>
-    <header class="section-header">
-        <h1>문의 내역</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
+<div class="inquiry-list-container">
+    <style>
+        .inquiry-list-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
 
+        .inquiry-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .inquiry-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .inquiry-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .inquiry-spacer {
+            width: 26px;
+        }
+
+        .inquiry-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .inquiry-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .inquiry-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .inquiry-register-btn {
+            padding: 8px 16px;
+            background: #424242;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .inquiry-register-btn:hover {
+            background: #333;
+        }
+
+        .inquiry-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+        }
+
+        .inquiry-item:last-child {
+            border-bottom: none;
+        }
+
+        .inquiry-item-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inquiry-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .inquiry-item-content {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+        .inquiry-item-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-left: 16px;
+        }
+
+        .inquiry-item-date {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .inquiry-item-status {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .inquiry-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+    </style>
+
+    <header class="inquiry-header">
+        <i class="fas fa-chevron-left inquiry-back" onclick="prevSection()"></i>
+        <h1 class="inquiry-title">1:1 문의</h1>
+        <div class="inquiry-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div th:each="inquiry : ${inquiries}">
-            <ul>
-                <li th:onclick="'fetchSection(\'/inquiry/' + ${inquiry.id} + '\')'">
-                    <span th:text="${inquiry.title}">상품명</span>
-                    <span th:text="${inquiry.status}"></span>
-                </li>
-            </ul>
+    <div class="inquiry-body">
+        <div class="inquiry-section-header">
+            <h2 class="inquiry-section-title">나의 문의 목록</h2>
+            <button class="inquiry-register-btn" onclick="openInquiryForm()">문의 등록하기</button>
+        </div>
+
+        <div th:each="inquiry, iterStat : ${inquiries}" class="inquiry-item" th:onclick="'fetchSection(\'/inquiry/' + ${inquiry.id} + '\')'">
+            <div class="inquiry-item-left">
+                <div class="inquiry-item-title" th:text="'질문 ' + (${iterStat.index} + 1)">질문 1</div>
+                <div class="inquiry-item-content" th:text="${inquiry.title}">결제 관련 문의 드리겠습니다. 1</div>
+            </div>
+            <div class="inquiry-item-right">
+                <div class="inquiry-item-date" th:attr="data-date=${#temporals.format(inquiry.createdAt, 'yyyy-MM-dd HH:mm:ss')}">3일 전</div>
+                <div class="inquiry-item-status" th:text="${inquiry.status == T(renewal.common.entity.Inquiry.InquiryStatus).PENDING ? '미답변' : '답변완료'}">미답변</div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(inquiries)}" class="inquiry-empty">
+            문의 내역이 없습니다.
         </div>
     </div>
+
+    <script>
+        function openInquiryForm() {
+            fetchSection('/inquiry/new');
+        }
+
+        // 날짜를 "N일 전" 형식으로 변환
+        function formatDateAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                if (diffHours === 0) {
+                    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                    return diffMinutes === 0 ? '방금 전' : diffMinutes + '분 전';
+                }
+                return diffHours + '시간 전';
+            } else if (diffDays < 7) {
+                return diffDays + '일 전';
+            } else if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                return weeks + '주 전';
+            } else if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                return months + '개월 전';
+            } else {
+                const years = Math.floor(diffDays / 365);
+                return years + '년 전';
+            }
+        }
+
+        // 페이지 로드 시 날짜 변환
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.inquiry-item-date[data-date]').forEach(function(el) {
+                const dateString = el.getAttribute('data-date');
+                if (dateString) {
+                    el.textContent = formatDateAgo(dateString);
+                }
+            });
+        });
+    </script>
 </div>

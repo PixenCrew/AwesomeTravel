@@ -1,0 +1,273 @@
+<div class="faq-list-container">
+    <style>
+        .faq-list-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .faq-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .faq-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .faq-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .faq-spacer {
+            width: 26px;
+        }
+
+        .faq-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .faq-categories {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e0e0e0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .faq-categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .faq-category {
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .faq-category.active {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .faq-category.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+        }
+
+        .faq-search {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .faq-search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .faq-search-icon {
+            font-size: 16px;
+            color: #999;
+        }
+
+        .faq-search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+        }
+
+        .faq-search-input::placeholder {
+            color: #999;
+        }
+
+        .faq-count {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .faq-question:hover {
+            background: #f9f9f9;
+        }
+
+        .faq-question-text {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .faq-chevron {
+            font-size: 14px;
+            color: #999;
+            margin-left: 12px;
+            transition: transform 0.2s;
+        }
+
+        .faq-item.expanded .faq-chevron {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f9f9f9;
+        }
+
+        .faq-item.expanded .faq-answer {
+            max-height: 1000px;
+        }
+
+        .faq-answer-content {
+            padding: 16px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .faq-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+    </style>
+
+    <header class="faq-header">
+        <i class="fas fa-chevron-left faq-back" onclick="prevSection()"></i>
+        <h1 class="faq-title">자주 묻는 질문</h1>
+        <div class="faq-spacer"></div>
+    </header>
+
+    <!-- 카테고리 필터 -->
+    <div class="faq-categories">
+        <button class="faq-category" 
+                th:classappend="${selectedCategory == null} ? 'active' : ''"
+                onclick="filterFaq(null)">전체</button>
+        <button class="faq-category" 
+                th:classappend="${selectedCategory?.name() == 'MEMBER'} ? 'active' : ''"
+                onclick="filterFaq('MEMBER')">회원</button>
+        <button class="faq-category" 
+                th:classappend="${selectedCategory?.name() == 'PAYMENT'} ? 'active' : ''"
+                onclick="filterFaq('PAYMENT')">결제</button>
+        <button class="faq-category" 
+                th:classappend="${selectedCategory?.name() == 'RESERVATION'} ? 'active' : ''"
+                onclick="filterFaq('RESERVATION')">예약</button>
+        <button class="faq-category" 
+                th:classappend="${selectedCategory?.name() == 'ETC'} ? 'active' : ''"
+                onclick="filterFaq('ETC')">기타</button>
+    </div>
+
+    <!-- 검색 바 -->
+    <div class="faq-search">
+        <div class="faq-search-box">
+            <i class="fas fa-search faq-search-icon"></i>
+            <input type="text" 
+                   class="faq-search-input" 
+                   placeholder="검색어를 입력해주세요"
+                   th:value="${keyword}"
+                   onkeypress="if(event.key === 'Enter') searchFaq()"
+                   id="faqSearchInput">
+        </div>
+    </div>
+
+    <!-- 총 개수 -->
+    <div class="faq-count" th:text="'총 ' + ${totalCount} + '개'">총 12개</div>
+
+    <!-- FAQ 목록 -->
+    <div class="faq-body">
+        <div th:each="faq, iterStat : ${faqs}" class="faq-item" th:classappend="${iterStat.first} ? 'expanded' : ''">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <div class="faq-question-text" th:text="${faq.question}">예약내용 확인과 결제는 어디서 하나요?</div>
+                <i class="fas fa-chevron-down faq-chevron"></i>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-content" th:utext="${faq.answer}">로그인 후 홈페이지 상단 마이페이지 [예약현황/결제] 에서 확인하실 수 있으며, 신용카드/무통장(가상계좌)/포인트 등의 결제수단을 자유롭게 선택하여 결제하실 수 있습니다.</div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(faqs)}" class="faq-empty">
+            FAQ가 없습니다.
+        </div>
+    </div>
+
+    <script>
+        function toggleFaq(element) {
+            const faqItem = element.closest('.faq-item');
+            const isExpanded = faqItem.classList.contains('expanded');
+            
+            // 모든 FAQ 닫기
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('expanded');
+            });
+            
+            // 클릭한 FAQ만 열기/닫기
+            if (!isExpanded) {
+                faqItem.classList.add('expanded');
+            }
+        }
+
+        function filterFaq(category) {
+            if (category === null || category === 'null') {
+                fetchSection('/faq');
+            } else {
+                fetchSection(`/faq?category=${category}`);
+            }
+        }
+
+        function searchFaq() {
+            const keyword = document.getElementById('faqSearchInput').value;
+            const url = keyword ? `/faq?keyword=${encodeURIComponent(keyword)}` : '/faq';
+            fetchSection(url);
+        }
+    </script>
+</div>
+

@@ -1,53 +1,221 @@
-<div>
-    <header class="section-header">
-        <h1>멤버십</h1>
+<div class="membership-container">
+    <style>
+        .membership-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
 
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+        .membership-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .membership-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .membership-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .membership-spacer {
+            width: 26px;
+            flex-shrink: 0;
+        }
+
+        .membership-body {
+            padding: 24px 16px;
+        }
+
+        /* 등급 요약 섹션 */
+        .grade-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .grade-greeting {
+            font-size: 16px;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        .grade-grade {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .grade-badge {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grade-badge img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        /* 결제 현황 섹션 */
+        .grade-stats {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .grade-stats h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .grade-stats ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .grade-stats li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s;
+        }
+
+        .grade-stats li:last-child {
+            border-bottom: none;
+        }
+
+        .grade-stats li:hover {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .grade-stats li span {
+            font-size: 15px;
+            color: #666;
+            flex: 1;
+        }
+
+        .grade-stats li strong {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+            min-width: 100px;
+        }
+
+        /* 등급별 색상 강조 */
+        .grade-stats li strong {
+            color: #667eea;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 480px) {
+            .grade-summary {
+                padding: 24px 16px;
+            }
+
+            .grade-badge img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .grade-greeting {
+                font-size: 14px;
+            }
+
+            .grade-grade {
+                font-size: 20px;
+            }
+
+            .grade-stats li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .grade-stats li strong {
+                text-align: left;
+                min-width: auto;
+            }
+        }
+    </style>
+
+    <header class="membership-header">
+        <i class="fas fa-chevron-left membership-back" onclick="backModal()"></i>
+        <h1 class="membership-title">멤버십</h1>
+        <div class="membership-spacer"></div>
     </header>
 
-    <div class="section-body">
-
-        <!-- 1. 이름님의 등급은 ~입니다 -->
+    <div class="membership-body">
+        <!-- 등급 요약 섹션 -->
         <div class="grade-summary">
-
             <p class="grade-greeting">
-                <span th:text="${user.name}"></span>님의 등급은
+                <span th:text="${user.name}"></span>님의 등급은<br>
                 <strong class="grade-grade" th:text="${memberGrade}"></strong>
                 입니다.
-            </p> <!-- 등급 배지 이미지 -->
-
+            </p>
             <div class="grade-badge">
-                <img th:src="@{'/images/grade/' + ${memberGrade} + '.png'}" />
+                <img th:src="@{'/images/grade/' + ${memberGrade} + '.png'}" 
+                     th:alt="${memberGrade} + ' 등급 배지'"
+                     onerror="this.src='/images/grade/default.png'" />
             </div>
-
         </div>
 
-        <!-- 2. 결제 현황 -->
-
+        <!-- 결제 현황 섹션 -->
         <div class="grade-stats">
             <h2>결제 현황</h2>
-
             <ul>
                 <li>
                     <span>최근 1년 결제 완료 건수</span>
-                    <strong th:text="${count1Year}"></strong>
+                    <strong th:text="${count1Year} + '건'"></strong>
                 </li>
-
                 <li>
                     <span>최근 5년 결제 완료 건수</span>
-                    <strong th:text="${count5Years}"></strong>
+                    <strong th:text="${count5Years} + '건'"></strong>
                 </li>
-
                 <li>
                     <span>최근 5년 결제금액 중 가장 큰 금액</span>
-                    <strong th:text="${#numbers.formatInteger(maxPrice, 3, 'COMMA')} + '원'"></strong>
+                    <strong th:text="${#numbers.formatDecimal(maxPrice, 0, 0) + '원'}"></strong>
                 </li>
-
                 <li>
                     <span>최근 5년 총 결제 금액</span>
-                    <strong th:text="${#numbers.formatInteger(totalPrice5Years, 3, 'COMMA')} + '원'"></strong>
+                    <strong th:text="${#numbers.formatDecimal(totalPrice5Years, 0, 0) + '원'}"></strong>
                 </li>
             </ul>
         </div>

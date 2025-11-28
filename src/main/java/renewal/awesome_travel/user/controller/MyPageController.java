@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
+import renewal.common.entity.Passport;
 import renewal.awesome_travel.passport.entity.PassportAccessConsent;
 import renewal.awesome_travel.passport.repository.PassportAccessConsentRepository;
 import renewal.awesome_travel.passport.repository.PassportRepository;
@@ -51,6 +53,7 @@ import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
 import renewal.common.service.EmailService;
+import renewal.awesome_travel.notification.service.NotificationService;
 
 @Controller
 @RequiredArgsConstructor
@@ -69,6 +72,7 @@ public class MyPageController {
     private final PasswordEncoder passwordEncoder;
     private final MateVerificationTokenRepository mateTokenRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @GetMapping("/reservation")
     public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
@@ -105,6 +109,19 @@ public class MyPageController {
         return "fragments/mypage/setting";
     }
 
+    @GetMapping("/accountSetting")
+    public String mypageAccountSettingFragment(Principal principal, Model model, HttpSession session) {
+
+        User user = userRepo.findByEmail(principal.getName()).get();
+        model.addAttribute("currentUser", user);
+
+        // 휴대폰 인증을 위한 세션 초기화
+        UserRegisterRequestDto tempUser = new UserRegisterRequestDto();
+        session.setAttribute("tempUser", tempUser);
+
+        return "fragments/mypage/accountSetting";
+    }
+
     @GetMapping("/myPassport")
     public String myPassportFragment(Principal principal, Model model) {
 
@@ -112,6 +129,7 @@ public class MyPageController {
         Passport myPassport = passportRepo.findByUser(user).orElseGet(Passport::new);
 
         model.addAttribute("myPassport", myPassport);
+        model.addAttribute("currentUser", user);
 
         return "fragments/mypage/myPassport";
     }
@@ -140,16 +158,44 @@ public class MyPageController {
         passport.setLastNameKor(myPassport.getLastNameKor());
         passport.setFirstNameKor(myPassport.getFirstNameKor());
 
-        passport.setBirth(LocalDate.parse(myPassport.getBirth()));
+        // birth 파싱 (yyyy-MM-dd 형식)
+        if (myPassport.getBirth() != null && !myPassport.getBirth().trim().isEmpty()) {
+            passport.setBirth(LocalDate.parse(myPassport.getBirth()));
+        }
+        
         passport.setSex(Sex.valueOf(myPassport.getSex()));
 
-        passport.setNationality(myPassport.getNationality());
-        passport.setAuthority(myPassport.getAuthority());
+        // nationality와 authority는 빈 문자열이면 null로 처리
+        if (myPassport.getNationality() != null && !myPassport.getNationality().trim().isEmpty()) {
+            passport.setNationality(myPassport.getNationality().trim());
+        } else {
+            passport.setNationality(null);
+        }
+        
+        if (myPassport.getAuthority() != null && !myPassport.getAuthority().trim().isEmpty()) {
+            passport.setAuthority(myPassport.getAuthority().trim());
+        } else {
+            passport.setAuthority(null);
+        }
 
-        passport.setIssue(LocalDate.parse(myPassport.getIssue()));
-        passport.setExpire(LocalDate.parse(myPassport.getExpire()));
+        // issue 파싱 (빈 문자열이면 null)
+        if (myPassport.getIssue() != null && !myPassport.getIssue().trim().isEmpty()) {
+            passport.setIssue(LocalDate.parse(myPassport.getIssue()));
+        } else {
+            passport.setIssue(null);
+        }
+        
+        // expire 파싱 (빈 문자열이면 null)
+        if (myPassport.getExpire() != null && !myPassport.getExpire().trim().isEmpty()) {
+            passport.setExpire(LocalDate.parse(myPassport.getExpire()));
+        } else {
+            passport.setExpire(null);
+        }
 
         passportRepo.save(passport);
+
+        // 내 여권정보에서는 전화번호를 변경하지 않음 (사용자 정보에서 관리)
+        // 전화번호는 별도의 사용자 정보 수정 페이지에서 변경하도록 함
 
         return ResponseEntity.ok(Map.of("success", true));
     }
@@ -193,13 +239,13 @@ public class MyPageController {
         dto.put("firstName", passport.getFirstName());
         dto.put("lastNameKor", passport.getLastNameKor());
         dto.put("firstNameKor", passport.getFirstNameKor());
-        dto.put("birth", passport.getBirth().toString());
-        dto.put("sex", passport.getSex().name());
-        dto.put("countryCode", passport.getCountryCode().getCode());
+        dto.put("birth", passport.getBirth() != null ? passport.getBirth().toString() : null);
+        dto.put("sex", passport.getSex() != null ? passport.getSex().name() : null);
+        dto.put("countryCode", passport.getCountryCode() != null ? passport.getCountryCode().getCode() : null);
         dto.put("nationality", passport.getNationality());
         dto.put("authority", passport.getAuthority());
-        dto.put("issue", passport.getIssue().toString());
-        dto.put("expire", passport.getExpire().toString());
+        dto.put("issue", passport.getIssue() != null ? passport.getIssue().toString() : null);
+        dto.put("expire", passport.getExpire() != null ? passport.getExpire().toString() : null);
         dto.put("email", user.getEmail());
         dto.put("number", user.getPhone());
 
@@ -213,6 +259,10 @@ public class MyPageController {
         PassportAccessConsent mate = passportAccessConsentRepo.findById(id).orElseThrow();
 
         Passport p = mate.getPassport();
+        if (p == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", "여권 정보를 찾을 수 없습니다."));
+        }
 
         Map<String, Object> dto = new HashMap<>();
         dto.put("passportNum", p.getPassportNum());
@@ -220,13 +270,13 @@ public class MyPageController {
         dto.put("firstName", p.getFirstName());
         dto.put("lastNameKor", p.getLastNameKor());
         dto.put("firstNameKor", p.getFirstNameKor());
-        dto.put("birth", p.getBirth().toString());
-        dto.put("sex", p.getSex().name());
-        dto.put("countryCode", p.getCountryCode().getCode());
+        dto.put("birth", p.getBirth() != null ? p.getBirth().toString() : null);
+        dto.put("sex", p.getSex() != null ? p.getSex().name() : null);
+        dto.put("countryCode", p.getCountryCode() != null ? p.getCountryCode().getCode() : null);
         dto.put("nationality", p.getNationality());
         dto.put("authority", p.getAuthority());
-        dto.put("issue", p.getIssue().toString());
-        dto.put("expire", p.getExpire().toString());
+        dto.put("issue", p.getIssue() != null ? p.getIssue().toString() : null);
+        dto.put("expire", p.getExpire() != null ? p.getExpire().toString() : null);
         dto.put("email", mate.getEmail());
         dto.put("number", mate.getNumber());
 
@@ -265,6 +315,11 @@ public class MyPageController {
                 ? passportAccessConsentRepo.findById(req.getId()).orElse(new PassportAccessConsent())
                 : new PassportAccessConsent();
 
+        // Passport가 null이면 새로 생성
+        if (matePassport.getPassport() == null) {
+            matePassport.setPassport(new Passport());
+        }
+
         matePassport.setUser(user);
         matePassport.setEmail(req.getEmail());
         matePassport.setNumber(req.getNumber());
@@ -273,17 +328,28 @@ public class MyPageController {
         matePassport.getPassport().setFirstName(req.getFirstName());
         matePassport.getPassport().setLastNameKor(req.getLastNameKor());
         matePassport.getPassport().setFirstNameKor(req.getFirstNameKor());
-        matePassport.getPassport().setBirth(LocalDate.parse(req.getBirth()));
+        
+        // 날짜 필드 처리 (빈 문자열 또는 null 체크)
+        if (req.getBirth() != null && !req.getBirth().trim().isEmpty()) {
+            matePassport.getPassport().setBirth(LocalDate.parse(req.getBirth()));
+        }
+        if (req.getIssue() != null && !req.getIssue().trim().isEmpty()) {
+            matePassport.getPassport().setIssue(LocalDate.parse(req.getIssue()));
+        }
+        if (req.getExpire() != null && !req.getExpire().trim().isEmpty()) {
+            matePassport.getPassport().setExpire(LocalDate.parse(req.getExpire()));
+        }
+        
         matePassport.getPassport().setSex(Sex.valueOf(req.getSex()));
         matePassport.getPassport().setNationality(req.getNationality());
         matePassport.getPassport().setAuthority(req.getAuthority());
-        matePassport.getPassport().setIssue(LocalDate.parse(req.getIssue()));
-        matePassport.getPassport().setExpire(LocalDate.parse(req.getExpire()));
 
         // 국가코드
-        CountryCode code = countryCodeRepo.findByCode(req.getCountryCode())
-                .orElseThrow();
-        matePassport.getPassport().setCountryCode(code);
+        if (req.getCountryCode() != null && !req.getCountryCode().trim().isEmpty()) {
+            CountryCode code = countryCodeRepo.findByCode(req.getCountryCode())
+                    .orElseThrow();
+            matePassport.getPassport().setCountryCode(code);
+        }
 
         passportRepo.save(matePassport.getPassport());
         passportAccessConsentRepo.save(matePassport);
@@ -310,36 +376,43 @@ public class MyPageController {
         matePassport.setApprovedAt(LocalDateTime.now());
         passportAccessConsentRepo.save(matePassport);
         mateTokenRepository.delete(token2);
+        
+        // 여행메이트를 등록한 사용자에게 알림 생성
+        User owner = matePassport.getUser();
+        String mateName = matePassport.getPassport().getLastNameKor() + matePassport.getPassport().getFirstNameKor();
+        String notificationMessage = mateName + "님의 여행메이트 등록이 승인되었습니다.";
+        notificationService.createNotification(owner.getId(), notificationMessage);
+        
         model.addAttribute("username", matePassport.getUser().getName());
 
         return "fragments/mypage/matePassportAccepted";
     }
 
+    // 여행메이트 등록 완료 모달
+    @GetMapping("/matePassport/complete")
+    public String matePassportCompleteFragment() {
+        return "fragments/mypage/matePassportComplete";
+    }
+
     // 특정 메이트 삭제
     @PostMapping("/matePassport/{id}/delete")
+    @Transactional
     public ResponseEntity<?> deleteMate(@PathVariable @NonNull Long id) {
-        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).get();
-        if (matePassport != null) {
-            Passport passport = matePassport.getPassport();
-            MateVerificationToken token = mateTokenRepository.findByMatePassport(matePassport).orElse(null);
-
-            // token 있으면 삭제
-            if (token != null) {
-                mateTokenRepository.delete(token);
-            }
-
-            // mate 삭제
-            passportAccessConsentRepo.delete(matePassport);
-
-            // passport 삭제
-            if (passport != null) {
-                passportRepo.delete(passport);
-            }
-            return ResponseEntity.ok(Map.of("success", true));
-
+        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).orElse(null);
+        if (matePassport == null) {
+            return ResponseEntity.ok(Map.of("success", false, "message", "여행메이트를 찾을 수 없습니다."));
         }
-        return ResponseEntity.ok(Map.of("success", false));
 
+        // token 있으면 삭제
+        MateVerificationToken token = mateTokenRepository.findByMatePassport(matePassport).orElse(null);
+        if (token != null) {
+            mateTokenRepository.delete(token);
+        }
+
+        // PassportAccessConsent 삭제 (cascade로 Passport도 함께 삭제됨)
+        passportAccessConsentRepo.delete(matePassport);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "여행메이트가 삭제되었습니다."));
     }
 
     @GetMapping("/userInfo")
@@ -363,6 +436,13 @@ public class MyPageController {
     public ResponseEntity<?> verifyNumber(@RequestBody Map<String, String> payload, HttpSession session) {
 
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
+        
+        // 세션에 tempUser가 없으면 새로 생성
+        if (tempUser == null) {
+            tempUser = new UserRegisterRequestDto();
+            session.setAttribute("tempUser", tempUser);
+        }
+        
         String randomCode = String.format("%06d", new Random().nextInt(1000000));
         tempUser.setNumber(payload.get("number"));
         tempUser.setVerifyCode(randomCode);
@@ -380,13 +460,21 @@ public class MyPageController {
     public ResponseEntity<?> verifyNumberCheck(@RequestBody Map<String, String> payload, HttpSession session) {
 
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
+        
+        // 세션에 tempUser가 없으면 에러 반환
+        if (tempUser == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "인증 요청을 먼저 해주세요."));
+        }
+        
         String tempUserNumber = tempUser.getNumber();
         String tempUserVerifyCode = tempUser.getVerifyCode();
 
         String requestNumber = payload.get("number");
         String requestVerifyCode = payload.get("verifyCode");
 
-        if (tempUserNumber.equals(requestNumber) && tempUserVerifyCode.equals(requestVerifyCode)) {
+        if (tempUserNumber != null && tempUserVerifyCode != null &&
+            tempUserNumber.equals(requestNumber) && tempUserVerifyCode.equals(requestVerifyCode)) {
             return ResponseEntity.ok(Map.of("success", true));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

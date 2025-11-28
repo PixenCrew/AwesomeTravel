@@ -1,13 +1,23 @@
-<div>
-    <header class="section-header">
-        <h1>아이디 찾기</h1>
+<div class="recovery-id-result-container">
+    <header class="recovery-id-header">
+        <div class="header-spacer" style="width: 26px;"></div>
+        <h1 class="recovery-id-title">아이디 찾기</h1>
+        <div class="header-spacer" style="width: 26px;"></div>
     </header>
 
-    <div class="section-body">
-        <h4>아이디 찾기 완료</h4>
-        <div>이 계정을 이용해, 로그인을 수행해 주세요.</div>
-        <h4 th:text="${emailResult}"></h4>
-        <button onclick="addModal('/login',true);">로그인</button>
-        <button onclick="addModal('/recovery/password',true);">비밀번호 찾기</button>
+    <div class="recovery-id-body">
+        <h2 class="recovery-id-main-title" style="margin-bottom: 24px;">아이디 찾기 완료</h2>
+        <div class="recovery-id-result">
+            <div style="margin-bottom: 16px; font-size: 15px; color: #333;">
+                <span>이메일 : </span>
+                <span style="font-weight: 500;" th:text="${emailResult}">abc@gmail.com</span>
+            </div>
+            <p class="recovery-id-result-instruction" style="margin: 0 0 32px 0;">이 계정을 이용해, 로그인을 수행해 주세요.</p>
+        </div>
+
+        <div class="recovery-id-result-buttons" style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="recovery-id-result-btn primary" onclick="addModal('/login',true);">로그인</button>
+            <button class="recovery-id-result-btn secondary" onclick="addModal('/recovery/password',true);">비밀번호 찾기</button>
+        </div>
     </div>
 </div>

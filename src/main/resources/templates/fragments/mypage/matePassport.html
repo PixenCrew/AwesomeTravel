@@ -1,149 +1,349 @@
-<div>
-    <header class="section-header">
-        <h1>여행메이트 등록</h1>
-        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+<div class="mate-passport-container">
+    <style>
+        .mate-passport-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .mate-passport-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .mate-passport-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .mate-passport-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .mate-passport-spacer {
+            width: 26px;
+            flex-shrink: 0;
+        }
+
+        .mate-passport-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 120px;
+        }
+
+        .mate-passport-section {
+            margin-bottom: 32px;
+        }
+
+        .mate-passport-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .mate-passport-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .mate-passport-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mate-passport-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .mate-passport-form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .mate-passport-form-input,
+        .mate-passport-form-select {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        .mate-passport-form-input:focus,
+        .mate-passport-form-select:focus {
+            border-color: #333;
+        }
+
+        .mate-passport-form-input::placeholder {
+            color: #999;
+        }
+
+        .mate-passport-form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+
+        .mate-passport-consent-group {
+            margin-top: 24px;
+            margin-bottom: 32px;
+        }
+
+        .mate-passport-checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .mate-passport-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: all 0.2s;
+            margin-top: 2px;
+        }
+
+        .mate-passport-checkbox-input {
+            display: none;
+        }
+
+        .mate-passport-checkbox-input:checked + .mate-passport-checkbox {
+            background: #333;
+            border-color: #333;
+        }
+
+        .mate-passport-checkbox-input:checked + .mate-passport-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .mate-passport-checkbox-label {
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .mate-passport-disclaimer {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .mate-passport-action-buttons {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mate-passport-save-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .mate-passport-save-btn:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .mate-passport-save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mate-passport-delete-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 0;
+            background: #f5f5f5;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mate-passport-delete-btn:hover {
+            background: #e8e8e8;
+        }
+    </style>
+
+    <header class="mate-passport-header">
+        <i class="fas fa-chevron-left mate-passport-back" onclick="backModal()"></i>
+        <h1 class="mate-passport-title" th:text="${matePassport?.id != null ? '여행메이트 정보' : '여행메이트 등록'}">여행메이트 등록</h1>
+        <div class="mate-passport-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <div id="matePassportForm">
-            <section>
-
-                <input type="hidden" id="id"
-                    th:value="${matePassport != null ? matePassport.id : ''}" />
-
-                <label>여권번호
-                    <input type="text" id="passportNum"
-                        th:value="${matePassport != null ? matePassport.passport.passportNum : ''}" required>
-                </label><br>
-
-                <label>영문 성
-                    <input type="text" id="lastName"
-                        th:value="${matePassport != null ? matePassport.passport.lastName : ''}" required>
-                </label><br>
-
-                <label>영문 이름
-                    <input type="text" id="firstName"
-                        th:value="${matePassport != null ? matePassport.passport.firstName : ''}" required>
-                </label><br>
-
-                <label>국문 성
-                    <input type="text" id="lastNameKor"
-                        th:value="${matePassport != null ? matePassport.passport.lastNameKor : ''}" required>
-                </label><br>
-
-                <label>국문 이름
-                    <input type="text" id="firstNameKor"
-                        th:value="${matePassport != null ? matePassport.passport.firstNameKor : ''}" required>
-                </label><br>
-
-                <label>생년월일
-                    <input type="date" id="birth"
-                        th:value="${matePassport != null ? matePassport.passport.birth : ''}" required>
-                </label><br>
-
-                <label>성별
-                    <select id="sex" required>
-                        <option value="MALE"
-                            th:selected="${matePassport != null and matePassport.passport.sex == T(renewal.common.entity.Passenger.Sex).MALE}">
-                            남성
-                        </option>
-                        <option value="FEMALE"
-                            th:selected="${matePassport != null and matePassport.passport.sex == T(renewal.common.entity.Passenger.Sex).FEMALE}">
-                            여성
-                        </option>
+    <div class="mate-passport-body">
+        <!-- 기본 정보 섹션 -->
+        <div class="mate-passport-section">
+            <h2 class="mate-passport-section-title">기본 정보</h2>
+            <div class="mate-passport-form-grid">
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">한글 성</label>
+                    <input type="text" id="lastNameKor" class="mate-passport-form-input" th:value="${matePassport?.passport?.lastNameKor ?: ''}" placeholder="한글 성 입력" />
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">한글 이름</label>
+                    <input type="text" id="firstNameKor" class="mate-passport-form-input" th:value="${matePassport?.passport?.firstNameKor ?: ''}" placeholder="한글 이름 입력" />
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">여권 표기 영문 성</label>
+                    <input type="text" id="lastName" class="mate-passport-form-input" th:value="${matePassport?.passport?.lastName ?: ''}" placeholder="영문 성 입력" />
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">여권 표기 영문 이름</label>
+                    <input type="text" id="firstName" class="mate-passport-form-input" th:value="${matePassport?.passport?.firstName ?: ''}" placeholder="영문 이름 입력" />
+                </div>
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">생년월일</label>
+                    <input type="date" id="birth" class="mate-passport-form-input" th:value="${matePassport?.passport?.birth != null ? #temporals.format(matePassport.passport.birth, 'yyyy-MM-dd') : ''}" />
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">성별</label>
+                    <select id="sex" class="mate-passport-form-select">
+                        <option value="MALE" th:selected="${matePassport?.passport?.sex == T(renewal.common.entity.Passenger.Sex).MALE}">남성</option>
+                        <option value="FEMALE" th:selected="${matePassport?.passport?.sex == T(renewal.common.entity.Passenger.Sex).FEMALE}">여성</option>
                     </select>
-                </label><br>
-
-                <label>국가코드
-                    <input type="text" id="countryCode"
-                        th:value="${matePassport != null ? matePassport.passport.countryCode.code : ''}" required>
-                </label><br>
-
-                <label>국적
-                    <input type="text" id="nationality"
-                        th:value="${matePassport != null ? matePassport.passport.nationality : ''}" required>
-                </label><br>
-
-                <label>발급관청
-                    <input type="text" id="authority"
-                        th:value="${matePassport != null ? matePassport.passport.authority : ''}" required>
-                </label><br>
-
-                <label>여권 발급일
-                    <input type="date" id="issue"
-                        th:value="${matePassport != null ? matePassport.passport.issue : ''}" required>
-                </label><br>
-
-                <label>여권 만료일
-                    <input type="date" id="expire"
-                        th:value="${matePassport != null ? matePassport.passport.expire : ''}" required>
-                </label><br>
-
-                <label>이메일
-                    <input type="email" id="email"
-                        th:value="${matePassport != null ? matePassport.email : ''}">
-                </label><br>
-
-                <label>전화번호
-                    <input type="text" id="number"
-                        th:value="${matePassport != null ? matePassport.number : ''}">
-                </label><br>
-
-                <hr>
-
-                <label th:if="${matePassport.requestedAt != null }">요청일
-                    <input type="datetime"
-                        th:value="${matePassport.requestedAt}">
-                </label><br>
-
-                <label th:if="${matePassport.approvedAt != null }">승인일
-                    <input type="datetime"
-                        th:value="${matePassport.approvedAt}">
-                </label><br>
-
-            </section>
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">국적</label>
+                    <select id="nationality" class="mate-passport-form-select">
+                        <option value="대한민국" th:selected="${matePassport?.passport?.nationality == '대한민국'}">대한민국</option>
+                        <option value="미국">미국</option>
+                        <option value="중국">중국</option>
+                        <option value="일본">일본</option>
+                    </select>
+                </div>
+                <div class="mate-passport-form-group">
+                    <label class="mate-passport-form-label">발급관청</label>
+                    <input type="text" id="authority" class="mate-passport-form-input" th:value="${matePassport?.passport?.authority ?: ''}" placeholder="발급관청 입력" />
+                </div>
+            </div>
         </div>
 
-        <div class="text-center mt-4">
-            <button type="button" class="btn btn-primary" onclick="submitMatePassportForm()">
-                제출
-            </button>
-            <button type="button"
-                class="btn btn-danger ms-2"
-                th:if="${matePassport.id != null}"
-                th:onclick="|deleteMatePassport(${matePassport.id})|">
-                여행메이트 삭제
-            </button>
+        <!-- 여권 정보 섹션 -->
+        <div class="mate-passport-section">
+            <h2 class="mate-passport-section-title">여권 정보</h2>
+            <div class="mate-passport-form-grid">
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">여권번호</label>
+                    <input type="text" id="passportNum" class="mate-passport-form-input" th:value="${matePassport?.passport?.passportNum ?: ''}" placeholder="여권번호 입력" />
+                </div>
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">여권 발급일</label>
+                    <input type="date" id="issue" class="mate-passport-form-input" th:value="${matePassport?.passport?.issue != null ? #temporals.format(matePassport.passport.issue, 'yyyy-MM-dd') : ''}" />
+                </div>
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">여권만료일</label>
+                    <input type="date" id="expire" class="mate-passport-form-input" th:value="${matePassport?.passport?.expire != null ? #temporals.format(matePassport.passport.expire, 'yyyy-MM-dd') : ''}" />
+                </div>
+            </div>
+        </div>
+
+        <!-- 연락처 정보 섹션 -->
+        <div class="mate-passport-section">
+            <h2 class="mate-passport-section-title">연락처 정보</h2>
+            <div class="mate-passport-form-grid">
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">이메일</label>
+                    <input type="email" id="email" class="mate-passport-form-input" th:value="${matePassport?.email ?: ''}" placeholder="이메일 입력" />
+                </div>
+                <div class="mate-passport-form-group full-width">
+                    <label class="mate-passport-form-label">휴대폰 번호</label>
+                    <input type="text" id="number" class="mate-passport-form-input" th:value="${matePassport?.number ?: ''}" placeholder="숫자 11자리(ex. 01000000000)" />
+                </div>
         </div>
     </div>
 
+        <!-- 동의 섹션 -->
+        <div class="mate-passport-consent-group">
+            <div class="mate-passport-checkbox-wrapper">
+                <input type="checkbox" id="consent" class="mate-passport-checkbox-input" checked />
+                <label for="consent" class="mate-passport-checkbox"></label>
+                <label for="consent" class="mate-passport-checkbox-label">고유식별정보 수집 동의</label>
+            </div>
+            <p class="mate-passport-disclaimer">여권만료일이 출발일로부터 6개월 미만인 경우는 출국이 제한될 수 있습니다.</p>
+        </div>
+
+        <div class="mate-passport-action-buttons">
+            <button class="mate-passport-save-btn" onclick="submitMatePassportForm()">저장 후 닫기</button>
+            <button class="mate-passport-delete-btn" th:if="${matePassport?.id != null}" th:onclick="'deleteMatePassport(' + ${matePassport.id} + ')'">여행메이트 삭제</button>
+        </div>
+    </div>
 
     <script>
         (function () {
-
             window.submitMatePassportForm = async function () {
-
                 if (isSubmitting) return;
                 isSubmitting = true;
 
-                const f = document.getElementById('matePassportForm');
-
                 const payload = {
-                    id: f.querySelector("#id").value || null,
-                    passportNum: f.querySelector("#passportNum").value.trim(),
-                    lastName: f.querySelector("#lastName").value.trim(),
-                    firstName: f.querySelector("#firstName").value.trim(),
-                    lastNameKor: f.querySelector("#lastNameKor").value.trim(),
-                    firstNameKor: f.querySelector("#firstNameKor").value.trim(),
-                    birth: f.querySelector("#birth").value.trim(),
-                    sex: f.querySelector("#sex").value.trim(),
-                    countryCode: f.querySelector("#countryCode").value.trim(),
-                    nationality: f.querySelector("#nationality").value.trim(),
-                    authority: f.querySelector("#authority").value.trim(),
-                    issue: f.querySelector("#issue").value.trim(),
-                    expire: f.querySelector("#expire").value.trim(),
-                    email: f.querySelector("#email").value.trim(),
-                    number: f.querySelector("#number").value.trim()
+                    id: document.getElementById("id")?.value || null,
+                    passportNum: document.getElementById("passportNum").value.trim(),
+                    lastName: document.getElementById("lastName").value.trim(),
+                    firstName: document.getElementById("firstName").value.trim(),
+                    lastNameKor: document.getElementById("lastNameKor").value.trim(),
+                    firstNameKor: document.getElementById("firstNameKor").value.trim(),
+                    birth: document.getElementById("birth").value || null,
+                    sex: document.getElementById("sex").value.trim(),
+                    nationality: document.getElementById("nationality").value.trim(),
+                    authority: document.getElementById("authority").value.trim(),
+                    issue: document.getElementById("issue").value || null,
+                    expire: document.getElementById("expire").value || null,
+                    email: document.getElementById("email").value.trim(),
+                    number: document.getElementById("number").value.trim()
                 };
 
                 try {
@@ -160,8 +360,13 @@
                         return;
                     }
 
+                    // 새로 등록한 경우 완료 모달 표시
+                    if (!payload.id) {
+                        addModal('/mypage/matePassport/complete', true);
+                    } else {
                     alert("여행메이트 정보가 저장되었습니다.");
-                    closeModal();
+                        backModal();
+                    }
 
                 } catch (err) {
                     console.error(err);
@@ -169,7 +374,7 @@
                 } finally {
                     isSubmitting = false;
                 }
-            }
+            };
 
             window.deleteMatePassport = async function (id) {
                 if (!confirm("정말 삭제하시겠습니까?")) return;
@@ -188,17 +393,13 @@
                     }
 
                     alert("여행메이트 정보가 삭제되었습니다.");
-                    closeModal();
+                    backModal();
 
                 } catch (err) {
                     console.error(err);
                     alert("네트워크 오류가 발생했습니다.");
-                } finally {
-                    isSubmitting = false;
                 }
-            }
-
+            };
         })();
     </script>
-
 </div>

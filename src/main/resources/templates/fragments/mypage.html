@@ -1,66 +1,111 @@
-<div th:fragment="mypageFragment">
+<div th:fragment="mypageFragment" class="mypage-container">
+    <!-- 로그인 상태 -->
+    <div th:if="${currentUser != null}">
+        <header class="mypage-header">
+            <i class="fas fa-chevron-left back-btn" onclick="prevSection()"></i>
+            <h1 class="mypage-title">마이페이지</h1>
+            <div class="header-actions">
+                <i class="fas fa-bell header-icon" onclick="fetchSection('/notification/center')"></i>
+                <i class="fas fa-cog header-icon" onclick="fetchSection('/mypage/setting')"></i>
+            </div>
+        </header>
 
-    <header class="section-header">
-        <h1>마이페이지</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
-        </div>
-    </header>
-
-    <div class="section-body">
-        <div th:if="${currentUser != null}">
-            <div>
-                <img th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}">
-                <div>
-                    <h2 th:text="${currentUser?.name}">신예은</h2>
-                    <p th:text="${currentUser?.email}">shin@god.com</p>
-                    <p th:text="${currentUser?.grade}" onclick="openModal('/mypage/grade')">일반등급</p>
-                </div>
-                <div>
-                    <button>🔔</button>
-                    <button>⚙️</button>
+        <div class="mypage-body">
+            <!-- 프로필 섹션 -->
+            <div class="profile-section">
+                <img class="profile-image" 
+                     th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}" 
+                     alt="프로필 이미지">
+                <div class="profile-info">
+                    <h2 class="profile-name" th:text="${currentUser?.name}">신예은</h2>
+                    <div class="profile-email">
+                        <span class="email-icon">N</span>
+                        <span class="email-text" th:text="${currentUser?.email}">shin@god.com</span>
+                    </div>
+                    <p class="profile-grade" th:text="${currentUser?.grade}" onclick="addModal('/mypage/grade', true)">일반등급</p>
                 </div>
             </div>
 
-            <div>
-                <div>
-                    <span>💖찜한상품</span>
-                    <p th:text="${likedProductsCount} ?: 0">3</p>
+            <!-- 빠른 접근 메트릭 -->
+            <div class="metrics-section">
+                <div class="metric-item" onclick="showSection(4)">
+                    <i class="far fa-heart metric-icon"></i>
+                    <span class="metric-label">찜한 상품</span>
+                    <span class="metric-value" th:text="${likedProductsCount} ?: 0">3</span>
                 </div>
-                <div>
-                    <span>🎟️보유 쿠폰 수</span>
-                    <p th:text="${userCouponsCount} ?: 0">3</p>
+                <div class="metric-item">
+                    <i class="fas fa-ticket-alt metric-icon"></i>
+                    <span class="metric-label">쿠폰</span>
+                    <span class="metric-value" th:text="${userCouponsCount} ?: 0">3</span>
                 </div>
-                <div>
-                    <span>💰포인트</span>
-                    <p th:text="${currentUser?.point} ?: 0">3,000</p>
+                <div class="metric-item">
+                    <i class="fas fa-wallet metric-icon"></i>
+                    <span class="metric-label">포인트</span>
+                    <span class="metric-value" th:text="${#numbers.formatDecimal(currentUser?.point ?: 0, 0, 0)}">3,000</span>
                 </div>
             </div>
 
-            <ul>
-                <li>최근 본 상품 <span>›</span></li>
-                <li onclick="fetchSection('/mypage/reservation')">예약내역 <span>›</span></li>
-                <li onclick="fetchSection('/mypage/inquiry')">나의 문의 <span>›</span></li>
-                <li>포인트 <span>›</span></li>
-                <li>쿠폰함 <span>›</span></li>
-                <li>고객문의 <span>›</span></li>
-                <li>공지사항 <span>›</span></li>
-                <li>FAQ <span>›</span></li>
-                <li onclick="fetchSection('/mypage/setting')">설정 <span>›</span></li>
-                <li><a href="/logout">로그아웃<span>›</span></a></li>
-            </ul>
-        </div>
-
-        <!-- 비로그인 상태 -->
-        <div th:unless="${currentUser != null}">
-            <div>
-                <img src="/images/profileDefault.png">
-                <div>
-                    <h2 onclick="openModal('/login')">로그인 후 이용해주세요</h2>
+            <!-- 메뉴 리스트 -->
+            <div class="menu-section">
+                <div class="menu-item" onclick="showSection(4)">
+                    <span class="menu-text">최근 본 상품</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/mypage/reservation')">
+                    <span class="menu-text">예약내역</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/mypage/inquiry')">
+                    <span class="menu-text">나의 문의</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item">
+                    <span class="menu-text">포인트</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item">
+                    <span class="menu-text">쿠폰함</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/inquiry/all')">
+                    <span class="menu-text">고객문의</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/notice')">
+                    <span class="menu-text">공지사항</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/faq')">
+                    <span class="menu-text">FAQ</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item" onclick="fetchSection('/mypage/setting')">
+                    <span class="menu-text">설정</span>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item">
+                    <a href="/logout" class="menu-text logout-link">로그아웃</a>
+                    <i class="fas fa-chevron-right menu-arrow"></i>
                 </div>
             </div>
-            <button onclick="openModal('/login')">로그인하기</button>
         </div>
     </div>
 
+    <!-- 비로그인 상태 -->
+    <div th:unless="${currentUser != null}" class="mypage-login-required">
+        <header class="mypage-header">
+            <i class="fas fa-chevron-left back-btn" onclick="prevSection()"></i>
+            <h1 class="mypage-title">마이페이지</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <div class="mypage-body login-required-body">
+            <div class="login-required-content">
+                <img class="login-required-image" src="/images/profileDefault.png" alt="프로필">
+                <h2 class="login-required-title">로그인 후 이용해 주세요</h2>
+                <p class="login-required-message">로그인하시면 다양한 서비스를 이용하실 수 있습니다.</p>
+                <button class="login-required-btn" onclick="addModal('/login', true)">로그인하기</button>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,17 +1,355 @@
-<div>
+<div class="product-search-result-container">
     <style>
-        /* .compare-sheet {
-            z-index: 10 !important;
-        } */
+        .compare-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 16px;
+            margin: 0 auto;
+            width: min(420px, calc(100% - 24px));
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+            border-radius: 24px;
+            z-index: 9998;
+            border: 1px solid #f4f4f4;
+        }
+
+        .compare-sheet .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 14px;
+        }
+
+        .compare-sheet .close-sheet {
+            background: transparent;
+            border: none;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .compare-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            border: 1px solid #f0f0f0;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .compare-list li {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #f3f3f3;
+        }
+
+        .compare-list li:last-child {
+            border-bottom: none;
+        }
+
+        .compare-list .compare-remove {
+            font-size: 13px;
+            color: #b0b0b0;
+            cursor: pointer;
+        }
+
+        .compare-date-picker {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border: 1px solid #f0f0f0;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .compare-date-picker label {
+            font-size: 12px;
+            color: #808080;
+            font-weight: 600;
+        }
+
+        .compare-date-picker input[type="date"] {
+            border: 1px solid #e2e2e2;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .compare-btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            background: #111;
+            color: #fff;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .compare-btn.disabled {
+            background: #e0e0e0;
+            color: #999;
+            pointer-events: none;
+        }
+
+        .compare-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 24px;
+        }
+
+        .compare-modal-inner {
+            width: min(420px, 100%);
+            max-height: 90vh;
+            background: #fff;
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+        }
+
+        .compare-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 18px 20px 8px;
+        }
+
+        .compare-modal-header h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .compare-modal-header .close-btn {
+            position: absolute;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #111;
+        }
+
+        .compare-modal-body {
+            padding: 8px 20px 0;
+            overflow-y: auto;
+        }
+
+        .compare-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #adadad;
+            margin-bottom: 10px;
+        }
+
+        .compare-modal-footer {
+            padding: 16px 20px 24px;
+        }
+
+        .compare-modal-footer .confirm-btn {
+            width: 100%;
+            height: 52px;
+            border-radius: 16px;
+            background: #111;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .product-search-result-container {
+            width: 100%;
+            height: calc(100vh - 60px);
+            max-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: #fff;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .product-grid {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .product-grid.active {
+            display: grid;
+        }
+
+        .product-list {
+            display: none;
+            list-style: none;
+            padding: 16px;
+            padding-bottom: 100px;
+            margin: 0;
+        }
+
+        .product-list.active {
+            display: block;
+        }
+
+        /* 검색 결과 없음 스타일 */
+        .search-no-result {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            padding: 60px 20px;
+        }
+
+        .no-result-content {
+            text-align: center;
+        }
+
+        .no-result-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .no-result-message {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .search-result-title-group {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-icon {
+            transition: transform 0.2s;
+        }
+
+        .dropdown-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .city-dropdown {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 200px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+            z-index: 1200;
+            display: none;
+            overflow: hidden;
+        }
+
+        .city-dropdown.open {
+            display: block;
+        }
+
+        .city-dropdown-item {
+            padding: 12px 20px;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            border-bottom: 1px solid #f2f2f2;
+            transition: background 0.2s;
+        }
+
+        .city-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .city-dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .city-dropdown-item.active {
+            font-weight: 600;
+            color: #1976d2;
+            background: #e3f2fd;
+        }
     </style>
-    <header class="section-header">
-        <h1 th:if="${title != null}" th:text="${title}"></h1>
-        <h1 th:if="${title == null}">코드선택 결과</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+    
+    <!-- 검색 헤더 -->
+    <header class="search-result-header">
+        <i class="fas fa-chevron-left back-btn" onclick="closeProductResult()"></i>
+        <!-- 메뉴코드 기반 상품 목록일 경우 -->
+        <div class="search-result-title-group" th:if="${menuCode != null}" onclick="toggleCityDropdown()">
+            <span class="search-result-title" th:text="${menuCode instanceof T(renewal.common.entity.MenuCode) ? menuCode.name : menuCode}">동유럽</span>
+            <i class="fas fa-chevron-down dropdown-icon" id="cityDropdownIcon"></i>
         </div>
+        <!-- 검색 결과일 경우 -->
+        <form class="search-box" th:if="${menuCode == null}" onsubmit="handleSearchSubmit(event)">
+            <input type="text" name="keyword" id="searchKeywordResult" th:value="${title != null ? #strings.replace(title, ' 검색결과', '') : ''}" placeholder="검색어를 입력하세요" autocomplete="off">
+            <i class="fas fa-times clear-btn" onclick="clearSearchInput(event)" th:style="${title != null && !#strings.isEmpty(#strings.replace(title, ' 검색결과', ''))} ? 'display: block;' : 'display: none;'"></i>
+        </form>
+        <div class="header-spacer" th:if="${menuCode != null}"></div>
     </header>
 
+    <div class="city-dropdown" id="cityDropdown"
+         th:if="${menuCode != null and menuCodeOptions != null and !menuCodeOptions.isEmpty()}">
+        <div class="city-dropdown-item"
+             th:each="city : ${menuCodeOptions}"
+             th:classappend="${menuCode.code == city.code} ? 'active' : ''"
+             th:data-code="${city.code}"
+             onclick="selectCityMenu(this.dataset.code)"
+             th:text="${city.name}">시드니</div>
+    </div>
+
+    <!-- 검색 결과 헤더 (정렬, 필터, 뷰 옵션) -->
+    <div class="search-result-toolbar">
+        <div class="result-count">
+            <span th:if="${searchResult != null}" th:text="'총 ' + ${searchResult.totalElements} + '개'">총 0개</span>
+            <span th:if="${products != null && searchResult == null}" th:text="'총 ' + ${#lists.size(products)} + '개'">총 0개</span>
+            <span th:if="${searchResult == null && products == null}">총 0개</span>
+        </div>
+        <div class="toolbar-options">
+            <select class="sort-select" id="sortSelect">
+                <option value="popular">인기순</option>
+                <option value="price-asc">가격 낮은순</option>
+                <option value="price-desc">가격 높은순</option>
+                <option value="date">최신순</option>
+            </select>
+            <button class="filter-btn" onclick="openFilter()">
+                <i class="fas fa-filter"></i>
+                <span>필터</span>
+            </button>
+            <div class="view-toggle" th:if="${(searchResult != null && searchResult.totalElements > 0) || (products != null && !products.isEmpty())}">
+                <button class="view-btn" id="listViewBtn" onclick="switchView('list')" title="리스트 뷰">
+                    <i class="fas fa-list"></i>
+                </button>
+                <button class="view-btn active" id="gridViewBtn" onclick="switchView('grid')" title="그리드 뷰">
+                    <i class="fas fa-th"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 검색 결과 없음 -->
+    <div class="search-no-result" th:if="${(searchResult == null || searchResult.totalElements == 0) && (products == null || products.isEmpty())}">
+        <div class="no-result-content">
+            <p class="no-result-title">검색 결과가 없습니다</p>
+            <p class="no-result-message">다른 검색어로 다시 검색해주세요.</p>
     <div th:if="${image != null}">
         <img th:src=${image}>
     </div>
@@ -66,36 +404,316 @@
                 </div>
             </div>
 
-            <!-- 비교 체크박스 -->
+    <!-- 검색 결과 리스트 (리스트 뷰) -->
+    <ul class="product-list list-view" id="productListView">
+        <li th:each="product : ${searchResult != null ? searchResult.content : products}"
+            class="product-item-list"
+            th:attr="data-status=${product.productStatus != null ? product.productStatus.name() : 'AVAILABLE'}">
+            <div class="product-image-wrapper">
+                <img th:src="${product.thumbnail != null && !product.thumbnail.isEmpty() ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
+                     alt="썸네일"
+                     class="product-thumb"
+                     th:data-id="${product.id}"
+                     onclick="openProductModal(this.dataset.id)" />
+            </div>
+            <div class="product-info-wrapper"
+                 th:data-id="${product.id}"
+                 onclick="openProductModal(this.dataset.id)">
+                <div class="product-title" th:text="${product.title}"></div>
+                <div class="product-description" th:text="${'럭셔리 여행 노옵션 노쇼핑 풀패키지'}"></div>
+                <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 0) + '원'}"></div>
+            </div>
             <div class="compare-box">
                 <input type="checkbox"
-                    th:id="'compare-' + ${product.id}"
+                       th:id="'compare-list-' + ${product.id}"
                     th:value="${product.id}"
-                    onchange="toggleCompare(this)">
-                <label th:for="'compare-' + ${product.id}">비교하기</label>
+                       onchange="event.stopPropagation(); toggleCompare(this);">
+                <label th:for="'compare-list-' + ${product.id}"
+                       onclick="event.stopPropagation();">비교하기</label>
             </div>
-
         </li>
     </ul>
+
+    <!-- 검색 결과 그리드 (그리드 뷰) -->
+    <div class="product-grid grid-view active" id="productGridView">
+        <div th:each="product : ${searchResult != null ? searchResult.content : products}"
+             class="product-item-grid"
+             th:attr="data-status=${product.productStatus != null ? product.productStatus.name() : 'AVAILABLE'}"
+             th:data-id="${product.id}"
+             onclick="openProductModal(this.dataset.id)">
+            <div class="product-image-placeholder">
+                <img th:src="${product.thumbnail != null && !product.thumbnail.isEmpty() ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
+                     alt="썸네일"
+                     class="product-grid-image" />
+            </div>
+            <div class="product-grid-info">
+                <div class="product-grid-title" th:text="${product.title}"></div>
+                <div class="product-grid-description" th:text="${'럭셔리 여행 노옵션 노쇼핑 풀패키지'}"></div>
+                <div class="product-grid-price" th:text="${#numbers.formatDecimal(product.price, 0, 0) + '원'}"></div>
+            </div>
+            <div class="product-grid-compare" onclick="event.stopPropagation();">
+                <input type="checkbox"
+                       th:id="'compare-grid-' + ${product.id}"
+                       th:value="${product.id}"
+                       onchange="event.stopPropagation(); toggleCompare(this);">
+                <label th:for="'compare-grid-' + ${product.id}"
+                       onclick="event.stopPropagation();">비교하기</label>
+            </div>
+        </div>
+    </div>
 
     <!-- 비교하기 Bottom Sheet -->
     <template id="compare-sheet-template">
         <div class="compare-sheet">
 
             <div class="sheet-header">
-                <strong>비교할 상품을 선택해주세요.</strong>
-                <i class="fas fa-times close-sheet"></i>
+                <span>비교할 상품을 선택해주세요.</span>
+                <button type="button" class="close-sheet" aria-label="닫기">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <ul class="compare-list">
             </ul>
 
+            <div class="compare-date-picker">
+                <label for="compareDepartDate">비교 기준 출발일</label>
+                <input type="date" id="compareDepartDate">
+            </div>
+
             <button class="compare-btn disabled">비교하기</button>
         </div>
     </template>
 
+    <!-- 비교 Full Modal -->
+    <template id="compare-modal-template">
+        <div class="compare-modal">
+            <div class="compare-modal-inner">
+                <div class="compare-modal-header">
+                    <h2>상품비교</h2>
+                    <button type="button" class="close-btn" aria-label="닫기">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="compare-modal-body">
+                    <div class="compare-section-title">기본 정보</div>
+                    <div class="compare-detail-area"></div>
+                </div>
+                <div class="compare-modal-footer">
+                <button class="confirm-btn">확인</button>
+                </div>
+            </div>
+        </div>
+    </template>
 
-    <script>
+    <script th:inline="javascript">
+        const isSearchContext = /*[[${menuCode == null}]]*/ false;
+        function getCityDropdownElements() {
+            return {
+                dropdown: document.getElementById('cityDropdown'),
+                icon: document.getElementById('cityDropdownIcon')
+            };
+        }
+
+        window.toggleCityDropdown = function() {
+            const { dropdown, icon } = getCityDropdownElements();
+            if (!dropdown) return;
+            const isOpen = dropdown.classList.contains('open');
+            if (isOpen) {
+                dropdown.classList.remove('open');
+                if (icon) icon.classList.remove('rotated');
+            } else {
+                dropdown.classList.add('open');
+                if (icon) icon.classList.add('rotated');
+            }
+        };
+
+        function closeCityDropdown() {
+            const { dropdown, icon } = getCityDropdownElements();
+            if (!dropdown) return;
+            const wasOpen = dropdown.classList.contains('open');
+            dropdown.classList.remove('open');
+            if (icon) icon.classList.remove('rotated');
+            if (wasOpen) {
+                closeCompareSheet();
+            }
+        }
+
+        window.selectCityMenu = function(code) {
+            if (!code) return;
+            closeCityDropdown();
+            const target = `/menu/${code}`;
+            if (typeof fetchSection === 'function') {
+                fetchSection(target);
+            } else if (typeof addModal === 'function') {
+                addModal(target, true);
+            } else {
+                window.location.href = target;
+            }
+        };
+
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('cityDropdown');
+            if (!dropdown || !dropdown.classList.contains('open')) return;
+            const titleGroup = document.querySelector('.search-result-title-group');
+            if ((titleGroup && titleGroup.contains(event.target)) || dropdown.contains(event.target)) {
+                return;
+            }
+            closeCityDropdown();
+        });
+
+        // 메뉴코드 경로에서 뒤로가기 함수
+        window.closeProductResult = function() {
+            closeCompareSheet();
+            closeCityDropdown();
+
+            try {
+                if (typeof fullModal !== 'undefined' && fullModal && !fullModal.classList.contains('hide')
+                        && typeof backModal === 'function' && typeof currentModal !== 'undefined' && currentModal) {
+                    backModal();
+                    return;
+                }
+            } catch (err) {
+                console.warn('모달 상태 확인 실패:', err);
+            }
+
+            if (isSearchContext) {
+                try {
+                    if (typeof prevSection === 'function' && typeof sectionStack !== 'undefined' && sectionStack.length > 0) {
+                        prevSection();
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('섹션 상태 확인 실패:', err);
+                }
+
+                try {
+                    if (typeof showSection === 'function') {
+                        showSection(1, false);
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('홈 화면 전환 실패:', err);
+                }
+
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+                return;
+            }
+
+            try {
+                if (typeof prevSection === 'function' && typeof sectionStack !== 'undefined') {
+                    const beforeLength = sectionStack.length;
+
+                    if (typeof isAnimating !== 'undefined' && isAnimating) {
+                        isAnimating = false;
+                    }
+
+                    prevSection();
+
+                    setTimeout(() => {
+                        if (typeof sectionStack !== 'undefined' && sectionStack.length === beforeLength) {
+                            if (typeof showSection === 'function') {
+                                showSection(1, false);
+                            } else {
+                                window.location.href = '/';
+                            }
+                        }
+                    }, 50);
+                    return;
+                }
+
+                if (typeof showSection === 'function') {
+                    showSection(1, false);
+                    return;
+                }
+            } catch (err) {
+                console.error('뒤로가기 처리 중 오류:', err);
+            }
+
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        };
+
+        (function() {
+            const sortSelectEl = document.getElementById('sortSelect');
+            if (sortSelectEl) {
+                sortSelectEl.addEventListener('change', function(e) {
+                    sortProducts(e.target.value);
+                });
+            }
+
+            function parsePrice(text) {
+                if (!text) return 0;
+                const num = text.replace(/[^0-9]/g, '');
+                return num ? parseInt(num, 10) : 0;
+            }
+
+            function sortContainer(container, itemSelector, priceSelector, ascending) {
+                if (!container) return;
+                const items = Array.from(container.querySelectorAll(itemSelector));
+                if (items.length === 0) return;
+
+                items.sort((a, b) => {
+                    const priceA = parsePrice(a.querySelector(priceSelector)?.textContent || '');
+                    const priceB = parsePrice(b.querySelector(priceSelector)?.textContent || '');
+                    return ascending ? priceA - priceB : priceB - priceA;
+                });
+
+                items.forEach(item => container.appendChild(item));
+            }
+
+            function applyFilters() {
+                const listItems = document.querySelectorAll('.product-item-list');
+                const gridItems = document.querySelectorAll('.product-item-grid');
+
+                listItems.forEach(item => {
+                    const status = item.getAttribute('data-status') || 'AVAILABLE';
+                    item.style.display = showAvailableOnly && status === 'WAITING' ? 'none' : '';
+                });
+
+                gridItems.forEach(item => {
+                    const status = item.getAttribute('data-status') || 'AVAILABLE';
+                    item.style.display = showAvailableOnly && status === 'WAITING' ? 'none' : '';
+                });
+            }
+
+            let showAvailableOnly = false;
+
+            window.sortProducts = function(sortType) {
+                if (sortType !== 'price-asc' && sortType !== 'price-desc') {
+                    return;
+                }
+                const ascending = sortType === 'price-asc';
+                const listView = document.getElementById('productListView');
+                const gridView = document.getElementById('productGridView');
+
+                sortContainer(listView, '.product-item-list', '.product-price', ascending);
+                sortContainer(gridView, '.product-item-grid', '.product-grid-price', ascending);
+                applyFilters();
+            };
+
+            window.openFilter = function() {
+                showAvailableOnly = !showAvailableOnly;
+                const filterLabel = document.querySelector('.filter-btn span');
+                if (filterLabel) {
+                    filterLabel.textContent = showAvailableOnly ? '예약가능만' : '필터';
+                }
+                applyFilters();
+            };
+
+            window.filterAvailableOnly = function(value) {
+                showAvailableOnly = Boolean(value);
+                applyFilters();
+            };
+        })();
+
         var compareSelected = [];               // { id, title }
         var compareSheetEl = null;              // 현재 활성 compare-sheet DOM
 
@@ -114,6 +732,8 @@
             compareSheetEl.querySelector(".close-sheet").onclick = closeCompareSheet;
             compareSheetEl.querySelector(".compare-btn").onclick = openCompareModal;
 
+            document.body.appendChild(compareSheetEl);
+            initializeCompareDatePicker();
             // ⬇⬇ 여기만 변경됨
             document.querySelector("#halfModalBody").appendChild(compareSheetEl);
 
@@ -136,14 +756,29 @@
 
             // 2) 선택 배열 초기화
             compareSelected = [];
+            document.querySelectorAll(".compare-box input, .product-grid-compare input").forEach(cb => cb.checked = false);
+        }
 
-            // 3) 모든 체크박스 해제
-            document.querySelectorAll(".compare-box input").forEach(cb => {
-                cb.checked = false;
+        function initializeCompareDatePicker() {
+            if (!compareSheetEl) return;
+            const dateInput = compareSheetEl.querySelector('#compareDepartDate');
+            if (!dateInput || dateInput.dataset.initialized === 'true') return;
+
+            const today = new Date();
+            const isoToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+                .toISOString()
+                .split('T')[0];
+
+            const savedDate = localStorage.getItem('compareDepartDate');
+            dateInput.value = savedDate || isoToday;
+            dateInput.min = isoToday;
+            dateInput.dataset.initialized = 'true';
+
+            dateInput.addEventListener('change', function () {
+                if (this.value) {
+                    localStorage.setItem('compareDepartDate', this.value);
+                }
             });
-
-            // 4) 하프 모달 닫기
-            document.getElementById("halfModal").classList.add("hide");
         }
 
 
@@ -169,23 +804,15 @@
             // sheet 없으면 생성
             if (compareSelected.length === 2) {
 
-                // sheet 없으면 생성
-                if (!compareSheetEl) {
-                    createCompareSheet();
-                }
-
-                // 리스트 렌더링
-                const listEl = compareSheetEl.querySelector(".compare-list");
-                const compareBtn = compareSheetEl.querySelector(".compare-btn");
-
-                listEl.innerHTML = compareSelected
-                    .map(p => `
-                <li>
-                    ${p.title}
-                    <span onclick="removeCompare('${p.id}')">삭제</span>
-                </li>
-            `)
-                    .join("");
+            // list 렌더링
+            listEl.innerHTML = compareSelected
+                .map(p => `
+            <li>
+                        <span class="compare-item-title">${p.title}</span>
+                        <span class="compare-remove" onclick="removeCompare('${p.id}')">제거</span>
+            </li>
+        `)
+                .join("");
 
                 compareBtn.classList.remove("disabled");
             }
@@ -197,7 +824,21 @@
         // =========================
         function toggleCompare(box) {
             const id = box.value;
-            const title = box.closest("li").querySelector(".title").innerText;
+            let title = '';
+            
+            // 리스트 뷰 또는 그리드 뷰에서 제목 찾기
+            const listItem = box.closest('.product-item-list');
+            const gridItem = box.closest('.product-item-grid');
+            
+            if (listItem) {
+                title = listItem.querySelector('.product-title')?.innerText || '';
+            } else if (gridItem) {
+                title = gridItem.querySelector('.product-grid-title')?.innerText || '';
+            } else {
+                // 기존 방식 (fallback)
+                const fallbackTitle = box.closest("li")?.querySelector(".title")?.innerText;
+                if (fallbackTitle) title = fallbackTitle;
+            }
 
             if (box.checked && compareSelected.length >= 2) {
                 alert("비교는 최대 2개까지만 선택 가능합니다.");
@@ -220,18 +861,14 @@
         // =========================
         function removeCompare(id) {
 
-            const checkbox = document.getElementById(`compare-${id}`);
-
-            if (checkbox && checkbox.checked) {
-                checkbox.checked = false;
-
-                // toggleCompare가 compareSelected와 시트를 모두 갱신함
-                toggleCompare(checkbox);
-                return; // 여기서 종료 → 중복 updateCompareSheet() 방지
-            }
-
-            // 체크박스가 이미 해제된 경우만 직접 제거
-            compareSelected = compareSelected.filter(p => p.id !== id);
+            // 리스트 뷰와 그리드 뷰 모두에서 체크박스 찾기
+            const checkboxList = document.getElementById(`compare-list-${id}`);
+            const checkboxGrid = document.getElementById(`compare-grid-${id}`);
+            const checkboxFallback = document.getElementById(`compare-${id}`);
+            
+            if (checkboxList) checkboxList.checked = false;
+            if (checkboxGrid) checkboxGrid.checked = false;
+            if (checkboxFallback) checkboxFallback.checked = false;
 
             updateCompareSheet();
         }
@@ -247,9 +884,188 @@
                 return;
             }
 
-            const ids = compareSelected.map(v => v.id).join(",");
-            closeCompareSheet()
-            addModal(`/product/compare?ids=${ids}`);
+            const dateInput = compareSheetEl ? compareSheetEl.querySelector('#compareDepartDate') : null;
+            const departDateValue = dateInput ? dateInput.value : null;
+            if (!departDateValue) {
+                alert("출발일을 선택한 후 비교해주세요.");
+                if (dateInput) {
+                    dateInput.focus();
+                }
+                return;
+            }
+
+            const idsParam = compareSelected
+                .map(v => `ids=${encodeURIComponent(v.id)}`)
+                .join("&");
+            localStorage.setItem('compareDepartDate', departDateValue);
+
+            const template = document.getElementById("compare-modal-template");
+            const clone = template.content.cloneNode(true);
+
+            const modal = clone.querySelector(".compare-modal");
+            const detailArea = clone.querySelector(".compare-detail-area");
+
+            // Ajax 불러오기
+            const html = await fetch(`/product/compare?${idsParam}&departDate=${encodeURIComponent(departDateValue)}`).then(r => r.text());
+            detailArea.innerHTML = html;
+
+            // 닫기 이벤트
+            clone.querySelector(".close-btn").onclick = () => modal.remove();
+            clone.querySelector(".confirm-btn").onclick = () => modal.remove();
+
+            document.body.appendChild(modal);
         }
+
+        function openProductModal(productId) {
+
+            // ================================
+            // 1) 비교 체크박스 초기화
+            // ================================
+            document.querySelectorAll(".compare-box input, .product-grid-compare input").forEach(cb => {
+                cb.checked = false;
+            });
+
+            // 선택 배열 초기화
+            compareSelected = [];
+
+            // ================================
+            // 2) compare-sheet 제거
+            // ================================
+            if (compareSheetEl) {
+                compareSheetEl.remove();
+                compareSheetEl = null;
+            }
+
+            // ================================
+            // 3) compare-modal 제거
+            // ================================
+            document.querySelectorAll(".compare-modal").forEach(modal => modal.remove());
+
+            // ================================
+            // 4) 실제 상품 페이지 모달 열기 (addModal 사용하여 스택에 저장)
+            // ================================
+            if (typeof addModal === 'function') {
+                addModal(`/product/${productId}`);
+            } else if (typeof openModal === 'function') {
+            openModal(`/product/${productId}`);
+        }
+        }
+
+        // 뷰 전환 함수
+        window.switchView = function(viewType) {
+            const listView = document.getElementById('productListView');
+            const gridView = document.getElementById('productGridView');
+            const listBtn = document.getElementById('listViewBtn');
+            const gridBtn = document.getElementById('gridViewBtn');
+
+            if (!listView || !gridView || !listBtn || !gridBtn) {
+                console.warn('View elements not found');
+                return;
+            }
+
+            if (viewType === 'list') {
+                listView.classList.add('active');
+                gridView.classList.remove('active');
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+                listView.style.display = 'block';
+                gridView.style.display = 'none';
+                localStorage.setItem('productViewType', 'list');
+            } else {
+                listView.classList.remove('active');
+                gridView.classList.add('active');
+                listBtn.classList.remove('active');
+                gridBtn.classList.add('active');
+                listView.style.display = 'none';
+                gridView.style.display = 'grid';
+                localStorage.setItem('productViewType', 'grid');
+            }
+        };
+
+        // 저장된 뷰 타입 불러오기 (즉시 실행)
+        (function() {
+            function initView() {
+                const savedView = localStorage.getItem('productViewType') || 'grid';
+                if (typeof window.switchView === 'function') {
+                    window.switchView(savedView);
+                } else {
+                    // 함수가 아직 정의되지 않았으면 잠시 후 다시 시도
+                    setTimeout(initView, 50);
+                }
+            }
+            
+            // DOM이 준비될 때까지 대기
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(initView, 100);
+                });
+            } else {
+                setTimeout(initView, 100);
+            }
+        })();
+
+        // 검색 입력 처리 (layout.js의 openModal과 연동)
+        function handleSearchSubmit(event) {
+            event.preventDefault();
+            closeCompareSheet();
+            const keyword = event.target.querySelector('input[name="keyword"]').value.trim();
+            if (keyword) {
+                // 최근 검색 저장
+                if (typeof saveRecentSearch === 'function') {
+                    saveRecentSearch(keyword);
+                }
+                
+                // 검색 실행
+                const payload = { keyword: keyword, page: 0 };
+                if (typeof openModal === 'function') {
+                    openModal('/product/search', payload);
+                } else {
+                    // fallback: 직접 fetch
+                    fetch('/product/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        addModal('/product/search', true, payload);
+                    })
+                    .catch(err => console.error('Search error:', err));
+                }
+            }
+        }
+
+        function clearSearchInput(event) {
+            event.stopPropagation();
+            const input = event.target.previousElementSibling || event.target.closest('.search-box').querySelector('input');
+            if (input) {
+                input.value = '';
+                event.target.style.display = 'none';
+            }
+        }
+
+        // 검색 입력 시 X 버튼 표시
+        (function() {
+            const searchInputs = document.querySelectorAll('#searchKeyword, #searchKeywordResult');
+            searchInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const clearBtn = this.closest('.search-box').querySelector('.clear-btn');
+                    if (clearBtn) {
+                        if (this.value.trim()) {
+                            clearBtn.style.display = 'block';
+                        } else {
+                            clearBtn.style.display = 'none';
+                        }
+                    }
+                });
+                
+                // 초기 상태 설정
+                const clearBtn = input.closest('.search-box')?.querySelector('.clear-btn');
+                if (clearBtn && input.value.trim()) {
+                    clearBtn.style.display = 'block';
+                }
+            });
+        })();
+
     </script>
 </div>

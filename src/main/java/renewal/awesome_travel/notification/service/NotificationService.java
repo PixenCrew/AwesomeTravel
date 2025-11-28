@@ -1,6 +1,8 @@
 package renewal.awesome_travel.notification.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import renewal.common.entity.Notification;
@@ -25,6 +27,27 @@ public class NotificationService {
         for (Notification notification : notifications) {
             notification.markAsRead();
         }
+    }
+
+    // 알림 센터: 사용자의 모든 알림 조회
+    @Transactional(readOnly = true)
+    public Page<Notification> getAllNotifications(Long userId, Pageable pageable) {
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    }
+
+    // 개별 알림 읽음 처리
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다."));
+        notification.markAsRead();
+    }
+
+    // 알림 생성 (로직 중간에 사용)
+    @Transactional
+    public Notification createNotification(Long userId, String message) {
+        Notification notification = Notification.create(userId, message);
+        return notificationRepository.save(notification);
     }
 }
 

@@ -1,20 +1,165 @@
-<div>
-    <header class="section-header">
-
-        <h1>submain 101 테스트</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
+<div class="europe-list-container">
+    <!-- 헤더 -->
+    <header class="europe-header">
+        <i class="fas fa-chevron-left back-btn" onclick="prevSection()"></i>
+        <div class="europe-title-group" onclick="toggleContinentDropdown()">
+            <span class="europe-title">유럽</span>
+            <i class="fas fa-chevron-down dropdown-icon" id="dropdownIcon"></i>
         </div>
+        <div class="header-spacer"></div>
     </header>
 
-    <div class="section-body">
-        <ul>
-            <li th:each="menuCode : ${menuCodes}"
-                th:text="${menuCode.name}"
-                th:attr="onclick=|openModal('/menu/' + ${menuCode.code2})|">
-            </li>
-        </ul>
+    <!-- 대륙 선택 드롭다운 -->
+    <div class="continent-dropdown" id="continentDropdown" style="display: none;">
+        <div class="dropdown-item" onclick="fetchSection('/subMain/101'); closeContinentDropdown();">유럽</div>
+        <div class="dropdown-item" onclick="fetchSection('/subMain/601'); closeContinentDropdown();">오세아니아</div>
+        <div class="dropdown-item" onclick="fetchSection('/subMain/801'); closeContinentDropdown();">중동·아프리카</div>
+        <div class="dropdown-item" onclick="fetchSection('/subMain/201'); closeContinentDropdown();">아시아</div>
+        <div class="dropdown-item" onclick="fetchSection('/subMain/704'); closeContinentDropdown();">미주</div>
     </div>
 
+    <div class="europe-body">
+        <!-- 유럽 목록 섹션 -->
+        <div class="europe-region-section">
+            <h2 class="europe-region-title">유럽 목록</h2>
+            <div class="europe-region-grid">
+                <button class="europe-region-btn" onclick="fetchSection('/menu/101001')">서유럽</button>
+                <button class="europe-region-btn" onclick="fetchSection('/menu/102001')">동유럽</button>
+                <button class="europe-region-btn" onclick="fetchSection('/menu/106001')">북유럽</button>
+                <button class="europe-region-btn" onclick="fetchSection('/menu/104001')">남부유럽</button>
+                <button class="europe-region-btn" onclick="fetchSection('/menu/103001')">중부유럽</button>
+                <button class="europe-region-btn" onclick="fetchSection('/menu/105001')">발칸</button>
+            </div>
+        </div>
 
+        <!-- 배너 섹션 -->
+        <div class="europe-banner-section">
+            <div class="europe-banner-content">
+                <p class="europe-banner-title">배너 이미지입니다.</p>
+                <p class="europe-banner-text">어디로 떠날지 고민이시라면?</p>
+                <p class="europe-banner-text">여기서 추천받으세요!</p>
+            </div>
+        </div>
+
+        <!-- 담당자 추천 상품 섹션 -->
+        <div class="europe-recommended-section">
+            <h2 class="europe-recommended-title">담당자 추천 상품</h2>
+            <p class="europe-recommended-subtitle">딱좋은여행의 전문가가 자신있게 추천해드립니다!</p>
+            
+            <div class="europe-recommended-list">
+                <div class="europe-product-item" th:each="menuCode : ${menuCodes}" th:if="${menuCode.code2 >= 101001 && menuCode.code2 <= 101004}">
+                    <div class="europe-product-image">
+                        <img src="/images/placeholder.png" alt="상품 이미지" />
+                    </div>
+                    <div class="europe-product-info">
+                        <div class="europe-product-title" th:text="${menuCode.name} + ' 1박 2일'">서유럽 1박 2일</div>
+                        <div class="europe-product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</div>
+                        <div class="europe-product-price">990,000원</div>
+                        <div class="europe-product-compare">
+                            <input type="checkbox" th:id="'compare-' + ${menuCode.code2}">
+                            <label th:for="'compare-' + ${menuCode.code2}">비교하기</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .europe-title-group {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .continent-dropdown {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            min-width: 150px;
+            overflow: hidden;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-item:active {
+            background: #e0e0e0;
+        }
+
+        .europe-header {
+            position: relative;
+        }
+
+        #dropdownIcon {
+            transition: transform 0.3s;
+        }
+
+        #dropdownIcon.rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+
+    <script>
+        function toggleContinentDropdown() {
+            const dropdown = document.getElementById('continentDropdown');
+            const icon = document.getElementById('dropdownIcon');
+            
+            if (dropdown.style.display === 'none' || !dropdown.style.display) {
+                dropdown.style.display = 'block';
+                icon.classList.add('rotated');
+            } else {
+                dropdown.style.display = 'none';
+                icon.classList.remove('rotated');
+            }
+        }
+
+        function closeContinentDropdown() {
+            const dropdown = document.getElementById('continentDropdown');
+            const icon = document.getElementById('dropdownIcon');
+            dropdown.style.display = 'none';
+            icon.classList.remove('rotated');
+        }
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('continentDropdown');
+            const titleGroup = document.querySelector('.europe-title-group');
+            
+            if (dropdown && titleGroup && !titleGroup.contains(event.target) && !dropdown.contains(event.target)) {
+                closeContinentDropdown();
+            }
+        });
+
+        // 배너에서 온 경우 자동으로 메뉴코드 페이지로 이동
+        if (window.pendingTargetMenu) {
+            const targetMenu = window.pendingTargetMenu;
+            delete window.pendingTargetMenu; // 사용 후 삭제
+            // 약간의 딜레이를 주어 서브메인 페이지가 먼저 렌더링되도록 함
+            setTimeout(() => {
+                if (typeof fetchSection === 'function') {
+                    fetchSection('/menu/' + targetMenu);
+                }
+            }, 300);
+        }
+    </script>
 </div>

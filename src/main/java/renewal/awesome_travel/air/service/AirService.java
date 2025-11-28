@@ -102,6 +102,9 @@ public class AirService {
                 // seatClass id 입력
                 currentTrip.setSeatClassId(seat.getId());
 
+                // 잔여 좌석 수 입력
+                currentTrip.setAvailableSeats(seat.getAvailableSeats());
+
                 currentTrips.add(currentTrip);
             }
             current.setPrice(priceSum);

@@ -1,37 +1,117 @@
-<div>
-    <header class="section-header">
-        <h1>회원가입</h1>
-        <div class="right"> <i class="fas fa-chevron-left" onclick="backModal()"></i> </div>
+<div class="register-terms-container">
+    <header class="register-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="register-title">회원가입</h1>
+        <div class="header-spacer"></div>
     </header>
-    <div class="section-body">
-        <div>약관 동의</div>
-        <section id="termSection">
-            <input type="checkbox" name="term1">필수1<br>
-            <input type="checkbox" name="term2">필수2<br>
-            <input type="checkbox" name="term3">선택3<br>
-        </section>
-        <button onclick="checkTerm()"> 회원가입 </button>
+
+    <div class="register-body">
+        <h2 class="terms-main-title">서비스 이용약관에 동의해 주세요</h2>
+        
+        <div class="terms-section">
+            <!-- 전체 동의 -->
+            <div class="term-item term-item-all">
+                <label class="term-checkbox-label">
+                    <input type="checkbox" id="agreeAll" class="term-checkbox" onchange="toggleAllTerms(this.checked)">
+                    <span class="term-checkbox-custom"></span>
+                    <span class="term-text">아래 약관에 모두 동의합니다.</span>
+                </label>
+            </div>
+            
+            <div class="term-divider"></div>
+            
+            <!-- 개별 약관 -->
+            <div class="term-item">
+                <label class="term-checkbox-label">
+                    <input type="checkbox" name="term" class="term-checkbox term-required" value="age" onchange="checkRequiredTerms()">
+                    <span class="term-checkbox-custom"></span>
+                    <span class="term-text">(필수) 만 14세 이상입니다.</span>
+                </label>
+            </div>
+            
+            <div class="term-item">
+                <label class="term-checkbox-label">
+                    <input type="checkbox" name="term" class="term-checkbox term-required" value="service" onchange="checkRequiredTerms()">
+                    <span class="term-checkbox-custom"></span>
+                    <span class="term-text">(필수) 서비스 이용약관에 동의합니다. <a href="#" class="term-view-link" onclick="event.preventDefault(); addModal('/terms/service')">보기</a></span>
+                </label>
+            </div>
+            
+            <div class="term-item">
+                <label class="term-checkbox-label">
+                    <input type="checkbox" name="term" class="term-checkbox term-required" value="privacy" onchange="checkRequiredTerms()">
+                    <span class="term-checkbox-custom"></span>
+                    <span class="term-text">(필수) 개인정보 수집 및 이용에 동의합니다. <a href="#" class="term-view-link" onclick="event.preventDefault(); addModal('/terms/privacy')">보기</a></span>
+                </label>
+            </div>
+            
+                <div class="term-item">
+                <label class="term-checkbox-label">
+                    <input type="checkbox" name="term" class="term-checkbox term-optional" value="thirdparty" onchange="checkRequiredTerms()">
+                    <span class="term-checkbox-custom"></span>
+                    <span class="term-text">(선택) 제3자 정보 이용에 동의합니다. <a href="#" class="term-view-link" onclick="event.preventDefault(); addModal('/terms/travel')">보기</a></span>
+                </label>
+            </div>
+        </div>
+        
+        <button id="nextBtn" class="terms-next-btn" onclick="checkTerm()" disabled>다음</button>
     </div>
 
     <script>
         (function () {
-            window.checkTerm = function () {
-                const inputs = document.querySelectorAll("#termSection input[type='checkbox']");
-                const payload = {};
-
-                inputs.forEach(input => {
-                    payload[input.name] = input.checked;
+            window.toggleAllTerms = function(checked) {
+                const checkboxes = document.querySelectorAll('.term-checkbox:not(#agreeAll)');
+                checkboxes.forEach(cb => cb.checked = checked);
+                checkRequiredTerms();
+            };
+            
+            window.checkRequiredTerms = function() {
+                const requiredCheckboxes = document.querySelectorAll('.term-required');
+                const allChecked = Array.from(requiredCheckboxes).every(cb => cb.checked);
+                const nextBtn = document.getElementById('nextBtn');
+                
+                // 전체 동의 체크박스 업데이트
+                const agreeAll = document.getElementById('agreeAll');
+                const allCheckboxes = document.querySelectorAll('.term-checkbox:not(#agreeAll)');
+                const allTermsChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+                agreeAll.checked = allTermsChecked;
+                
+                // 다음 버튼 활성화/비활성화
+                nextBtn.disabled = !allChecked;
+            };
+            
+            // 개별 체크박스 변경 시 전체 동의 체크박스 업데이트
+            document.addEventListener('DOMContentLoaded', function() {
+                const checkboxes = document.querySelectorAll('.term-checkbox:not(#agreeAll)');
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        checkRequiredTerms();
+                    });
                 });
-
-                // 필수 약관 체크 검사
-                if (!payload.term1 || !payload.term2) {
+            });
+            
+            window.checkTerm = function () {
+                const requiredCheckboxes = document.querySelectorAll('.term-required');
+                const allChecked = Array.from(requiredCheckboxes).every(cb => cb.checked);
+                
+                if (!allChecked) {
                     alert("필수 약관에 모두 동의해주세요.");
                     return;
                 }
-
+                
+                const payload = {};
+                document.querySelectorAll('.term-checkbox:not(#agreeAll)').forEach(input => {
+                    payload[input.value] = input.checked;
+                });
+                
+                // 필수 약관 매핑
+                payload.term1 = payload.age;
+                payload.term2 = payload.service;
+                payload.term3 = payload.privacy;
+                
                 // 전달
                 addModal('register/form', true, payload);
-            }
+            };
         })();
     </script>
 </div>

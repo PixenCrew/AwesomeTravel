@@ -2,6 +2,7 @@ package renewal.awesome_travel.review.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,24 +31,34 @@ public class ReviewController {
 
     // 댓글 등록
     @PostMapping("/{productId}/comments")
-    public ResponseEntity<Long> createComment(
+    public ResponseEntity<?> createComment(
             @PathVariable Long productId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid ReviewRequestDto dto) {
-        User user = userDetails.getUser();
-        Long commentId = commentService.createComment(user, productId, dto);
-        return ResponseEntity.ok(commentId);
+        try {
+            User user = userDetails.getUser();
+            Long commentId = commentService.createComment(user, productId, dto);
+            return ResponseEntity.ok(commentId);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     // 댓글 수정
     @PatchMapping("/comments/{commentId}")
-    public ResponseEntity<Void> updateComment(
+    public ResponseEntity<?> updateComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid ReviewRequestDto dto) {
-        User user = userDetails.getUser();
-        commentService.updateComment(commentId, user, dto);
-        return ResponseEntity.ok().build();
+        try {
+            User user = userDetails.getUser();
+            commentService.updateComment(commentId, user, dto);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     // 댓글 삭제

@@ -1,116 +1,1219 @@
-<div>
+<div class="payment-container">
     <style>
-        .modal-footer {
-            position: sticky;
-            /* 부모 컨테이너 내에서 하단 고정 */
-            bottom: 0;
-            background: #fff;
-            /* #f9f9f9 대신 깔끔하게 */
-            border-top: 1px solid #ccc;
-            height: 60px;
-            /* 바닥 네비와 동일 */
-            min-height: 60px;
+        .payment-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 120px;
+            background: #f5f5f5;
+        }
+
+        .payment-header {
             display: flex;
-            gap: 10px;
-            justify-content: space-evenly;
-            /* 버튼 간 간격 균등 */
             align-items: center;
-            flex-wrap: wrap;
-            /* 화면 좁으면 아래로 내려감 */
-            padding: 0 10px;
-            /* 좌우 여백 */
-            z-index: 3;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
-        .modal-footer button {
-            flex: 0 1 auto;
-            /* 필요 이상으로 늘어나지 않도록 */
-            min-width: 80px;
-            /* 최소 버튼 너비 */
-            max-width: 150px;
-            /* 최대 버튼 너비 */
-            height: 40px;
-            /* 버튼 높이 */
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
+        .payment-back {
+            font-size: 18px;
+            color: #666;
             cursor: pointer;
-            transition: background 0.2s ease;
+            padding: 4px;
+            transition: color 0.2s;
         }
 
-        .modal-content {
-            position: relative;
+        .payment-back:hover {
+            color: #333;
+        }
+
+        .payment-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .payment-spacer {
+            width: 26px;
+        }
+
+        .payment-body {
+            padding: 16px;
+            max-width: 100%;
+        }
+
+        .payment-section {
+            margin-bottom: 20px;
+        }
+
+        .payment-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        /* 결제 정보 섹션 */
+        .payment-info-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-trip-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #e3f2fd;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1976d2;
+            margin-bottom: 16px;
+        }
+
+        .payment-route {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-route-arrow {
+            margin: 0 12px;
+            color: #1976d2;
+            font-size: 18px;
+        }
+
+        .payment-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-passenger-info {
+            font-size: 14px;
+            color: #666;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .payment-separator {
+            margin: 0 6px;
+            color: #999;
+        }
+
+        /* 요금 정보 섹션 */
+        .payment-fare-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .payment-fare-box {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .payment-fare-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .payment-fare-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .payment-discount {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #1976d2;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .payment-final-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #1976d2;
+            box-shadow: 0 2px 4px rgba(25, 118, 210, 0.1);
+        }
+
+        .payment-final-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .payment-final-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .payment-policy-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-policy-btn:hover {
+            background: #eeeeee;
+            border-color: #bdbdbd;
+        }
+
+        /* 항공권 변경/환불 및 수하물 규정 모달 */
+        .payment-policy-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .payment-policy-modal.show {
+            display: flex;
+        }
+
+        .payment-policy-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
             max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .payment-policy-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-policy-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .payment-policy-modal-close {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .payment-policy-modal-close:hover {
+            color: #333;
+        }
+
+        .payment-policy-modal-body {
+            flex: 1;
             overflow-y: auto;
-            padding-bottom: 80px;
-            /* footer 높이만큼 패딩 */
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .payment-policy-modal-body h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0 12px 0;
+        }
+
+        .payment-policy-modal-body h3:first-child {
+            margin-top: 0;
+        }
+
+        .payment-policy-modal-body p {
+            margin: 8px 0;
+        }
+
+        .payment-policy-modal-body ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .payment-policy-modal-body li {
+            margin: 6px 0;
+        }
+
+        /* 여정 정보 섹션 */
+        .payment-itinerary-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-itinerary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .payment-itinerary-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .payment-flight-change-btn {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-flight-change-btn:hover {
+            background: #eeeeee;
+            border-color: #bdbdbd;
+        }
+
+        .payment-flight-date {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .payment-flight-route {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .payment-airline-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .payment-airline-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .payment-flight-number {
+            font-size: 13px;
+            color: #666;
+            padding: 2px 8px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .payment-flight-timeline {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .payment-flight-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .payment-flight-duration {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            padding: 0 12px;
+            position: relative;
+        }
+
+        .payment-flight-duration::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .payment-flight-duration {
+            background: #fafafa;
+            position: relative;
+            z-index: 1;
+        }
+
+        .payment-flight-airport {
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .payment-flight-details {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .payment-baggage-info {
+            font-size: 13px;
+            color: #666;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 6px;
+            border-left: 3px solid #1976d2;
+        }
+
+        /* 결제수단 섹션 */
+        .payment-method-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-method-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .payment-method-option:hover {
+            background: #f9f9f9;
+        }
+
+        .payment-method-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .payment-method-radio {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #1976d2;
+        }
+
+        .payment-method-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .payment-card-list {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            margin-bottom: 16px;
+        }
+
+        .payment-card-item {
+            flex: 1;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-card-item:hover {
+            border-color: #bdbdbd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-card-item.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+        }
+
+        .payment-card-image {
+            width: 40px;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .payment-card-name {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .payment-card-number {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .payment-card-installment {
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .payment-card-add {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 80px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .payment-card-add-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .payment-agree-section {
+            margin-bottom: 60px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .payment-agree-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .payment-agree-more {
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .payment-agree-more:hover {
+            color: #1976d2;
+        }
+
+        .payment-terms-content {
+            display: none;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .payment-terms-content.show {
+            display: block;
+        }
+
+        .payment-terms-content h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 16px 0 8px 0;
+        }
+
+        .payment-terms-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .payment-terms-content p {
+            margin: 8px 0;
+        }
+
+        .payment-terms-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .payment-terms-content li {
+            margin: 4px 0;
+        }
+
+        .payment-submit-btn {
+            margin-top: 20px;
+            padding: 0;
+        }
+
+        .payment-submit-btn button {
+            width: 100%;
+            padding: 16px;
+            background: #424242;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-submit-btn button:hover {
+            background: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .payment-submit-btn button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
     </style>
-    <header class="section-header">
-        <h1>예약상세</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+
+    <header class="payment-header">
+        <i class="fas fa-chevron-left payment-back" onclick="backModal()"></i>
+        <h1 class="payment-title">항공 요금 결제</h1>
+        <div class="payment-spacer"></div>
     </header>
-    <div class="section-body">
-        <div class="modal-content">
-            <h4>상품명</h4>
-            <div th:text="${purchaseBase.title}"></div>
 
-            <h4>요금 정보</h4>
-
-            <div th:if="${purchaseBase.adultCount > 0}">
-                <div th:text="${'성인 ' + purchaseBase.adultCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceAdult * purchaseBase.adultCount, 0, 'COMMA') + '원'}"></div>
+    <div class="payment-body">
+        <!-- 결제 정보 -->
+        <div class="payment-section" th:if="${paymentType == 'air' and detailResult != null and detailResult.seatClasses != null and !detailResult.seatClasses.isEmpty()}">
+            <h2 class="payment-section-title">결제 정보</h2>
+            <div class="payment-info-box">
+                <div class="payment-trip-tag" th:text="${detailResult.detailRequest.tripType == T(renewal.awesome_travel.air.dto.AirSearchRequestDto.TripType).ROUND_TRIP ? '왕복' : (detailResult.detailRequest.tripType == T(renewal.awesome_travel.air.dto.AirSearchRequestDto.TripType).ONE_WAY ? '편도' : '다구간')}">왕복</div>
+                <div class="payment-route">
+                    <span th:text="${detailResult.seatClasses[0].air.departAirport.airportKor}">인천</span>
+                    <span class="payment-route-arrow">→</span>
+                    <span th:text="${detailResult.seatClasses[detailResult.seatClasses.size() - 1].air.arriveAirport.airportKor}">다낭</span>
+                </div>
+                <div class="payment-date" th:if="${detailResult.seatClasses.size() > 1}">
+                    <span th:text="${#temporals.format(detailResult.seatClasses[0].air.departDateTime, 'M.d(E)', new java.util.Locale('ko', 'KR'))}">3.25(화)</span>
+                    <span> - </span>
+                    <span th:text="${#temporals.format(detailResult.seatClasses[detailResult.seatClasses.size() - 1].air.departDateTime, 'M.d(E)', new java.util.Locale('ko', 'KR'))}">3.28(금)</span>
+                </div>
+                <div class="payment-date" th:if="${detailResult.seatClasses.size() == 1}">
+                    <span th:text="${#temporals.format(detailResult.seatClasses[0].air.departDateTime, 'yyyy-MM-dd') + 'T' + #temporals.format(detailResult.seatClasses[0].air.departDateTime, 'HH:mm')}">2025-11-30T14:30</span>
+                </div>
+                <div class="payment-passenger-info">
+                    <span th:if="${purchaseBase.adultCount > 0}" th:text="'성인 ' + ${purchaseBase.adultCount}">성인 1</span>
+                    <span th:if="${purchaseBase.adultCount > 0 && (purchaseBase.youthCount > 0 || purchaseBase.infantCount > 0)}" class="payment-separator">, </span>
+                    <span th:if="${purchaseBase.youthCount > 0}" th:text="'청소년 ' + ${purchaseBase.youthCount}">청소년 1</span>
+                    <span th:if="${purchaseBase.youthCount > 0 && purchaseBase.infantCount > 0}" class="payment-separator">, </span>
+                    <span th:if="${purchaseBase.infantCount > 0}" th:text="'유아 ' + ${purchaseBase.infantCount}">유아 1</span>
+                    <span class="payment-separator">·</span>
+                    <span th:text="${detailResult.seatClasses[0].classType == T(renewal.common.entity.SeatClass.SeatClassType).ECONOMY ? '일반석' : (detailResult.seatClasses[0].classType == T(renewal.common.entity.SeatClass.SeatClassType).PREMIUMECONOMY ? '프리미엄 일반석' : (detailResult.seatClasses[0].classType == T(renewal.common.entity.SeatClass.SeatClassType).BUSINESS ? '비즈니스석' : '퍼스트석'))}">일반석</span>
+                </div>
             </div>
-            <div th:if="${purchaseBase.youthCount > 0}">
-                <div th:text="${'청소년 ' + purchaseBase.youthCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceYouth * purchaseBase.youthCount, 0, 'COMMA') + '원'}"></div>
-            </div>
-            <div th:if="${purchaseBase.infantCount > 0}">
-                <div th:text="${'영유아 ' + purchaseBase.infantCount + '명'}"></div>
-                <div th:text="${#numbers.formatInteger(purchaseBase.finalPriceInfant * purchaseBase.infantCount, 0, 'COMMA') + '원'}"></div>
-            </div>
-
-            <h4>최종 결제 금액</h4>
-            <div th:text="${#numbers.formatInteger(purchaseBase.price, 0, 'COMMA') + '원'}"></div>
         </div>
 
-        <div>
-            <legend>결제 방법</legend>
+        <!-- 요금 정보 -->
+        <div class="payment-section">
+            <h2 class="payment-section-title">요금 정보</h2>
+            
+            <!-- 성인 요금 -->
+            <div class="payment-fare-summary" th:if="${purchaseBase.adultCount != 0}">
+                <span th:text="'성인 ' + ${purchaseBase.adultCount} + '명'">성인 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult != null ? detailResult.adultTotal : purchaseBase.finalPriceAdult * purchaseBase.adultCount, 0, 0) + '원'}">254,400원</span>
+            </div>
+            <div class="payment-fare-box" th:if="${detailResult != null and purchaseBase.adultCount != 0}">
+                <div class="payment-fare-item">
+                    <span>항공요금 (기본운임)</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultBase, 0, 0) + '원'}">95,800원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>유류할증료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultOil, 0, 0) + '원'}">40,000원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>제세공과금</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultTax, 0, 0) + '원'}">19,200원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>발권 수수료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.adultFee, 0, 0) + '원'}">5,000원</span>
+                </div>
+            </div>
+            <div class="payment-fare-box" th:if="${detailResult == null and purchaseBase.adultCount != 0}">
+                <div class="payment-fare-item">
+                    <span>항공요금</span>
+                    <span th:text="${#numbers.formatDecimal((purchaseBase.finalPriceAdult * purchaseBase.adultCount) * 0.63, 0, 0) + '원'}">180,571원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>유류할증료</span>
+                    <span th:text="${#numbers.formatDecimal((purchaseBase.finalPriceAdult * purchaseBase.adultCount) * 0.25, 0, 0) + '원'}">17,429원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>제세공과금</span>
+                    <span th:text="${#numbers.formatDecimal((purchaseBase.finalPriceAdult * purchaseBase.adultCount) * 0.12, 0, 0) + '원'}">8,000원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>발권 수수료</span>
+                    <span>0원</span>
+                </div>
+            </div>
 
-            <label>
-                <input type="radio" name="paymentMethod" value="CARD" checked>
-                카드 결제
-            </label>
+            <!-- 청소년 요금 -->
+            <div class="payment-fare-summary" th:if="${purchaseBase.youthCount != 0}">
+                <span th:text="'청소년 ' + ${purchaseBase.youthCount} + '명'">청소년 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult != null ? detailResult.youthTotal : purchaseBase.finalPriceYouth * purchaseBase.youthCount, 0, 0) + '원'}">203,200원</span>
+            </div>
+            <div class="payment-fare-box" th:if="${detailResult != null and purchaseBase.youthCount != 0}">
+                <div class="payment-fare-item">
+                    <span>항공요금 (기본운임)</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthBase, 0, 0) + '원'}">76,640원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>유류할증료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthOil, 0, 0) + '원'}">32,000원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>제세공과금</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthTax, 0, 0) + '원'}">15,360원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>발권 수수료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.youthFee, 0, 0) + '원'}">5,000원</span>
+                </div>
+            </div>
 
-            <label>
-                <input type="radio" name="paymentMethod" value="BANK">
-                계좌 이체
-            </label>
+            <!-- 유아 요금 -->
+            <div class="payment-fare-summary" th:if="${purchaseBase.infantCount != 0}">
+                <span th:text="'유아 ' + ${purchaseBase.infantCount} + '명'">유아 1명</span>
+                <span th:text="${#numbers.formatDecimal(detailResult != null ? detailResult.infantTotal : purchaseBase.finalPriceInfant * purchaseBase.infantCount, 0, 0) + '원'}">127,000원</span>
+            </div>
+            <div class="payment-fare-box" th:if="${detailResult != null and purchaseBase.infantCount != 0}">
+                <div class="payment-fare-item">
+                    <span>항공요금 (기본운임)</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantBase, 0, 0) + '원'}">47,900원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>유류할증료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantOil, 0, 0) + '원'}">20,000원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>제세공과금</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantTax, 0, 0) + '원'}">9,600원</span>
+                </div>
+                <div class="payment-fare-item">
+                    <span>발권 수수료</span>
+                    <span th:text="${#numbers.formatDecimal(detailResult.infantFee, 0, 0) + '원'}">5,000원</span>
+                </div>
+            </div>
 
-            <label>
-                <input type="radio" name="paymentMethod" value="ETC">
-                기타
-            </label>
+            <div class="payment-discount">
+                <span>총 할인금액</span>
+                <span>-3,000원</span>
+            </div>
+        </div>
+
+        <!-- 최종 결제 금액 -->
+        <div class="payment-section">
+            <div class="payment-final-section">
+                <span class="payment-final-label">최종 결제 금액</span>
+                <span class="payment-final-amount" th:text="${#numbers.formatDecimal(purchaseBase.price, 0, 0) + '원'}">254,400원</span>
+            </div>
+            <button class="payment-policy-btn" onclick="openPaymentPolicyModal()">항공권 변경/환불 및 수하물 규정</button>
+        </div>
+
+        <!-- 여정 정보 -->
+        <div class="payment-section" th:if="${paymentType == 'air' and detailResult != null and detailResult.seatClasses != null and !detailResult.seatClasses.isEmpty()}">
+            <h2 class="payment-section-title">여정 정보</h2>
+            
+            <!-- 가는 편 -->
+            <div class="payment-itinerary-box" th:each="seatClass, iterStat : ${detailResult.seatClasses}" th:if="${iterStat.index == 0 or (detailResult.detailRequest.tripType == T(renewal.awesome_travel.air.dto.AirSearchRequestDto.TripType).ROUND_TRIP and iterStat.index == detailResult.seatClasses.size() - 1)}">
+                <div class="payment-itinerary-header">
+                    <div class="payment-itinerary-title" th:text="${iterStat.index == 0 ? '가는 편' : '오는 편'}">가는 편</div>
+                    <button class="payment-flight-change-btn">항공편 변경</button>
+                </div>
+                <div class="payment-flight-date">
+                    <span th:text="${#temporals.format(seatClass.air.departDateTime, 'M.d(E)', new java.util.Locale('ko', 'KR'))}">3.25(화)</span>
+                    <span th:text="${seatClass.air.departAirport.airportKor + '(' + seatClass.air.departAirport.airportCode + ')'}"> 인천(ICN)</span>
+                    <span class="payment-route-arrow">→</span>
+                    <span th:text="${seatClass.air.arriveAirport.airportKor + '(' + seatClass.air.arriveAirport.airportCode + ')'}"> 다낭(DAD)</span>
+                </div>
+                <div class="payment-airline-info">
+                    <span class="payment-airline-name" th:text="${seatClass.air.airline.nameKor}">제주항공</span>
+                    <span class="payment-flight-number" th:text="${seatClass.air.flightNumber}">7C2903</span>
+                </div>
+                <div class="payment-flight-timeline">
+                    <div>
+                        <div class="payment-flight-time" th:text="${#temporals.format(seatClass.air.departDateTime, 'HH:mm')}">21:20</div>
+                        <div class="payment-flight-airport" th:text="${seatClass.air.departAirport.airportCode}">ICN</div>
+                    </div>
+                    <div class="payment-flight-duration" th:text="${(seatClass.air.flightDuration / 60) + '시간 ' + (seatClass.air.flightDuration % 60) + '분'}">6시간 15분</div>
+                    <div>
+                        <div class="payment-flight-time" th:text="${#temporals.format(seatClass.air.arriveDateTime, 'HH:mm')}">03:35</div>
+                        <div class="payment-flight-airport" th:text="${seatClass.air.arriveAirport.airportCode}">DAD</div>
+                    </div>
+                </div>
+                <div class="payment-flight-details">
+                    <span th:if="${purchaseBase.adultCount > 0}" th:text="'성인 ' + ${purchaseBase.adultCount}">성인 1</span>
+                    <span th:if="${purchaseBase.adultCount > 0 && (purchaseBase.youthCount > 0 || purchaseBase.infantCount > 0)}">, </span>
+                    <span th:if="${purchaseBase.youthCount > 0}" th:text="'청소년 ' + ${purchaseBase.youthCount}">청소년 1</span>
+                    <span th:if="${purchaseBase.youthCount > 0 && purchaseBase.infantCount > 0}">, </span>
+                    <span th:if="${purchaseBase.infantCount > 0}" th:text="'유아 ' + ${purchaseBase.infantCount}">유아 1</span>
+                    <span> / </span>
+                    <span th:text="${seatClass.classType == T(renewal.common.entity.SeatClass.SeatClassType).ECONOMY ? '일반석' : (seatClass.classType == T(renewal.common.entity.SeatClass.SeatClassType).PREMIUMECONOMY ? '프리미엄 일반석' : (seatClass.classType == T(renewal.common.entity.SeatClass.SeatClassType).BUSINESS ? '비즈니스석' : '퍼스트석'))}">일반석</span>
+                    <span> / </span>
+                    <span th:text="'잔여' + ${seatClass.availableSeats} + '석'">잔여6석</span>
+                </div>
+                <div class="payment-baggage-info">
+                    무료 위탁 수하물 (1인) 15KG
+                </div>
+            </div>
+        </div>
+
+        <!-- 결제수단 -->
+        <div class="payment-section">
+            <h2 class="payment-section-title">결제수단</h2>
+            <div class="payment-method-box">
+                <div class="payment-method-option">
+                    <input type="radio" name="paymentMethod" value="CARD_SIMPLE" id="cardSimple" class="payment-method-radio" checked onchange="handlePaymentMethodChange('CARD_SIMPLE')">
+                    <label for="cardSimple" class="payment-method-label">카드 간편결제</label>
+                </div>
+                <div class="payment-card-list" id="cardSimpleList">
+                    <div class="payment-card-item selected" onclick="selectCard(this)">
+                        <div class="payment-card-image"></div>
+                        <div class="payment-card-name">주거래 신한카드 SOHO ...</div>
+                        <div class="payment-card-number">체크 1234</div>
+                        <div class="payment-card-installment">
+                            일시불
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="payment-card-item" onclick="addCard()">
+                        <div class="payment-card-add">
+                            <div class="payment-card-add-icon">+</div>
+                            <div>카드</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="payment-method-option">
+                    <input type="radio" name="paymentMethod" value="CARD" id="cardGeneral" class="payment-method-radio" onchange="handlePaymentMethodChange('CARD')">
+                    <label for="cardGeneral" class="payment-method-label">일반결제</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결제하기 -->
+        <div class="payment-agree-section">
+            <h2 class="payment-section-title">결제하기</h2>
+            <div class="payment-agree-text">
+                <span>주문정보 및 서비스 이용약관에 모두 동의합니다</span>
+                <span class="payment-agree-more" onclick="togglePaymentTerms()">더보기</span>
+            </div>
+            <div class="payment-terms-content" id="paymentTermsContent">
+                <h3>제1조 (목적)</h3>
+                <p>이 약관은 주식회사 어썸트래블(이하 "회사"라 함)이 운영하는 온라인 여행 서비스(이하 "서비스"라 함)를 이용함에 있어 회사와 이용자 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
+
+                <h3>제2조 (정의)</h3>
+                <ul>
+                    <li>"서비스"란 회사가 제공하는 항공권 예약, 호텔 예약, 패키지 여행 상품 판매 등 온라인 여행 관련 서비스를 의미합니다.</li>
+                    <li>"이용자"란 이 약관에 따라 회사가 제공하는 서비스를 받는 회원 및 비회원을 의미합니다.</li>
+                    <li>"회원"이란 회사에 개인정보를 제공하여 회원등록을 한 자로서, 회사의 정보를 지속적으로 제공받으며, 회사가 제공하는 서비스를 계속적으로 이용할 수 있는 자를 의미합니다.</li>
+                    <li>"비회원"이란 회원에 가입하지 않고 회사가 제공하는 서비스를 이용하는 자를 의미합니다.</li>
+                </ul>
+
+                <h3>제3조 (약관의 게시와 개정)</h3>
+                <ul>
+                    <li>회사는 이 약관의 내용을 이용자가 쉽게 알 수 있도록 서비스 초기 화면에 게시합니다.</li>
+                    <li>회사는 필요한 경우 관련 법령을 위배하지 않는 범위에서 이 약관을 개정할 수 있습니다.</li>
+                    <li>회사가 약관을 개정할 경우에는 적용일자 및 개정사유를 명시하여 현행약관과 함께 서비스의 초기화면에 그 적용일자 7일 이전부터 적용일자 전일까지 공지합니다.</li>
+                    <li>이용자는 개정된 약관에 동의하지 않을 경우 서비스 이용을 중단하고 회원 탈퇴를 요청할 수 있습니다.</li>
+                </ul>
+
+                <h3>제4조 (서비스의 제공 및 변경)</h3>
+                <ul>
+                    <li>회사는 다음과 같은 서비스를 제공합니다:
+                        <ul>
+                            <li>항공권 예약 및 발권 서비스</li>
+                            <li>호텔 예약 서비스</li>
+                            <li>패키지 여행 상품 판매 서비스</li>
+                            <li>여행 관련 정보 제공 서비스</li>
+                            <li>기타 회사가 추가 개발하거나 제휴계약 등을 통해 회원에게 제공하는 일체의 서비스</li>
+                        </ul>
+                    </li>
+                    <li>회사는 서비스의 내용을 변경할 수 있으며, 변경 시에는 사전에 공지합니다.</li>
+                </ul>
+
+                <h3>제5조 (서비스의 중단)</h3>
+                <ul>
+                    <li>회사는 컴퓨터 등 정보통신설비의 보수점검, 교체 및 고장, 통신의 두절 등의 사유가 발생한 경우에는 서비스의 제공을 일시적으로 중단할 수 있습니다.</li>
+                    <li>회사는 제1항의 사유로 서비스의 제공이 일시적으로 중단됨으로 인하여 이용자 또는 제3자가 입은 손해에 대하여 배상합니다. 단, 회사가 고의 또는 과실이 없음을 입증하는 경우에는 그러하지 아니합니다.</li>
+                </ul>
+
+                <h3>제6조 (회원가입)</h3>
+                <ul>
+                    <li>이용자는 회사가 정한 가입 양식에 따라 회원정보를 기입한 후 이 약관에 동의한다는 의사표시를 함으로서 회원가입을 신청합니다.</li>
+                    <li>회사는 제1항과 같이 회원가입을 신청한 이용자 중 다음 각 호에 해당하지 않는 한 회원으로 등록합니다:
+                        <ul>
+                            <li>가입신청자가 이 약관에 의하여 이전에 회원자격을 상실한 적이 있는 경우</li>
+                            <li>등록 내용에 허위, 기재누락, 오기가 있는 경우</li>
+                            <li>기타 회원으로 등록하는 것이 회사의 기술상 현저히 지장이 있다고 판단되는 경우</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>제7조 (회원 정보의 변경)</h3>
+                <ul>
+                    <li>회원은 개인정보관리화면을 통하여 언제든지 본인의 개인정보를 열람하고 수정할 수 있습니다. 다만, 서비스 관리를 위해 필요한 실명, 아이디 등은 수정이 불가능합니다.</li>
+                    <li>회원은 회원가입신청 시 기재한 사항이 변경되었을 경우 온라인으로 수정을 하거나 전자우편 기타 방법으로 회사에 대하여 그 변경사항을 알려야 합니다.</li>
+                </ul>
+
+                <h3>제8조 (개인정보보호)</h3>
+                <ul>
+                    <li>회사는 이용자의 개인정보 수집시 서비스제공을 위하여 필요한 범위에서 최소한의 개인정보를 수집합니다.</li>
+                    <li>회사는 회원가입시 구매계약이행에 필요한 정보를 미리 수집하지 않습니다. 다만, 관련 법령상 의무이행을 위하여 불가피한 경우 선 consent를 받을 수 있습니다.</li>
+                    <li>회사는 이용자의 개인정보를 수집·이용하는 때에는 당해 이용자에게 그 목적을 고지하고 동의를 받습니다.</li>
+                </ul>
+
+                <h3>제9조 (이용자의 의무)</h3>
+                <ul>
+                    <li>이용자는 다음 행위를 하여서는 안 됩니다:
+                        <ul>
+                            <li>신청 또는 변경시 허위내용의 등록</li>
+                            <li>타인의 정보 도용</li>
+                            <li>회사가 게시한 정보의 변경</li>
+                            <li>회사가 정한 정보 이외의 정보(컴퓨터 프로그램 등) 등의 송신 또는 게시</li>
+                            <li>회사와 기타 제3자의 저작권 등 지적재산권에 대한 침해</li>
+                            <li>회사 및 기타 제3자의 명예를 손상시키거나 업무를 방해하는 행위</li>
+                            <li>외설 또는 폭력적인 메시지, 화상, 음성, 기타 공서양속에 반하는 정보를 공개 또는 게시하는 행위</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>제10조 (구매신청 및 개인정보 제공 동의 등)</h3>
+                <ul>
+                    <li>이용자는 온라인으로 회사에서 제공하는 서비스에 대한 구매신청을 할 수 있습니다.</li>
+                    <li>회사는 이용자의 구매신청이 있는 경우 이용자에게 수신확인통지를 합니다.</li>
+                    <li>수신확인통지를 받은 이용자는 의사표시의 불일치 등이 있는 경우에는 수신확인통지를 받은 후 즉시 구매신청 변경 및 취소를 요청할 수 있고, 회사는 배송 전에 이용자의 요청이 있는 경우에는 지체 없이 그 요청에 따라 처리하여야 합니다.</li>
+                </ul>
+
+                <h3>제11조 (결제방법)</h3>
+                <ul>
+                    <li>회사에서 구매한 상품 또는 용역에 대한 대금결제방법은 다음 각 호의 방법 중 가용한 방법으로 할 수 있습니다:
+                        <ul>
+                            <li>폰뱅킹, 인터넷뱅킹, 메일 뱅킹 등의 각종 계좌이체</li>
+                            <li>선불카드, 직불카드, 신용카드 등의 각종 카드 결제</li>
+                            <li>온라인무통장입금</li>
+                            <li>전자화폐에 의한 결제</li>
+                            <li>수령시 대금지급</li>
+                            <li>마일리지 등 회사가 지급한 포인트에 의한 결제</li>
+                            <li>회사와 계약을 맺었거나 회사가 인정한 상품권에 의한 결제</li>
+                            <li>기타 전자적 지급 방법에 의한 대금 지급 등</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>제12조 (환불, 취소 및 변경)</h3>
+                <ul>
+                    <li>이용자는 구매한 상품 또는 용역에 대하여 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제1항에 따른 계약철회를 할 수 있습니다. 다만, 다음 각 호의 경우에는 그러하지 아니합니다:
+                        <ul>
+                            <li>이용자에게 책임 있는 사유로 재화 등이 멸실 또는 훼손된 경우</li>
+                            <li>이용자의 사용 또는 일부 소비로 재화 등의 가치가 현저히 감소한 경우</li>
+                            <li>시간의 경과에 의하여 재판매가 곤란할 정도로 재화 등의 가치가 현저히 감소한 경우</li>
+                            <li>복제가능한 재화 등의 포장을 훼손한 경우</li>
+                        </ul>
+                    </li>
+                    <li>항공권의 경우 항공사 규정에 따라 취소 및 변경 수수료가 발생할 수 있으며, 이는 이용자가 부담합니다.</li>
+                </ul>
+
+                <h3>제13조 (면책조항)</h3>
+                <ul>
+                    <li>회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.</li>
+                    <li>회사는 이용자의 귀책사유로 인한 서비스 이용의 장애에 대하여는 책임을 지지 않습니다.</li>
+                    <li>회사는 이용자가 서비스를 이용하여 기대하는 수익을 상실한 것에 대하여 책임을 지지 않으며, 그 밖의 서비스를 통하여 얻은 자료로 인한 손해에 관하여 책임을 지지 않습니다.</li>
+                </ul>
+
+                <h3>제14조 (분쟁의 해결)</h3>
+                <ul>
+                    <li>회사는 이용자가 제기하는 정당한 의견이나 불만을 반영하고 그 피해를 보상처리하기 위하여 피해보상처리기구를 설치·운영합니다.</li>
+                    <li>회사와 이용자 간에 발생한 전자상거래 분쟁에 관한 소송은 제소 당시의 이용자의 주소에 의하고, 주소가 없는 경우에는 거소를 관할하는 지방법원의 전속관할로 합니다. 다만, 제소 당시 이용자의 주소 또는 거소가 분명하지 않거나 외국 거주자의 경우에는 민사소송법상의 관할법원에 제기합니다.</li>
+                </ul>
+
+                <h3>부칙</h3>
+                <p>이 약관은 2025년 1월 1일부터 시행합니다.</p>
+            </div>
+            <!-- 하단 버튼 -->
+            <div class="payment-submit-btn">
+                <button type="button" th:onclick="'proceedPay(' + ${purchaseBase.id} + ')'">
+                    결제하기
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- 하단 버튼 -->
-    <footer class="modal-footer">
-        <button type="button" th:onclick="'proceedPay(' + ${purchaseBase.id} + ')'">
-            결제하기
-        </button>
-    </footer>
+    <!-- 항공권 변경/환불 및 수하물 규정 모달 -->
+    <div class="payment-policy-modal" id="paymentPolicyModal">
+        <div class="payment-policy-modal-content">
+            <div class="payment-policy-modal-header">
+                <h2 class="payment-policy-modal-title">항공권 변경/환불 및 수하물 규정</h2>
+                <i class="fas fa-times payment-policy-modal-close" onclick="closePaymentPolicyModal()"></i>
+            </div>
+            <div class="payment-policy-modal-body">
+                <h3>제1조 (항공권 변경 규정)</h3>
+                <p>1. 항공권 변경은 출발일 기준으로 다음과 같이 수수료가 부과됩니다:</p>
+                <ul>
+                    <li>출발 30일 전 변경: 무료</li>
+                    <li>출발 14일 전 변경: 항공요금의 10%</li>
+                    <li>출발 7일 전 변경: 항공요금의 20%</li>
+                    <li>출발 3일 전 변경: 항공요금의 30%</li>
+                    <li>출발 당일 변경: 항공요금의 50%</li>
+                </ul>
+                <p>2. 변경 가능 횟수는 항공권 유형에 따라 다르며, 일부 특가 항공권은 변경이 불가능할 수 있습니다.</p>
+                <p>3. 변경 시 발생하는 운임 차액은 고객이 부담하며, 환불이 필요한 경우 환불 규정에 따라 처리됩니다.</p>
+
+                <h3>제2조 (항공권 환불 규정)</h3>
+                <p>1. 항공권 환불은 출발일 기준으로 다음과 같이 환불 수수료가 부과됩니다:</p>
+                <ul>
+                    <li>출발 30일 전 취소: 환불 수수료 없음 (전액 환불)</li>
+                    <li>출발 14일 전 취소: 항공요금의 10%</li>
+                    <li>출발 7일 전 취소: 항공요금의 20%</li>
+                    <li>출발 3일 전 취소: 항공요금의 30%</li>
+                    <li>출발 당일 취소: 항공요금의 50%</li>
+                    <li>출발 후 취소: 환불 불가</li>
+                </ul>
+                <p>2. 환불 처리는 취소 신청일로부터 영업일 기준 7~14일 소요됩니다.</p>
+                <p>3. 환불 금액은 결제 수단에 따라 원래 결제 수단으로 환불되며, 환불 수수료는 차감 후 환불됩니다.</p>
+                <p>4. 일부 특가 항공권은 환불이 불가능할 수 있으며, 이는 예약 시 고지됩니다.</p>
+
+                <h3>제3조 (수하물 규정)</h3>
+                <p>1. 위탁 수하물:</p>
+                <ul>
+                    <li>일반석: 1인당 20kg 이내, 1개 (가로+세로+높이 합계 158cm 이내)</li>
+                    <li>프리미엄 일반석: 1인당 30kg 이내, 2개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                    <li>비즈니스석: 1인당 40kg 이내, 2개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                    <li>퍼스트석: 1인당 50kg 이내, 3개 (각각 가로+세로+높이 합계 158cm 이내)</li>
+                </ul>
+                <p>2. 기내 수하물:</p>
+                <ul>
+                    <li>1인당 1개, 무게 10kg 이내, 가로+세로+높이 합계 115cm 이내</li>
+                    <li>기내 수하물은 좌석 위 수납함 또는 앞좌석 아래에 보관해야 합니다.</li>
+                </ul>
+                <p>3. 초과 수하물 요금:</p>
+                <ul>
+                    <li>무게 초과: 1kg당 20,000원</li>
+                    <li>개수 초과: 1개당 50,000원</li>
+                    <li>크기 초과: 1개당 100,000원</li>
+                </ul>
+                <p>4. 위탁 수하물 규격을 초과하는 경우 사전에 항공사에 문의하여 승인을 받아야 합니다.</p>
+
+                <h3>제4조 (금지 품목)</h3>
+                <p>다음 품목은 기내 및 위탁 수하물 모두에 반입이 금지됩니다:</p>
+                <ul>
+                    <li>폭발물, 가연성 물질, 독성 물질</li>
+                    <li>총기류 및 탄약</li>
+                    <li>날카로운 도구 (칼, 가위, 면도기 등)</li>
+                    <li>액체류 (100ml 이상, 기내 반입 시 100ml 이하만 가능)</li>
+                    <li>리튬 배터리 (위탁 수하물 반입 금지, 기내 수하물만 가능)</li>
+                    <li>기타 항공 보안 규정에 따라 금지된 품목</li>
+                </ul>
+
+                <h3>제5조 (수하물 분실 및 손상)</h3>
+                <p>1. 수하물이 분실되거나 손상된 경우 즉시 항공사 지상직원에게 신고해야 합니다.</p>
+                <p>2. 분실 신고는 도착 공항에서 즉시 처리되며, 신고서를 작성해야 합니다.</p>
+                <p>3. 수하물 분실 시 항공사는 최대 1,300 SDR(약 200만원)까지 배상 책임을 집니다.</p>
+                <p>4. 귀중품, 현금, 전자기기 등은 위탁 수하물에 포함하지 않는 것을 권장합니다.</p>
+
+                <h3>제6조 (특수 수하물)</h3>
+                <p>1. 골프용품, 자전거, 스키장비 등 특수 수하물은 사전 예약이 필요하며 추가 요금이 발생할 수 있습니다.</p>
+                <p>2. 반려동물 운송은 항공사 사전 승인이 필요하며, 별도의 요금과 규정이 적용됩니다.</p>
+                <p>3. 악기 등 취급에 주의가 필요한 수하물은 별도 규정이 적용될 수 있습니다.</p>
+
+                <h3>제7조 (기타 사항)</h3>
+                <p>1. 본 규정은 국제항공운송협약(몬트리올 협약) 및 각 항공사의 규정을 따릅니다.</p>
+                <p>2. 항공사별로 규정이 상이할 수 있으므로, 예약 시 확인이 필요합니다.</p>
+                <p>3. 본 규정은 2025년 1월 1일부터 시행되며, 변경 시 사전 공지됩니다.</p>
+                <p>4. 규정에 대한 문의사항은 고객센터(1588-0000)로 연락 주시기 바랍니다.</p>
+            </div>
+        </div>
+    </div>
+
+    
 
     <script th:inline="javascript">
         (function () {
             let paymentType = /*[[${ paymentType }]]*/'';
 
+            window.handlePaymentMethodChange = function(method) {
+                const cardSimpleList = document.getElementById('cardSimpleList');
+                if (method === 'CARD_SIMPLE') {
+                    if (cardSimpleList) cardSimpleList.style.display = 'flex';
+                } else {
+                    if (cardSimpleList) cardSimpleList.style.display = 'none';
+                }
+            }
+
+            window.selectCard = function(cardItem) {
+                document.querySelectorAll('.payment-card-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                cardItem.classList.add('selected');
+            }
+
+            window.addCard = function() {
+                alert('카드 추가 기능은 준비 중입니다.');
+            }
+
+            window.openPaymentPolicyModal = function() {
+                const modal = document.getElementById('paymentPolicyModal');
+                if (modal) {
+                    // 모달이 열릴 때 스크롤을 맨 위로 이동
+                    window.scrollTo(0, 0);
+                    // 모달이 열릴 때 body 스크롤 방지
+                    document.body.style.overflow = 'hidden';
+                    
+                    modal.classList.add('show');
+                    // 모달이 열릴 때 하단 네비게이션 바 숨기기
+                    const footerSection = document.getElementById('footerSection');
+                    if (footerSection) {
+                        footerSection.classList.add('hidden');
+                    }
+                }
+            }
+
+            window.closePaymentPolicyModal = function() {
+                const modal = document.getElementById('paymentPolicyModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    // 모달이 닫힐 때 body 스크롤 복원
+                    document.body.style.overflow = '';
+                    // 모달이 닫힐 때 하단 네비게이션 바 다시 보이기
+                    const footerSection = document.getElementById('footerSection');
+                    if (footerSection) {
+                        footerSection.classList.remove('hidden');
+                    }
+                }
+            }
+
+            // 모달 배경 클릭 시 닫기
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('paymentPolicyModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            closePaymentPolicyModal();
+                        }
+                    });
+                }
+            });
+
+            window.togglePaymentTerms = function() {
+                const termsContent = document.getElementById('paymentTermsContent');
+                if (termsContent) {
+                    termsContent.classList.toggle('show');
+                    const moreBtn = document.querySelector('.payment-agree-more');
+                    if (moreBtn) {
+                        if (termsContent.classList.contains('show')) {
+                            moreBtn.textContent = '접기';
+                        } else {
+                            moreBtn.textContent = '더보기';
+                        }
+                    }
+                }
+            }
+
             window.proceedPay = async function (purchaseBaseId) {
                 if (confirm('[TEST] 테스트 결제 진행')) {
-
-                    // 로딩 표시
                     const loadingEl = document.getElementById('loading');
                     if (loadingEl) loadingEl.style.display = 'flex';
 
@@ -127,13 +1230,12 @@
                         return;
                     }
 
-                    // 라디오에서 선택된 결제수단 읽기
                     const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'CARD';
+                    const finalMethod = selectedMethod === 'CARD_SIMPLE' ? 'CARD' : selectedMethod;
 
-                    // 서버에 보낼 데이터
                     const payload = {
                         purchaseId: purchaseBaseId,
-                        paymentMethod: selectedMethod
+                        paymentMethod: finalMethod
                     };
 
                     try {
@@ -145,24 +1247,21 @@
 
                         if (!response.ok) throw new Error('결제 실패');
 
-                        alert('결제가 성공적으로 처리되었습니다!');
-                        if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
+                        if (loadingEl) loadingEl.style.display = 'none';
 
                         if (paymentType == 'air') {
                             const result = await response.json();
                             const purchaseAirId = result.purchaseAirId;
-
                             url2 = `/air/purchase/${purchaseAirId}`;
                         }
 
+                        // 결제 완료 페이지로 이동
                         addModal(url2, true);
                     } catch (error) {
                         console.error('결제 요청 실패:', error);
                         alert('결제 처리 중 오류가 발생했습니다.');
-
-                        if (loadingEl) loadingEl.style.display = 'none'; // 로딩 숨김
+                        if (loadingEl) loadingEl.style.display = 'none';
                     }
-
                 }
             }
         })();

@@ -1,5 +1,7 @@
 package renewal.awesome_travel.purchase.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,8 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import lombok.RequiredArgsConstructor;
+import renewal.awesome_travel.air.repository.AirRepository;
 import renewal.awesome_travel.passport.dto.PassportUpdateRequest;
+import renewal.common.entity.Air;
+import renewal.common.entity.Airline;
 import renewal.common.entity.PurchaseAir;
+import renewal.common.entity.PurchaseBase.ConfirmedSeatClass;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
@@ -25,6 +31,7 @@ public class PurchaseController {
     private final PurchaseAirRepository purchaseAirRepo;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PassengerServiceCommon passengerServiceCommon;
+    private final AirRepository airRepo;
 
     @GetMapping("/{type}/{id}/passport")
     public String getPassportForm(
@@ -58,21 +65,40 @@ public class PurchaseController {
         boolean allChecked = passengerServiceCommon.updatePassengersFromDto(request.getPassengers());
 
         if (type.equals("air")) {
-            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
+            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).orElseThrow();
 
             purchaseAir.setIsPassengerInfoComplete(allChecked);
             purchaseAirRepo.save(purchaseAir);
+            
+            // passengers를 다시 로드하여 completed 상태 반영
+            purchaseAir = purchaseAirRepo.findById(id).orElseThrow();
+
+            // finalSeatClasses의 airId를 사용해서 Air 엔티티를 조회하고 airline 정보를 Map으로 제공
+            Map<Long, Airline> airlineMap = new HashMap<>();
+            if (purchaseAir.getFinalSeatClasses() != null) {
+                for (ConfirmedSeatClass confirmedSeatClass : purchaseAir.getFinalSeatClasses()) {
+                    if (confirmedSeatClass.getAirId() != null && !airlineMap.containsKey(confirmedSeatClass.getAirId())) {
+                        Air air = airRepo.findById(confirmedSeatClass.getAirId()).orElse(null);
+                        if (air != null && air.getAirline() != null) {
+                            airlineMap.put(confirmedSeatClass.getAirId(), air.getAirline());
+                        }
+                    }
+                }
+            }
 
             model.addAttribute("purchaseAir", purchaseAir);
+            model.addAttribute("airlineMap", airlineMap);
 
             return "fragments/purchase/purchaseAirDetail";
 
         } else if (type.equals("product")) {
-            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findByIdWithAll(id).orElseThrow();
 
             purchaseProduct.setIsPassengerInfoComplete(allChecked);
             purchaseProductRepo.save(purchaseProduct);
 
+            // passengers를 다시 로드하여 completed 상태 반영
+            purchaseProduct = purchaseProductRepo.findByIdWithAll(id).orElseThrow();
             model.addAttribute("purchaseProduct", purchaseProduct);
 
             return "fragments/purchase/purchaseProductDetail";

@@ -1,0 +1,221 @@
+<div class="terms-container">
+    <style>
+        .terms-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .terms-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .terms-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .terms-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .terms-spacer {
+            width: 26px;
+        }
+
+        .terms-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .terms-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .terms-tab.active {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .terms-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+        }
+
+        .terms-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .terms-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .terms-article {
+            margin-bottom: 24px;
+        }
+
+        .terms-article-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .terms-article-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .terms-article-content ol,
+        .terms-article-content ul {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+
+        .terms-article-content li {
+            margin-bottom: 8px;
+        }
+
+        .terms-article-content p {
+            margin-bottom: 12px;
+        }
+    </style>
+
+    <header class="terms-header">
+        <i class="fas fa-chevron-left terms-back" onclick="backModal()"></i>
+        <h1 class="terms-title">여행약관</h1>
+        <div class="terms-spacer"></div>
+    </header>
+
+    <!-- 탭 -->
+    <div class="terms-tabs">
+        <button class="terms-tab" 
+                th:classappend="${type == 'domestic' || type == null} ? 'active' : ''"
+                onclick="switchTab('domestic', this)">국내여행약관</button>
+        <button class="terms-tab" 
+                th:classappend="${type == 'international'} ? 'active' : ''"
+                onclick="switchTab('international', this)">국외여행약관</button>
+    </div>
+
+    <!-- 국내여행약관 내용 -->
+    <div class="terms-body" th:if="${type == 'domestic'}">
+        <div class="terms-article">
+            <div class="terms-article-title">제1조 (목적)</div>
+            <div class="terms-article-content">이 약관은 참좋은여행(주)(이하 '여행사'라 함)과 여행자가 체결한 국내여행계약의 세부 이행 및 준수 사항을 정함을 목적으로 합니다.</div>
+        </div>
+
+        <div class="terms-article">
+            <div class="terms-article-title">제2조 (여행의 종류 및 정의)</div>
+            <div class="terms-article-content">여행의 종류 및 정의는 다음과 같습니다.
+
+① 일반모집여행 : 여행사가 정한 여행조건에 따라 여행자를 모집하여 실시하는 여행
+② 희망여행 : 여행자가 희망하는 여행조건에 따라 여행사가 실시하는 여행
+③ 위탁모집여행 : 여행사가 만든 여행상품의 여행자 모집을 다른 여행회사에 위탁하여 실시하는 여행</div>
+        </div>
+
+        <div class="terms-article">
+            <div class="terms-article-title">제3조 (여행사와 여행자 의무)</div>
+            <div class="terms-article-content">(1) 여행사는 여행자에게 안전하고 만족스러운 여행서비스를 제공하기 위하여 여행의 계획 및 실행(안내, 운송, 숙박 등 포함)에 관한 의무를 성실히 이행하여야 합니다.
+
+(2) 여행자는 안전하고 즐거운 여행을 위하여 여행자간의 화합을 도모하고 여행사의 여행질서 유지에 적극 협조하여야 합니다.</div>
+        </div>
+    </div>
+
+    <!-- 국외여행약관 내용 -->
+    <div class="terms-body" th:if="${type == 'international'}">
+        <div class="terms-article">
+            <div class="terms-article-title">제1조 (목적)</div>
+            <div class="terms-article-content">이 약관은 참좋은여행(주)(이하 '여행사'라 함)과 여행자가 체결한 국외여행계약의 세부 이행 및 준수 사항을 정함을 목적으로 합니다.</div>
+        </div>
+
+        <div class="terms-article">
+            <div class="terms-article-title">제2조 (용어의 정의)</div>
+            <div class="terms-article-content">여행의 종류 및 정의, 해외여행수속대행업의 정의는 다음과 같습니다.
+
+1. ① 기획여행 : 여행사가 미리 여행목적지 및 관광일정, 여행자에게 제공될 운송 및 숙식서비스 내용(이하 '여행서비스'라 함), 여행요금을 정하여 광고 또는 기타 방법으로 여행자를 모집하여 실시하는 여행
+
+2. ② 희망여행 : 여행자(개인 또는 단체)가 희망하는 여행조건에 따라 여행사가 운송·숙식·관광 등 여행에 관한 전반적인 계획을 수립하여 실시하는 여행
+
+3. ③ 해외여행 수속대행(이하 '수속대행계약'이라 함): 여행사가 여행자로부터 소정의 수속대행요금을 받기로 약정하고, 여행자의 위탁에 따라 다음에 열거 하는 업무(이하 '수속대행업무'라 함)를 대행하는 것</div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(type, buttonElement) {
+            // 탭 active 상태 업데이트
+            const tabs = document.querySelectorAll('.terms-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            } else {
+                // buttonElement가 없으면 type으로 찾기
+                const targetTab = Array.from(tabs).find(tab => 
+                    (type === 'domestic' && tab.textContent.includes('국내')) ||
+                    (type === 'international' && tab.textContent.includes('국외'))
+                );
+                if (targetTab) {
+                    targetTab.classList.add('active');
+                }
+            }
+            
+            // 모달 내부에서 동작하는지 확인
+            const modal = document.getElementById('fullModal');
+            if (modal && !modal.classList.contains('hide')) {
+                // 모달 내부에서 동작: 현재 모달 내용만 업데이트
+                fetchContent(`/terms/travel?type=${type}`).then(html => {
+                    const currentModal = document.querySelector('.modal-slide.show');
+                    if (currentModal) {
+                        // 기존 스크립트 제거를 위해 innerHTML 교체 전에 처리
+                        const oldScripts = currentModal.querySelectorAll('script');
+                        oldScripts.forEach(script => script.remove());
+                        
+                        currentModal.innerHTML = html;
+                        executeScripts(currentModal);
+                    }
+                }).catch(err => {
+                    console.error('Tab switch failed:', err);
+                });
+            } else {
+                // 섹션에서 동작: 기존 방식 사용
+                fetchSection(`/terms/travel?type=${type}`);
+            }
+        }
+    </script>
+</div>
+

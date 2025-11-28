@@ -1,12 +1,13 @@
-<div>
-    <header class="section-header">
-        <h1>회원가입</h1>
+<div class="register-done-container">
+    <header class="register-header">
+        <h1 class="register-title">회원가입</h1>
     </header>
 
-    <div class="section-body">
-        <h4>회원가입 완료</h4>
-        <div>회원가입 요청이 완료되었습니다.</div><br>
-        <div>이메일로 발송된 링크 클릭시 회원가입이 완료됩니다.</div><br>
-        <button onclick="window.location.replace('/');">홈으로</button>
+    <div class="register-body">
+        <h2 class="done-main-title">회원가입 완료</h2>
+        <p class="done-message">회원가입이 완료되었습니다.</p>
+        <p class="done-message-secondary">지금부터 서비스 이용이 가능합니다.</p>
+        
+        <button class="done-login-btn" onclick="addModal('/login', true)">로그인</button>
     </div>
 </div>
