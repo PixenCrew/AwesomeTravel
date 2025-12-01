@@ -51,7 +51,6 @@ public class MainController {
     private final MenuCodeRepository menuCodeRepo;
     private final BannerRepository bannerRepo;
     private final PopupRepository popupRepo;
-    private final ProductRepository productRepo;
 
     @GetMapping
     public String main(Principal principal, HttpServletRequest request, Model model) {
@@ -104,11 +103,27 @@ public class MainController {
             int maxPlusDays = product.getCutoffDays().intValue() + 30;
 
             while (calcedProduct == null && plusDays < maxPlusDays) {
-                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                try {
+                    Product productCopy = (Product) product.clone();
+                    calcedProduct = productServiceCommon.calcSingleProduct(productCopy, LocalDate.now().plusDays(plusDays));
+                } catch (CloneNotSupportedException e) {
+                    // Clone 실패 시 원본 사용
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                }
                 plusDays++;
             }
 
-            if (calcedProduct != null) {
+            // calcSingleProduct가 null을 반환한 경우 fallback 처리
+            if (calcedProduct == null) {
+                try {
+                    Product fallbackProduct = (Product) product.clone();
+                    // 타임딜 정보는 유지되므로 fallback 상품도 추가
+                    resulProducts.add(fallbackProduct);
+                } catch (CloneNotSupportedException e) {
+                    // Clone 실패 시 원본 상품 추가
+                    resulProducts.add(product);
+                }
+            } else {
                 resulProducts.add(calcedProduct);
             }
 
@@ -273,7 +288,6 @@ public class MainController {
             return java.util.Map.of("url", redirectUrl);
         }
         return java.util.Collections.emptyMap();
-        return "fragments/product/productResult";
     }
 
     @GetMapping("timedeal")
