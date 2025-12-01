@@ -1,18 +1,12 @@
 <div class="product-search-result-container">
     <style>
         .compare-sheet {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 16px;
-            margin: 0 auto;
-            width: min(420px, calc(100% - 24px));
+            position: relative;
+            width: 100%;
+            min-height: 200px;
             background: #fff;
             padding: 20px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-            border-radius: 24px;
-            z-index: 9998;
-            border: 1px solid #f4f4f4;
+            box-sizing: border-box;
         }
 
         .compare-sheet .sheet-header {
@@ -174,12 +168,9 @@
 
         .product-search-result-container {
             width: 100%;
-            height: calc(100vh - 60px);
-            max-height: calc(100vh - 60px);
+            min-height: 100%;
             padding-bottom: 60px;
             background: #fff;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         .product-grid {
@@ -335,10 +326,12 @@
                 <span>필터</span>
             </button>
             <div class="view-toggle" th:if="${(searchResult != null && searchResult.totalElements > 0) || (products != null && !products.isEmpty())}">
-                <button class="view-btn" id="listViewBtn" onclick="switchView('list')" title="리스트 뷰">
+                <button class="view-btn" id="listViewBtn" data-view="list" title="리스트 뷰"
+                        onclick="if (window.switchView) { window.switchView('list'); }">
                     <i class="fas fa-list"></i>
                 </button>
-                <button class="view-btn active" id="gridViewBtn" onclick="switchView('grid')" title="그리드 뷰">
+                <button class="view-btn active" id="gridViewBtn" data-view="grid" title="그리드 뷰"
+                        onclick="if (window.switchView) { window.switchView('grid'); }">
                     <i class="fas fa-th"></i>
                 </button>
             </div>
@@ -350,59 +343,8 @@
         <div class="no-result-content">
             <p class="no-result-title">검색 결과가 없습니다</p>
             <p class="no-result-message">다른 검색어로 다시 검색해주세요.</p>
-    <div th:if="${image != null}">
-        <img th:src=${image}>
+        </div>
     </div>
-
-    <ul class="product-list">
-        <li th:each="product : ${products}" class="product-item">
-
-            <div class="left-area" th:onclick="|addModal('/product/${product.id}')|">
-                <img th:src="${product.thumbnail}" alt="썸네일"
-                    class="thumb" />
-
-                <div class="info">
-
-                    <div class="title" th:text="${product.title}"></div>
-                    <div class="type" th:text="${product.productType}"></div>
-
-                    <!-- 타임딜이 있을 경우 -->
-                    <div th:if="${product.timeDeal != null and product.timeDeal.active}">
-
-                        <!-- 기존 가격 (취소선) -->
-                        <div class="old-price">
-                            <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
-                        </div>
-
-                        <!-- 할인 표시 -->
-                        <div class="discount-info">
-                            <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
-                                th:text="${product.timeDeal.value + '%↓'}"></span>
-                            <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
-                                th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
-                        </div>
-
-                        <!-- 최종 가격 -->
-                        <div class="price final-price">
-                            <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA') + '원'}"></span>
-                        </div>
-
-                        <!-- 남은 시간 -->
-                        <div class="time-left"
-                            th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
-                                        ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
-                                        : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
-                        </div>
-                    </div>
-
-                    <!-- 타임딜이 없을 경우 일반 가격 -->
-                    <div th:if="${product.timeDeal == null or !product.timeDeal.active}">
-                        <div class="price" th:text="${#numbers.formatInteger(product.finalPriceAdult,3,'COMMA') + '원'}"></div>
-                    </div>
-
-                    <div class="depart" th:text="${product.departTimeType}"></div>
-                </div>
-            </div>
 
     <!-- 검색 결과 리스트 (리스트 뷰) -->
     <ul class="product-list list-view" id="productListView">
@@ -421,7 +363,36 @@
                  onclick="openProductModal(this.dataset.id)">
                 <div class="product-title" th:text="${product.title}"></div>
                 <div class="product-description" th:text="${'럭셔리 여행 노옵션 노쇼핑 풀패키지'}"></div>
-                <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 0) + '원'}"></div>
+                
+                <!-- 타임딜이 있을 경우 -->
+                <div th:if="${product.timeDeal != null and product.timeDeal.isActive()}" class="product-price-wrapper">
+                    <!-- 기존 가격 (취소선) -->
+                    <div class="old-price">
+                        <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                    </div>
+                    <!-- 할인 표시 -->
+                    <div class="discount-info">
+                        <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
+                            th:text="${product.timeDeal.value + '%↓'}"></span>
+                        <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
+                            th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
+                    </div>
+                    <!-- 최종 가격 -->
+                    <div class="product-price final-price">
+                        <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                    </div>
+                    <!-- 남은 시간 -->
+                    <div class="time-left"
+                        th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
+                                    ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
+                                    : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                    </div>
+                </div>
+                
+                <!-- 타임딜이 없을 경우 일반 가격 -->
+                <div th:if="${product.timeDeal == null or !product.timeDeal.isActive()}" class="product-price">
+                    <span th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                </div>
             </div>
             <div class="compare-box">
                 <input type="checkbox"
@@ -449,7 +420,36 @@
             <div class="product-grid-info">
                 <div class="product-grid-title" th:text="${product.title}"></div>
                 <div class="product-grid-description" th:text="${'럭셔리 여행 노옵션 노쇼핑 풀패키지'}"></div>
-                <div class="product-grid-price" th:text="${#numbers.formatDecimal(product.price, 0, 0) + '원'}"></div>
+                
+                <!-- 타임딜이 있을 경우 -->
+                <div th:if="${product.timeDeal != null and product.timeDeal.isActive()}" class="product-grid-price-wrapper">
+                    <!-- 기존 가격 (취소선) -->
+                    <div class="old-price">
+                        <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                    </div>
+                    <!-- 할인 표시 -->
+                    <div class="discount-info">
+                        <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
+                            th:text="${product.timeDeal.value + '%↓'}"></span>
+                        <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
+                            th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
+                    </div>
+                    <!-- 최종 가격 -->
+                    <div class="product-grid-price final-price">
+                        <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                    </div>
+                    <!-- 남은 시간 -->
+                    <div class="time-left"
+                        th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
+                                    ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
+                                    : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                    </div>
+                </div>
+                
+                <!-- 타임딜이 없을 경우 일반 가격 -->
+                <div th:if="${product.timeDeal == null or !product.timeDeal.isActive()}" class="product-grid-price">
+                    <span th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                </div>
             </div>
             <div class="product-grid-compare" onclick="event.stopPropagation();">
                 <input type="checkbox"
@@ -724,21 +724,63 @@
             if (compareSheetEl) return; // 이미 존재하면 생성 안 함
 
             const template = document.getElementById("compare-sheet-template");
-            const clone = template.content.cloneNode(true);
+            if (!template) {
+                console.error('compare-sheet-template을 찾을 수 없습니다.');
+                return;
+            }
 
+            const clone = template.content.cloneNode(true);
             compareSheetEl = clone.querySelector(".compare-sheet");
 
-            // 이벤트 바인딩
-            compareSheetEl.querySelector(".close-sheet").onclick = closeCompareSheet;
-            compareSheetEl.querySelector(".compare-btn").onclick = openCompareModal;
+            if (!compareSheetEl) {
+                console.error('compare-sheet 요소를 찾을 수 없습니다.');
+                return;
+            }
 
-            document.body.appendChild(compareSheetEl);
+            // 이벤트 바인딩
+            const closeBtn = compareSheetEl.querySelector(".close-sheet");
+            const compareBtn = compareSheetEl.querySelector(".compare-btn");
+            if (closeBtn) closeBtn.onclick = closeCompareSheet;
+            if (compareBtn) compareBtn.onclick = openCompareModal;
+
+            // halfModalBody에 직접 추가
+            const halfModalBody = document.querySelector("#halfModalBody");
+            if (!halfModalBody) {
+                console.error('halfModalBody를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 기존 내용 비우기
+            halfModalBody.innerHTML = '';
+            halfModalBody.appendChild(compareSheetEl);
+            
+            // 디버깅: 요소가 제대로 추가되었는지 확인
+            console.log('compareSheetEl 추가됨:', compareSheetEl);
+            console.log('halfModalBody 내용:', halfModalBody.innerHTML.substring(0, 100));
+            
             initializeCompareDatePicker();
-            // ⬇⬇ 여기만 변경됨
-            document.querySelector("#halfModalBody").appendChild(compareSheetEl);
 
             // 하프 모달 보이게
-            document.getElementById("halfModal").classList.remove("hide");
+            const halfModal = document.getElementById("halfModal");
+            if (halfModal) {
+                halfModal.classList.remove("hide");
+                console.log('halfModal hide 클래스 제거됨');
+                
+                // 배경 클릭 시 닫기
+                const halfModalBackground = document.getElementById("halfModalBackground");
+                if (halfModalBackground) {
+                    // 기존 이벤트 리스너 제거 후 새로 추가
+                    halfModalBackground.replaceWith(halfModalBackground.cloneNode(true));
+                    const newBackground = document.getElementById("halfModalBackground");
+                    newBackground.onclick = function(e) {
+                        if (e.target === newBackground) {
+                            closeCompareSheet();
+                        }
+                    };
+                }
+            } else {
+                console.error('halfModal을 찾을 수 없습니다.');
+            }
         }
 
 
@@ -747,14 +789,19 @@
         // Compare Sheet 제거
         // =========================
         function closeCompareSheet() {
-
             // 1) Compare sheet DOM 제거
             if (compareSheetEl) {
                 compareSheetEl.remove();
                 compareSheetEl = null;
             }
 
-            // 2) 선택 배열 초기화
+            // 2) 하프 모달 닫기
+            const halfModal = document.getElementById("halfModal");
+            if (halfModal) {
+                halfModal.classList.add("hide");
+            }
+
+            // 3) 선택 배열 초기화
             compareSelected = [];
             document.querySelectorAll(".compare-box input, .product-grid-compare input").forEach(cb => cb.checked = false);
         }
@@ -802,19 +849,31 @@
             }
 
             // sheet 없으면 생성
-            if (compareSelected.length === 2) {
+            if (!compareSheetEl) {
+                createCompareSheet();
+            }
 
-            // list 렌더링
+            if (!compareSheetEl) return; // 생성 실패 시 안전 종료
+
+            const listEl = compareSheetEl.querySelector('.compare-list');
+            const compareBtn = compareSheetEl.querySelector('.compare-btn');
+            if (!listEl || !compareBtn) return;
+
+            // 현재 선택된 2개 상품 렌더링
             listEl.innerHTML = compareSelected
                 .map(p => `
-            <li>
+                    <li>
                         <span class="compare-item-title">${p.title}</span>
                         <span class="compare-remove" onclick="removeCompare('${p.id}')">제거</span>
-            </li>
-        `)
+                    </li>
+                `)
                 .join("");
 
-                compareBtn.classList.remove("disabled");
+            // 두 개가 선택된 경우만 버튼 활성화
+            if (compareSelected.length === 2) {
+                compareBtn.classList.remove('disabled');
+            } else {
+                compareBtn.classList.add('disabled');
             }
         }
 
@@ -947,8 +1006,8 @@
             if (typeof addModal === 'function') {
                 addModal(`/product/${productId}`);
             } else if (typeof openModal === 'function') {
-            openModal(`/product/${productId}`);
-        }
+                openModal(`/product/${productId}`);
+            }
         }
 
         // 뷰 전환 함수
@@ -981,6 +1040,38 @@
                 localStorage.setItem('productViewType', 'grid');
             }
         };
+
+        // 뷰 전환 버튼 이벤트 리스너
+        (function() {
+            function setupViewButtons() {
+                const listBtn = document.getElementById('listViewBtn');
+                const gridBtn = document.getElementById('gridViewBtn');
+                
+                if (listBtn && gridBtn) {
+                    listBtn.addEventListener('click', function() {
+                        if (typeof window.switchView === 'function') {
+                            window.switchView('list');
+                        }
+                    });
+                    gridBtn.addEventListener('click', function() {
+                        if (typeof window.switchView === 'function') {
+                            window.switchView('grid');
+                        }
+                    });
+                } else {
+                    setTimeout(setupViewButtons, 50);
+                }
+            }
+            
+            // DOM이 준비될 때까지 대기
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(setupViewButtons, 100);
+                });
+            } else {
+                setTimeout(setupViewButtons, 100);
+            }
+        })();
 
         // 저장된 뷰 타입 불러오기 (즉시 실행)
         (function() {

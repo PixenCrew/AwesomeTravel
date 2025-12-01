@@ -17,6 +17,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,16 @@ public class ProductService {
     private final ProductServiceCommon productServiceCommon;
 
     public List<Product> searchProducts(ProductSearchRequestDto filter) {
+        Specification<Product> spec = buildSearchSpecification(filter);
+        return productRepo.findAll(spec);
+    }
+
+    public Page<Product> searchProducts(ProductSearchRequestDto filter, Pageable pageable) {
+        Specification<Product> spec = buildSearchSpecification(filter);
+        return productRepo.findAll(spec, pageable);
+    }
+
+    private Specification<Product> buildSearchSpecification(ProductSearchRequestDto filter) {
         Specification<Product> spec = Specification.where(null);
 
         if (filter.getKeyword() != null && !filter.getKeyword().isEmpty()) {
@@ -53,7 +65,8 @@ public class ProductService {
 
             spec = spec.and(ProductSpecification.keywordContains(normalized));
         }
-        return productRepo.findAll(spec);
+
+        return spec;
     }
 
     // private final ProductRepository productRepo;

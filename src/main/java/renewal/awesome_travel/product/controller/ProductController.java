@@ -26,6 +26,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import renewal.awesome_travel.inquiry.dto.request.InquiryRequestDto;
 import renewal.awesome_travel.inquiry.repository.InquiryRepository;
 import renewal.awesome_travel.payment.dto.PaymentRequest;
@@ -34,7 +38,6 @@ import renewal.awesome_travel.product.dto.ProductCalanderDto;
 import renewal.awesome_travel.product.dto.ProductDetailDto;
 import renewal.awesome_travel.product.dto.ProductSearchRequestDto;
 import renewal.awesome_travel.product.dto.ReservationFormDto;
-import renewal.common.dto.ReservationRequestDto;
 import renewal.awesome_travel.product.service.ProductService;
 import renewal.awesome_travel.review.repository.ReviewRepository;
 import renewal.awesome_travel.user.repository.UserRepository;
@@ -42,7 +45,6 @@ import renewal.awesome_travel.user.service.UserService;
 import renewal.awesome_travel.product.dto.ProductCompareViewDto;
 import renewal.awesome_travel.product.service.ProductCompareService;
 import renewal.common.dto.ReservationRequestDto;
-import renewal.common.entity.AirportCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Inquiry.InquiryCategory;
 import renewal.common.entity.Inquiry.InquiryStatus;
@@ -57,15 +59,18 @@ import renewal.common.entity.PurchaseBase.ConfirmedSeatClass;
 import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.Schedule;
+import renewal.common.entity.TimeDeal;
 import renewal.common.entity.User;
 import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.ProductRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.repository.SeatClassRepository;
 import renewal.common.service.EmailService;
 import renewal.common.service.PassengerServiceCommon;
 import renewal.common.service.ProductServiceCommon;
 import org.hibernate.Hibernate;
+import renewal.common.entity.SeatClass;
 
 @Controller
 @RequiredArgsConstructor
@@ -84,6 +89,7 @@ public class ProductController {
     private final EmailService emailService;
     private final ReviewRepository reviewRepo;
     private final ProductCompareService productCompareService;
+    private final SeatClassRepository seatClassRepo;
 
     @GetMapping("/search")
     public String getProductSearch(@RequestParam(required = false) String keyword, Model model) {
@@ -126,9 +132,14 @@ public class ProductController {
 
                 while (calcedProduct == null && plusDays < maxPlusDays) {
                     calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                    plusDays++;
                 }
 
                 if (calcedProduct != null) {
+                    // price 필드가 없으면 finalPriceAdult로 설정
+                    if (calcedProduct.getPrice() == null && calcedProduct.getFinalPriceAdult() != null) {
+                        calcedProduct.setPrice(calcedProduct.getFinalPriceAdult());
+                    }
                     calcedResult.add(calcedProduct);
                 }
             }
@@ -193,18 +204,41 @@ public class ProductController {
                 LocalDateTime departDateTime = targetDate.atStartOfDay();
                 LocalDateTime returnDateTime = departDateTime.plusDays(Math.max(1, itineraryDays));
 
-                ProductCalanderDto fallbackDto = new ProductCalanderDto(
-                        target.getId(),
-                        target.getTitle(),
-                        target.getDepartTimeType(),
-                        departDateTime,
-                        returnDateTime,
-                        defaultAdultPrice,
-                        defaultAdultPrice,
-                        defaultYouthPrice,
-                        defaultInfantPrice,
-                        defaultRemainSeats,
-                        ProductStatus.AVAILABLE);
+                ProductCalanderDto fallbackDto = new ProductCalanderDto();
+                fallbackDto.setId(target.getId());
+                fallbackDto.setTitle(target.getTitle());
+                fallbackDto.setDepartDateTimeType(target.getDepartTimeType());
+                fallbackDto.setDepartDateTime(departDateTime);
+                fallbackDto.setReturnDateTime(returnDateTime);
+                fallbackDto.setPrice(defaultAdultPrice);
+                fallbackDto.setFinalPriceAdult(defaultAdultPrice);
+                fallbackDto.setFinalPriceYouth(defaultYouthPrice);
+                fallbackDto.setFinalPriceInfant(defaultInfantPrice);
+                fallbackDto.setRemainSeats(defaultRemainSeats);
+                fallbackDto.setStatus(ProductStatus.AVAILABLE);
+
+                if (target.getTimeDeal() != null && target.getTimeDeal().isActive()) {
+                    // originalPriceAdult는 @Transient 필드이므로 직접 계산
+                    Long originalPrice = defaultAdultPrice;
+                    if (target.getTour() != null) {
+                        // Tour의 기본 가격 + 항공편/호텔 가격을 추정할 수 없으므로 기본 가격 사용
+                        originalPrice = target.getPrice() != null ? target.getPrice() : defaultAdultPrice;
+                    }
+                    fallbackDto.setOriginalPrice(originalPrice);
+                    fallbackDto.setDiscountType(target.getTimeDeal().getDiscountType());
+                    fallbackDto.setDiscountValue(target.getTimeDeal().getValue());
+                    fallbackDto.setStartTime(target.getTimeDeal().getStartTime());
+                    fallbackDto.setEndTime(target.getTimeDeal().getEndTime());
+                    
+                    // 할인 가격 계산
+                    if (target.getTimeDeal().getDiscountType() == renewal.common.entity.TimeDeal.DiscountType.ABSOLUTE) {
+                        fallbackDto.setPrice(Math.max(0, originalPrice - target.getTimeDeal().getValue()));
+                        fallbackDto.setFinalPriceAdult(Math.max(0, originalPrice - target.getTimeDeal().getValue()));
+                    } else {
+                        fallbackDto.setPrice(originalPrice * (100 - target.getTimeDeal().getValue()) / 100);
+                        fallbackDto.setFinalPriceAdult(originalPrice * (100 - target.getTimeDeal().getValue()) / 100);
+                    }
+                }
                 result.add(fallbackDto);
             }
 
@@ -262,6 +296,42 @@ public class ProductController {
                     : 0L);
             calcProduct.setReservedSeats(0L);
             calcProduct.setProductStatus(ProductStatus.AVAILABLE);
+            
+            // 항공사 정보 찾기: 첫 번째 AIR Location의 정보를 사용하여 항공사 찾기
+            if (calcProduct.getAirline() == null && calcProduct.getTour() != null && calcProduct.getTour().getSchedules() != null) {
+                for (Schedule schedule : calcProduct.getTour().getSchedules()) {
+                    if (schedule == null || schedule.getLocations() == null) {
+                        continue;
+                    }
+                    for (Location location : schedule.getLocations()) {
+                        if (location != null && location.getLocationType() == LocationType.AIR 
+                                && location.getDepartAirport() != null && location.getArriveAirport() != null) {
+                            // 첫 번째 AIR Location의 출발/도착 공항을 사용하여 항공사 찾기
+                            // 실제 항공편 데이터에서 항공사 정보를 찾기 위해 SeatClassRepository 사용
+                            try {
+                                SeatClass firstSeat = seatClassRepo.findLowestPriceSeat(
+                                        departDateTime,
+                                        departDateTime.plusDays(1),
+                                        location.getDepartAirport(),
+                                        location.getArriveAirport(),
+                                        target.getSeatClassTypes());
+                                if (firstSeat != null && firstSeat.getAir() != null && firstSeat.getAir().getAirline() != null) {
+                                    calcProduct.setAirline(firstSeat.getAir().getAirline());
+                                    break;
+                                }
+                            } catch (Exception e) {
+                                // 항공사 정보를 찾을 수 없으면 무시
+                            }
+                        }
+                        if (calcProduct.getAirline() != null) {
+                            break;
+                        }
+                    }
+                    if (calcProduct.getAirline() != null) {
+                        break;
+                    }
+                }
+            }
         }
 
         // 리뷰 조회
@@ -520,8 +590,11 @@ public class ProductController {
 
         List<ConfirmedSeatClass> finalSeatClasses = new ArrayList<>();
         for (Schedule schedule : calcedProduct.getTour().getSchedules()) {
+            if (schedule == null || schedule.getLocations() == null) {
+                continue;
+            }
             for (Location location : schedule.getLocations()) {
-                if (location.getLocationType() == LocationType.AIR && location.getSeatClass() != null) {
+                if (location != null && location.getLocationType() == LocationType.AIR && location.getSeatClass() != null) {
                     finalSeatClasses.add(new ConfirmedSeatClass(location.getSeatClass(), adult, youth, infant));
 
                     // 첫 항공권 항공사 저장

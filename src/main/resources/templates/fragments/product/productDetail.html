@@ -285,25 +285,25 @@
             <div class="schedule-list" th:if="${product.schedules != null}">
                 <div class="schedule-day" th:each="schedule, iter : ${product.schedules}">
                     <div class="day-header">
-                        <span class="day-number" th:text="${iter.index + 1} + '일차'">1일차</span>
+                        <span class="day-number" th:text="${(schedule.day != null ? schedule.day : iter.index) + 1} + '일차'">1일차</span>
                         <span class="day-date"
-                              th:text="${product.departDateTime != null ? #temporals.format(product.departDateTime.plusDays(iter.index), 'yyyy년 M월 d일(E)') : '출발일 미정'}">
+                              th:text="${product.departDateTime != null ? #temporals.format(product.departDateTime.plusDays(schedule.day != null ? schedule.day : iter.index), 'yyyy년 M월 d일(E)') : '출발일 미정'}">
                             2025년 5월 15일 (목)
                         </span>
                     </div>
                     <div class="day-locations">
-                        <div class="location-item" th:each="loc : ${schedule.locations}">
+                        <div class="location-item" th:each="loc : ${schedule.locations}" th:if="${loc != null}">
                             <div class="location-icon-wrapper">
                                 <i class="location-icon fa fa-paper-plane"
-                                   th:if="${loc.locationType == T(renewal.common.entity.Location.LocationType).AIR}"></i>
+                                   th:if="${loc != null and loc.locationType == T(renewal.common.entity.Location.LocationType).AIR}"></i>
                                 <i class="location-icon fa fa-flag"
-                                   th:if="${loc.locationType == T(renewal.common.entity.Location.LocationType).HOTEL}"></i>
+                                   th:if="${loc != null and loc.locationType == T(renewal.common.entity.Location.LocationType).HOTEL}"></i>
                                 <i class="location-icon fa fa-map-marker-alt"
-                                   th:if="${loc.locationType != T(renewal.common.entity.Location.LocationType).AIR and loc.locationType != T(renewal.common.entity.Location.LocationType).HOTEL}"></i>
+                                   th:if="${loc != null and loc.locationType != null and loc.locationType != T(renewal.common.entity.Location.LocationType).AIR and loc.locationType != T(renewal.common.entity.Location.LocationType).HOTEL}"></i>
                             </div>
                             <div class="location-content">
-                                <div class="location-name" th:text="${loc.name}">인천</div>
-                                <div class="location-description" th:if="${loc.description}" th:text="${loc.description}">
+                                <div class="location-name" th:text="${loc != null ? loc.name : ''}">인천</div>
+                                <div class="location-description" th:if="${loc != null and loc.description != null}" th:text="${loc.description}">
                                     [12:20] OZ521편 인천국제공항 출발 (약 14시간 30분 소요)
                                 </div>
                             </div>
@@ -353,84 +353,69 @@
                 </div>
                 <div class="review-summary-right">
                     <div class="review-chart">
-                        <div class="review-chart-item">
+                        <div class="review-chart-item" th:with="
+                                        s1=${product.star1 != null ? product.star1 : 0},
+                                        s2=${product.star2 != null ? product.star2 : 0},
+                                        s3=${product.star3 != null ? product.star3 : 0},
+                                        s4=${product.star4 != null ? product.star4 : 0},
+                                        s5=${product.star5 != null ? product.star5 : 0},
+                                        total=${s1 + s2 + s3 + s4 + s5}">
                             <span class="chart-label">5</span>
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar"
-                                     th:with="
+                                     th:style="${total == 0 ? 'width: 0%' : 'width: ' + (s5 * 100.0 / total) + '%'}"></div>
+                            </div>
+                        </div>
+                        <div class="review-chart-item" th:with="
                                         s1=${product.star1 != null ? product.star1 : 0},
                                         s2=${product.star2 != null ? product.star2 : 0},
                                         s3=${product.star3 != null ? product.star3 : 0},
                                         s4=${product.star4 != null ? product.star4 : 0},
                                         s5=${product.star5 != null ? product.star5 : 0},
-                                        total=${s1 + s2 + s3 + s4 + s5},
-                                        percent=${total == 0 ? 0 : (s5 * 100 / total)}"
-                                     th:style="'width:' + percent + '%'"
-                                     style="width: 85%;"></div>
-                            </div>
-                        </div>
-                        <div class="review-chart-item">
+                                        total=${s1 + s2 + s3 + s4 + s5}">
                             <span class="chart-label">4</span>
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar"
-                                     th:with="
+                                     th:style="${total == 0 ? 'width: 0%' : 'width: ' + (s4 * 100.0 / total) + '%'}"></div>
+                            </div>
+                        </div>
+                        <div class="review-chart-item" th:with="
                                         s1=${product.star1 != null ? product.star1 : 0},
                                         s2=${product.star2 != null ? product.star2 : 0},
                                         s3=${product.star3 != null ? product.star3 : 0},
                                         s4=${product.star4 != null ? product.star4 : 0},
                                         s5=${product.star5 != null ? product.star5 : 0},
-                                        total=${s1 + s2 + s3 + s4 + s5},
-                                        percent=${total == 0 ? 0 : (s4 * 100 / total)}"
-                                     th:style="'width:' + percent + '%'"
-                                     style="width: 10%;"></div>
-                            </div>
-                        </div>
-                        <div class="review-chart-item">
+                                        total=${s1 + s2 + s3 + s4 + s5}">
                             <span class="chart-label">3</span>
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar"
-                                     th:with="
+                                     th:style="${total == 0 ? 'width: 0%' : 'width: ' + (s3 * 100.0 / total) + '%'}"></div>
+                            </div>
+                        </div>
+                        <div class="review-chart-item" th:with="
                                         s1=${product.star1 != null ? product.star1 : 0},
                                         s2=${product.star2 != null ? product.star2 : 0},
                                         s3=${product.star3 != null ? product.star3 : 0},
                                         s4=${product.star4 != null ? product.star4 : 0},
                                         s5=${product.star5 != null ? product.star5 : 0},
-                                        total=${s1 + s2 + s3 + s4 + s5},
-                                        percent=${total == 0 ? 0 : (s3 * 100 / total)}"
-                                     th:style="'width:' + percent + '%'"
-                                     style="width: 3%;"></div>
-                            </div>
-                        </div>
-                        <div class="review-chart-item">
+                                        total=${s1 + s2 + s3 + s4 + s5}">
                             <span class="chart-label">2</span>
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar"
-                                     th:with="
+                                     th:style="${total == 0 ? 'width: 0%' : 'width: ' + (s2 * 100.0 / total) + '%'}"></div>
+                            </div>
+                        </div>
+                        <div class="review-chart-item" th:with="
                                         s1=${product.star1 != null ? product.star1 : 0},
                                         s2=${product.star2 != null ? product.star2 : 0},
                                         s3=${product.star3 != null ? product.star3 : 0},
                                         s4=${product.star4 != null ? product.star4 : 0},
                                         s5=${product.star5 != null ? product.star5 : 0},
-                                        total=${s1 + s2 + s3 + s4 + s5},
-                                        percent=${total == 0 ? 0 : (s2 * 100 / total)}"
-                                     th:style="'width:' + percent + '%'"
-                                     style="width: 1%;"></div>
-                            </div>
-                        </div>
-                        <div class="review-chart-item">
+                                        total=${s1 + s2 + s3 + s4 + s5}">
                             <span class="chart-label">1</span>
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar"
-                                     th:with="
-                                        s1=${product.star1 != null ? product.star1 : 0},
-                                        s2=${product.star2 != null ? product.star2 : 0},
-                                        s3=${product.star3 != null ? product.star3 : 0},
-                                        s4=${product.star4 != null ? product.star4 : 0},
-                                        s5=${product.star5 != null ? product.star5 : 0},
-                                        total=${s1 + s2 + s3 + s4 + s5},
-                                        percent=${total == 0 ? 0 : (s1 * 100 / total)}"
-                                     th:style="'width:' + percent + '%'"
-                                     style="width: 1%;"></div>
+                                     th:style="${total == 0 ? 'width: 0%' : 'width: ' + (s1 * 100.0 / total) + '%'}"></div>
                             </div>
                         </div>
                     </div>
@@ -448,8 +433,7 @@
                     </div>
                     <div class="review-rating">
                         <span th:each="i : ${#numbers.sequence(1, 5)}" 
-                              th:class="${i <= review.rating} ? 'star-filled' : 'star-empty'"
-                              class="review-star">★</span>
+                              th:class="${i <= review.rating} ? 'review-star star-filled' : 'review-star star-empty'">★</span>
                     </div>
                     <div class="review-date" th:text="${#temporals.format(review.createdAt, 'MM/dd/yyyy')}">12/25/2022</div>
                     <div class="review-content" th:text="${review.content}">
