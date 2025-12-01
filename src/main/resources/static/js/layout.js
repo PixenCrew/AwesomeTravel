@@ -247,13 +247,6 @@ function handleScroll(event) {
     const footer = document.getElementById('footerSection');
     if (!footer) return;
 
-    // 홈 화면에서는 스크롤 감지 비활성화
-    const homeSection = document.getElementById('homeSection');
-    if (homeSection && homeSection.classList.contains('active')) {
-        footer.classList.remove('hidden');
-        return;
-    }
-
     const scrollContainer = event.target;
     const currentScrollTop = scrollContainer.scrollTop;
 
@@ -473,6 +466,10 @@ function openModal(endPoint, payload = null) {
     modalStack = []; // 스택 초기화
     fullModal.classList.remove('hide');
     fullModal.classList.add('show');
+    // 모달이 열릴 때 배경 스크롤 막기
+    if (document && document.body) {
+        document.body.style.overflow = 'hidden';
+    }
 
     // 새 모달 DOM 생성
     const newModal = document.createElement('div');
@@ -497,6 +494,10 @@ function openModalHtml(htmlString) {
     modalStack = [];
     fullModal.classList.remove('hide');
     fullModal.classList.add('show');
+    // 모달이 열릴 때 배경 스크롤 막기
+    if (document && document.body) {
+        document.body.style.overflow = 'hidden';
+    }
 
     const newModal = document.createElement('div');
     newModal.classList.add('modal-slide', 'show');
@@ -597,6 +598,10 @@ function closeModal() {
     fullModal.classList.add('hide');
     modalStack = [];
     currentModal = null;
+    // 모달이 모두 닫혔을 때 배경 스크롤 다시 허용
+    if (document && document.body) {
+        document.body.style.overflow = '';
+    }
     // 하단 네비게이션 바 다시 보이기 (모달이 모두 닫혔을 때)
     const footer = document.getElementById('footerSection');
     if (footer) footer.classList.remove('hidden');
