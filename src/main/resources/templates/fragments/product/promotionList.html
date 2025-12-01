@@ -1,26 +1,113 @@
-<div>
-    <header class="section-header">
-
-        <h1>기획전</h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
+<div class="promotion-list-container">
+    <header class="section-header promotion-header">
+        <div class="left">
+            <i class="fas fa-chevron-left" onclick="prevSection()"></i>
         </div>
+        <div class="center">
+            <h1 class="promotion-title-text">기획전</h1>
+        </div>
+        <div class="right"></div>
     </header>
 
-    <div class="section-body">
-        <div class="modal-content">
-            <ul>
-                <li th:each="promotion : ${promotions}" class="promotions-item">
+    <div class="section-body promotion-body">
+        <!-- 상단 카운트 / 필터 영역 -->
+        <div class="promotion-list-toolbar">
+            <span class="promotion-count">
+                총 <span th:text="${#lists.size(promotions)}">0</span>개
+            </span>
+            <div class="promotion-filter-wrapper">
+                <button type="button" class="promotion-filter-btn" onclick="togglePromotionFilter()">
+                    전체 <i class="fas fa-chevron-down" id="promotionFilterIcon"></i>
+                </button>
+                <div class="promotion-filter-dropdown" id="promotionFilterDropdown" style="display: none;">
+                    <div class="promotion-filter-item active" onclick="selectPromotionFilter('all')">전체</div>
+                    <div class="promotion-filter-item" onclick="selectPromotionFilter('active')">진행중</div>
+                    <div class="promotion-filter-item" onclick="selectPromotionFilter('upcoming')">예정</div>
+                    <div class="promotion-filter-item" onclick="selectPromotionFilter('ended')">종료</div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="left-area" th:onclick="|addModal('/promotion/${promotion.id}')|"
-                        th:style="|background-image: url('${promotion.thumnailImg}'); background-size: cover;|">
+        <!-- 기획전 카드 리스트 -->
+        <div class="promotion-card-list">
+            <div class="promotion-card"
+                 th:each="promotion : ${promotions}"
+                 th:onclick="|addModal('/promotion/${promotion.id}')|">
 
-                        <div th:text="${promotion.title}"></div>
-                        <div th:text="${promotion.description}"></div>
-                    </div>
+                <div class="promotion-card-content">
+                    <h2 class="promotion-card-title" th:text="${promotion.title}">기획전 제목</h2>
+                    <p class="promotion-card-subtitle" th:text="${promotion.description}">기획전 설명</p>
+                    <p class="promotion-card-period">
+                        <span th:text="${#temporals.format(promotion.startTime, 'yy.MM.dd')}">25.04.01</span>
+                        <span> ~ </span>
+                        <span th:text="${#temporals.format(promotion.endTime, 'yy.MM.dd')}">25.04.30</span>
+                    </p>
+                </div>
+            </div>
 
-                </li>
-            </ul>
+            <!-- 기획전이 없을 때 -->
+            <div class="promotion-card empty" th:if="${promotions == null or promotions.isEmpty()}">
+                <div class="promotion-card-content">
+                    <h2 class="promotion-card-title">진행 중인 기획전이 없습니다.</h2>
+                    <p class="promotion-card-subtitle">새로운 기획전이 열리면 이곳에서 가장 먼저 알려드릴게요.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function togglePromotionFilter() {
+        const dropdown = document.getElementById('promotionFilterDropdown');
+        const icon = document.getElementById('promotionFilterIcon');
+        
+        if (!dropdown || !icon) return;
+        
+        const isOpen = dropdown.style.display !== 'none';
+        
+        if (isOpen) {
+            dropdown.style.display = 'none';
+            icon.classList.remove('rotated');
+        } else {
+            dropdown.style.display = 'block';
+            icon.classList.add('rotated');
+        }
+    }
+    
+    function selectPromotionFilter(type) {
+        // 필터 아이템 활성화 상태 변경
+        const items = document.querySelectorAll('.promotion-filter-item');
+        items.forEach(item => item.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // 필터 버튼 텍스트 변경
+        const btn = document.querySelector('.promotion-filter-btn');
+        const textMap = {
+            'all': '전체',
+            'active': '진행중',
+            'upcoming': '예정',
+            'ended': '종료'
+        };
+        if (btn) {
+            btn.innerHTML = textMap[type] + ' <i class="fas fa-chevron-down" id="promotionFilterIcon"></i>';
+        }
+        
+        // 드롭다운 닫기
+        togglePromotionFilter();
+        
+        // TODO: 실제 필터링 로직 구현 (필요시)
+        // 현재는 UI만 동작하도록 구현
+    }
+    
+    // 외부 클릭 시 드롭다운 닫기
+    document.addEventListener('click', function(event) {
+        const filterWrapper = document.querySelector('.promotion-filter-wrapper');
+        const dropdown = document.getElementById('promotionFilterDropdown');
+        
+        if (filterWrapper && dropdown && !filterWrapper.contains(event.target)) {
+            dropdown.style.display = 'none';
+            const icon = document.getElementById('promotionFilterIcon');
+            if (icon) icon.classList.remove('rotated');
+        }
+    });
+</script>

@@ -48,7 +48,7 @@
 
     <!-- 카테고리 네비게이션 -->
     <div class="category-nav">
-        <div class="category-item" onclick="fetchSection('/product/search')">
+        <div class="category-item" onclick="fetchSection('/subMain/101')">
             <div class="category-icon">패키지</div>
             <span class="category-label">패키지</span>
         </div>
@@ -60,7 +60,7 @@
             <div class="category-icon">이벤트</div>
             <span class="category-label">이벤트</span>
         </div>
-        <div class="category-item">
+        <div class="category-item" onclick="fetchSection('/promotion')">
             <div class="category-icon">기획전</div>
             <span class="category-label">기획전</span>
         </div>
@@ -68,7 +68,7 @@
             <div class="category-icon">베스트</div>
             <span class="category-label">베스트</span>
         </div>
-        <div class="category-item">
+        <div class="category-item" onclick="fetchSection('/timedeal')">
             <div class="category-icon">타임딜</div>
             <span class="category-label">타임딜</span>
         </div>
@@ -150,33 +150,94 @@
                 fetchSection(`/product/${productId}`);
             }
         }
+        
+        window.handleTimeDealProductClick = function(element) {
+            if (!element) return;
+            const productId = element.dataset.productId;
+            if (!productId) return;
+            if (typeof addModal === 'function') {
+                addModal(`/product/${productId}`);
+            } else if (typeof fetchSection === 'function') {
+                fetchSection(`/product/${productId}`);
+            }
+        }
+        
+        window.handlePromotionClick = function(element) {
+            if (!element) return;
+            const promotionId = element.dataset.promotionId;
+            if (!promotionId) return;
+            if (typeof addModal === 'function') {
+                addModal(`/promotion/${promotionId}`);
+            } else if (typeof fetchSection === 'function') {
+                fetchSection(`/promotion/${promotionId}`);
+            }
+        }
     </script>
 
     <!-- 오늘 봐야 할 타임딜 섹션 -->
     <div class="section-timedeal">
         <div class="section-header-custom">
             <h2 class="section-title">오늘 봐야 할 타임딜</h2>
-            <button class="view-all-btn">모두 보기</button>
+            <button class="view-all-btn" onclick="fetchSection('/timedeal')">모두 보기</button>
         </div>
         
-        <div class="product-list-horizontal">
-            <div class="product-item-horizontal">
+        <div class="product-list-horizontal" th:if="${timeDealProducts != null and !timeDealProducts.empty}">
+            <div class="product-item-horizontal"
+                 th:each="product : ${timeDealProducts}"
+                 th:data-product-id="${product.id}"
+                 onclick="handleTimeDealProductClick(this)">
                 <div class="product-image">
-                    <div class="placeholder-img">img</div>
+                    <img th:src="${product.thumbnail != null and !product.thumbnail.isEmpty() ? product.thumbnail : (product.image != null and !product.image.isEmpty() ? product.image : '/images/placeholder.png')}"
+                         alt="상품 이미지"
+                         onerror="this.src='/images/placeholder.png'">
                 </div>
                 <div class="product-info">
-                    <h3 class="product-title">동유럽 1박 2일</h3>
-                    <p class="product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</p>
+                    <h3 class="product-title" th:text="${product.title}">동유럽 1박 2일</h3>
+                    <p class="product-description" th:text="${product.noShopping and product.noOption ? '럭셔리 여행 노옵션 노쇼핑 풀패키지' : (product.noShopping ? '노쇼핑' : (product.noOption ? '노옵션' : product.title))}">럭셔리 여행 노옵션 노쇼핑 풀패키지</p>
                     <div class="product-footer">
-                        <span class="product-price">990,000원</span>
-                        <span class="timer">(00:32 남음)</span>
+                        <!-- 타임딜이 있을 경우 -->
+                        <div th:if="${product.timeDeal != null and product.timeDeal.isActive()}" class="timedeal-price-wrapper">
+                            <!-- 기존 가격 (취소선) -->
+                            <div class="old-price" style="text-decoration: line-through; color: #999; font-size: 12px;">
+                                <span th:text="${#numbers.formatInteger(product.timeDeal.originalPriceAdult, 3, 'COMMA') + '원'}"></span>
+                            </div>
+                            <!-- 할인 표시 -->
+                            <div class="discount-badge" style="color: #d93025; font-weight: bold; font-size: 12px;">
+                                <span th:if="${product.timeDeal.discountType.name() == 'PERCENT'}"
+                                    th:text="${product.timeDeal.value + '%↓'}"></span>
+                                <span th:if="${product.timeDeal.discountType.name() == 'ABSOLUTE'}"
+                                    th:text="${#numbers.formatInteger(product.timeDeal.value, 3, 'COMMA') + '원↓'}"></span>
+                            </div>
+                            <!-- 최종 가격 -->
+                            <span class="product-price" style="font-weight: bold; color: #f44336; font-size: 16px;">
+                                <span th:text="${#numbers.formatInteger(product.finalPriceAdult != null ? product.finalPriceAdult : (product.price != null ? product.price : 0), 3, 'COMMA') + '원'}"></span>
+                            </span>
+                            <!-- 남은 시간: X일 Y시간 Z분 남음 -->
+                            <span class="timer"
+                                  style="color: #666; font-size: 12px;"
+                                  th:with="
+                                    duration=${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime)},
+                                    days=${duration.toDays()},
+                                    hours=${duration.minusDays(days).toHours()},
+                                    minutes=${duration.minusDays(days).minusHours(hours).toMinutes()}">
+                                (<span th:text="${days} + '일 ' + hours + '시간 ' + minutes + '분 남음'"></span>)
+                            </span>
+                        </div>
+                        <!-- 타임딜이 없을 경우 일반 가격 -->
+                        <div th:if="${product.timeDeal == null or !product.timeDeal.isActive()}" class="product-price">
+                            <span th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                        </div>
                     </div>
-                    <label class="compare-checkbox">
-                        <input type="checkbox" class="compare-input">
+                    <label class="compare-checkbox" th:onclick="|event.stopPropagation();|">
+                        <input type="checkbox" class="compare-input" th:data-product-id="${product.id}">
                         <span>비교하기</span>
                     </label>
                 </div>
             </div>
+        </div>
+        
+        <!-- 타임딜 상품이 없을 때 더미 데이터 -->
+        <div class="product-list-horizontal" th:unless="${timeDealProducts != null and !timeDealProducts.empty}">
             <div class="product-item-horizontal">
                 <div class="product-image">
                     <div class="placeholder-img">img</div>
@@ -199,10 +260,37 @@
 
     <!-- 기획전 섹션 -->
     <div class="section-special">
-        <h2 class="section-title">작정하고 만든 기획전</h2>
-        <div class="special-box">
-            <h3 class="special-title">한 눈에 알아보는 월별 추천 여행지</h3>
-            <p class="special-description">어디로 떠날지 고민이시라면? 여기서 추천받으세요!</p>
+        <div class="section-header-custom">
+            <h2 class="section-title">작정하고 만든 기획전</h2>
+            <button class="view-all-btn" onclick="fetchSection('/promotion')">모두 보기</button>
+        </div>
+        
+        <div class="promotion-list-horizontal" th:if="${promotions != null and !promotions.empty}">
+            <div class="promotion-item-horizontal"
+                 th:each="promotion : ${promotions}"
+                 th:data-promotion-id="${promotion.id}"
+                 onclick="handlePromotionClick(this)">
+                <div class="promotion-image"
+                     th:style="|background-image: url('${promotion.thumnailImg != null and !promotion.thumnailImg.isEmpty() ? promotion.thumnailImg : '/images/placeholder.png'}');|"
+                     onerror="this.style.backgroundImage='url(/images/placeholder.png)'">
+                </div>
+                <div class="promotion-info">
+                    <h3 class="promotion-title" th:text="${promotion.title}">기획전 제목</h3>
+                    <p class="promotion-description" th:text="${promotion.description}">기획전 설명</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 프로모션이 없을 때 더미 데이터 -->
+        <div class="promotion-list-horizontal" th:unless="${promotions != null and !promotions.empty}">
+            <div class="promotion-item-horizontal">
+                <div class="promotion-image" style="background-image: url('/images/placeholder.png');">
+                </div>
+                <div class="promotion-info">
+                    <h3 class="promotion-title">한 눈에 알아보는 월별 추천 여행지</h3>
+                    <p class="promotion-description">어디로 떠날지 고민이시라면? 여기서 추천받으세요!</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -332,22 +420,33 @@
     <!-- 팝업 모달 -->
     <div id="popupModal" class="popup-modal" th:if="${popups != null and !popups.empty}" style="display: none;">
         <div class="popup-overlay" onclick="closePopup()"></div>
-        <div class="popup-content" th:each="popup : ${popups}">
-            <div class="popup-close-btn" onclick="closePopup()">
-                <i class="fas fa-times"></i>
+        <div class="popup-container">
+            <button class="popup-nav-btn popup-prev-btn" onclick="popupPrevSlide()" id="popupPrevBtn" style="display: none;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="popup-nav-btn popup-next-btn" onclick="popupNextSlide()" id="popupNextBtn" style="display: none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="popup-slider" id="popupSlider">
+                <div class="popup-content" th:each="popup : ${popups}" th:data-popup-id="${popup.id}">
+                    <div class="popup-close-btn" onclick="closePopup()">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <a th:href="${popup.url}" th:if="${popup.url != null and !popup.url.isEmpty()}" class="popup-link">
+                        <img th:src="${popup.file}" th:alt="${popup.title}" class="popup-image" />
+                    </a>
+                    <img th:src="${popup.file}" th:alt="${popup.title}" class="popup-image" 
+                         th:unless="${popup.url != null and !popup.url.isEmpty()}" />
+                    <div class="popup-actions">
+                        <label class="popup-checkbox-label">
+                            <input type="checkbox" th:id="'popupCheck_' + ${popup.id}" class="popup-checkbox" />
+                            <span>하루동안 보지않기</span>
+                        </label>
+                        <button class="popup-close-button" th:data-popup-id="${popup.id}" onclick="closePopupWithCheckboxFromButton(this)">닫기</button>
+                    </div>
+                </div>
             </div>
-            <a th:href="${popup.url}" th:if="${popup.url != null and !popup.url.isEmpty()}" class="popup-link">
-                <img th:src="${popup.file}" th:alt="${popup.title}" class="popup-image" />
-            </a>
-            <img th:src="${popup.file}" th:alt="${popup.title}" class="popup-image" 
-                 th:unless="${popup.url != null and !popup.url.isEmpty()}" />
-            <div class="popup-actions">
-                <label class="popup-checkbox-label">
-                    <input type="checkbox" th:id="'popupCheck_' + ${popup.id}" class="popup-checkbox" />
-                    <span>하루동안 보지않기</span>
-                </label>
-                <button class="popup-close-button" th:data-popup-id="${popup.id}" onclick="closePopupWithCheckboxFromButton(this)">닫기</button>
-            </div>
+            <div class="popup-indicator" id="popupIndicator" style="display: none;"></div>
         </div>
     </div>
 
@@ -367,15 +466,73 @@
             background: rgba(0, 0, 0, 0.5);
         }
 
+        .popup-container {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            z-index: 10001;
+        }
+
+        .popup-slider {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
         .popup-content {
             position: relative;
+            display: none;
+            width: 100%;
             background: white;
             border-radius: 12px;
-            max-width: 90%;
-            max-height: 90vh;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10001;
+        }
+
+        .popup-content.active {
+            display: block;
+        }
+
+        .popup-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10003;
+            transition: background 0.2s;
+        }
+
+        .popup-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .popup-prev-btn {
+            left: 10px;
+        }
+
+        .popup-next-btn {
+            right: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .popup-prev-btn {
+                left: -50px;
+            }
+
+            .popup-next-btn {
+                right: -50px;
+            }
         }
 
         .popup-close-btn {
@@ -455,10 +612,35 @@
         .popup-close-button:hover {
             background: #555;
         }
+
+        .popup-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            z-index: 10002;
+        }
+
+        .popup-indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .popup-indicator-dot.active {
+            background: white;
+        }
     </style>
 
     <script th:if="${popups != null and !popups.empty}">
         (function() {
+            let currentPopupIndex = 0;
+            let visiblePopups = [];
+            let popupContents = [];
+
             // localStorage 키 생성 함수
             function getPopupStorageKey(popupId) {
                 return 'popup_hidden_' + popupId;
@@ -474,42 +656,110 @@
                 return hiddenDate === today;
             }
 
-            // 팝업 표시
-            function showPopup() {
+            // 표시 가능한 팝업 필터링
+            function filterVisiblePopups() {
                 const popupModal = document.getElementById('popupModal');
                 if (!popupModal) return;
 
-                // 첫 번째 팝업만 표시 (여러 개가 있으면 display_order 순서대로)
-                const popupContents = popupModal.querySelectorAll('.popup-content');
-                let shown = false;
+                popupContents = Array.from(popupModal.querySelectorAll('.popup-content'));
+                visiblePopups = [];
 
-                popupContents.forEach((content, index) => {
-                    if (shown) {
-                        content.style.display = 'none';
-                        return;
+                popupContents.forEach((content) => {
+                    const popupId = content.dataset.popupId;
+                    if (!popupId) return;
+
+                    // 오늘 하루동안 보지 않기로 설정된 팝업은 제외
+                    if (!isPopupHiddenToday(popupId)) {
+                        visiblePopups.push({
+                            element: content,
+                            id: popupId
+                        });
                     }
+                });
+            }
 
-                    // 팝업 ID 추출 (th:each에서 생성된 ID 사용)
-                    const checkbox = content.querySelector('.popup-checkbox');
-                    if (!checkbox) {
-                        content.style.display = 'none';
-                        return;
-                    }
+            // 팝업 슬라이드 표시
+            function showPopupSlide(index) {
+                if (visiblePopups.length === 0) return;
 
-                    const popupId = checkbox.id.replace('popupCheck_', '');
-                    
-                    // 오늘 하루동안 보지 않기로 설정된 팝업은 표시하지 않음
-                    if (isPopupHiddenToday(popupId)) {
-                        content.style.display = 'none';
-                        return;
-                    }
+                // 인덱스 범위 체크
+                if (index < 0) index = 0;
+                if (index >= visiblePopups.length) index = visiblePopups.length - 1;
 
-                    content.style.display = 'block';
-                    shown = true;
+                currentPopupIndex = index;
+
+                // 모든 팝업 숨기기
+                popupContents.forEach(content => {
+                    content.classList.remove('active');
                 });
 
-                if (shown) {
+                // 현재 팝업 표시
+                if (visiblePopups[index]) {
+                    visiblePopups[index].element.classList.add('active');
+                }
+
+                // 네비게이션 버튼 표시/숨김
+                const prevBtn = document.getElementById('popupPrevBtn');
+                const nextBtn = document.getElementById('popupNextBtn');
+                
+                if (prevBtn) {
+                    prevBtn.style.display = visiblePopups.length > 1 && index > 0 ? 'flex' : 'none';
+                }
+                if (nextBtn) {
+                    nextBtn.style.display = visiblePopups.length > 1 && index < visiblePopups.length - 1 ? 'flex' : 'none';
+                }
+
+                // 인디케이터 업데이트
+                updateIndicator();
+            }
+
+            // 인디케이터 업데이트
+            function updateIndicator() {
+                const indicator = document.getElementById('popupIndicator');
+                if (!indicator) return;
+
+                if (visiblePopups.length <= 1) {
+                    indicator.style.display = 'none';
+                    return;
+                }
+
+                indicator.style.display = 'flex';
+                indicator.innerHTML = '';
+
+                visiblePopups.forEach((popup, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'popup-indicator-dot' + (index === currentPopupIndex ? ' active' : '');
+                    dot.onclick = () => showPopupSlide(index);
+                    indicator.appendChild(dot);
+                });
+            }
+
+            // 이전 슬라이드
+            window.popupPrevSlide = function() {
+                if (currentPopupIndex > 0) {
+                    showPopupSlide(currentPopupIndex - 1);
+                }
+            };
+
+            // 다음 슬라이드
+            window.popupNextSlide = function() {
+                if (currentPopupIndex < visiblePopups.length - 1) {
+                    showPopupSlide(currentPopupIndex + 1);
+                }
+            };
+
+            // 팝업 표시
+            function showPopup() {
+                filterVisiblePopups();
+
+                if (visiblePopups.length === 0) {
+                    return;
+                }
+
+                const popupModal = document.getElementById('popupModal');
+                if (popupModal) {
                     popupModal.style.display = 'flex';
+                    showPopupSlide(0);
                 }
             }
 
@@ -530,7 +780,23 @@
                     const today = new Date().toDateString();
                     localStorage.setItem(storageKey, today);
                 }
-                closePopup();
+
+                // 현재 팝업을 목록에서 제거하고 다음 팝업 표시
+                const currentPopup = visiblePopups.find(p => p.id === popupId);
+                if (currentPopup) {
+                    const currentIndex = visiblePopups.indexOf(currentPopup);
+                    visiblePopups = visiblePopups.filter(p => p.id !== popupId);
+                    
+                    if (visiblePopups.length === 0) {
+                        closePopup();
+                    } else {
+                        // 다음 팝업이 있으면 다음 팝업, 없으면 이전 팝업 표시
+                        const nextIndex = currentIndex < visiblePopups.length ? currentIndex : currentIndex - 1;
+                        showPopupSlide(Math.max(0, nextIndex));
+                    }
+                } else {
+                    closePopup();
+                }
             };
 
             // 버튼에서 팝업 ID를 가져와서 닫기

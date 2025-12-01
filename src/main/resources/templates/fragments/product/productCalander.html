@@ -402,87 +402,12 @@
 
                 eventClick: function (info) {
                     const clickedDate = info.event.start;
-                    const container = document.getElementById('specificDateProduct');
-                    const template = document.getElementById('productList');
-
-                    if (!container || !template) return;
-
-                    // 클릭한 날짜와 일치하는 products
-                    const matchingProducts = products.filter(p => {
-                        const departDate = new Date(p.departDateTime);
-                        return departDate.toDateString() === clickedDate.toDateString();
-                    });
-
-                    // 기존 내용 초기화
-                    container.innerHTML = '';
-
-                    if (matchingProducts.length > 0) {
-                        matchingProducts.forEach(p => {
-                            // 템플릿 복제
-                            const clone = template.cloneNode(true);
-
-                            // 값 채우기
-                            clone.querySelector('.product-id').textContent = `ID: ${p.id}`;
-                            clone.querySelector('.product-title').textContent = `Title: ${p.title}`;
-                            clone.querySelector('.product-depart').textContent = `Depart: ${p.departDateTime}`;
-                            clone.querySelector('.product-return').textContent = `Return: ${p.returnDateTime}`;
-                            // clone.querySelector('.product-price').textContent = `Price: ${p.price}`;
-                            clone.querySelector('.product-remainSeats').textContent = `Remain Seats: ${p.remainSeats}`;
-                            clone.querySelector('.product-status').textContent = `Status: ${p.status}`;
-                            let priceHtml = "";
-
-                            // 타임딜 여부
-                            if (p.originalPrice != null) {
-                                priceHtml += `
-                                                <div style="text-decoration:line-through;color:#999;">
-                                                    기존가: ${p.originalPrice.toLocaleString()}원
-                                                </div>
-                                            `;
-
-                                if (p.discountType === "PERCENT") {
-                                    priceHtml += `
-                                                    <div style="color:#d93025;font-weight:bold;">
-                                                        🔥 ${p.discountValue}%↓
-                                                    </div>
-                                                `;
-                                } else {
-                                    priceHtml += `
-                                                    <div style="color:#d93025;font-weight:bold;">
-                                                        🔥 ${p.discountValue.toLocaleString()}원↓
-                                                    </div>
-                                                `;
-                                }
-
-                                priceHtml += `
-                                                <div style="font-weight:bold;">
-                                                    최종가: ${p.price.toLocaleString()}원
-                                                </div>
-                                            `;
-                            } else {
-                                priceHtml += `
-                                                <div>가격: ${p.price.toLocaleString()}원</div>
-                                            `;
-                            }
-
-                            // 반영
-                            clone.querySelector('.product-price').innerHTML = priceHtml;
-
-                            // fetchTarget
-                            const departDate = p.departDateTime.split('T')[0];
-                            const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDate)}`;
-                            clone.addEventListener('click', () => {
-                                console.log("fetchSection to " + fetchTarget);
-
-                                addModal(fetchTarget);
-                            });
-
-                            container.appendChild(clone);
-                        });
-                        container.style.display = 'block';
-                    } else {
-                        container.textContent = '선택한 날짜에 패키지가 없습니다.';
-                        container.style.display = 'block';
-                    }
+                    const clickedDateStr = clickedDate.getFullYear() + '-' + 
+                                          String(clickedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                          String(clickedDate.getDate()).padStart(2, '0');
+                    
+                    selectedDate = clickedDateStr;
+                    showProductsForDate(clickedDateStr);
                 },
 
                 events: products.map(e => ({
@@ -510,13 +435,23 @@
                 const container = document.getElementById('specificDateProduct');
                 const productList = document.getElementById('productList');
 
+                if (!container || !productList) {
+                    console.error('Container or productList not found');
+                    return;
+                }
+
                 const matchingProducts = filteredProducts.filter(p => {
+                    if (!p.departDateTime) return false;
                     const departDate = new Date(p.departDateTime);
                     const dateStrFormatted = departDate.getFullYear() + '-' + 
                                             String(departDate.getMonth() + 1).padStart(2, '0') + '-' + 
                                             String(departDate.getDate()).padStart(2, '0');
                     return dateStrFormatted === dateStr;
                 });
+
+                console.log('Selected date:', dateStr);
+                console.log('Matching products:', matchingProducts.length);
+                console.log('All products count:', filteredProducts.length);
 
                 productList.innerHTML = '';
 
@@ -533,8 +468,27 @@
                             ? '<span class="product-status-badge waiting">예약대기</span>'
                             : '<span class="product-status-badge available">예약가능</span>';
 
+                        // 타임딜 가격 표시
+                        let priceHtml = '';
+                        if (p.originalPrice != null) {
+                            priceHtml = `
+                                <div style="text-decoration:line-through;color:#999;font-size:14px;">
+                                    ${p.originalPrice.toLocaleString()}원
+                                </div>
+                                <div style="color:#d93025;font-weight:bold;font-size:14px;">
+                                    ${p.discountType === 'PERCENT' ? '🔥 ' + p.discountValue + '%↓' : '🔥 ' + p.discountValue.toLocaleString() + '원↓'}
+                                </div>
+                                <div style="font-weight:bold;font-size:16px;color:#f44336;">
+                                    ${(p.price || 0).toLocaleString()}원
+                                </div>
+                            `;
+                        } else {
+                            priceHtml = `<div style="font-weight:bold;font-size:16px;color:#f44336;">${(p.price || 0).toLocaleString()}원</div>`;
+                        }
+
                         const item = document.createElement('div');
                         item.className = 'product-item';
+                        item.style.cursor = 'pointer';
                         item.innerHTML = `
                             <div class="product-date">${departDateStr} ~ ${returnDateStr}</div>
                             <div class="product-description">${p.title || ''} ${p.description || ''}</div>
@@ -543,7 +497,7 @@
                                 <span class="product-seats">(잔여 ${p.remainSeats || 0}석) ${p.status === 'WAITING' ? '예약대기' : '예약가능'}</span>
                                 ${statusBadge}
                             </div>
-                            <div class="product-price">${(p.price || 0).toLocaleString()}원</div>
+                            <div class="product-price">${priceHtml}</div>
                         `;
 
                         const departDateOnly = p.departDateTime.split('T')[0];

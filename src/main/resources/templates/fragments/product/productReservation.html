@@ -81,7 +81,10 @@
             <h2 class="section-title">여행자 정보</h2>
             <div class="passenger-list">
                 <div class="passenger-item" th:each="passenger, iterStat : ${passengers}">
-                    <h3 class="passenger-title" th:text="'성인 ' + (${iterStat.index} + 1)">성인 1</h3>
+                    <h3 class="passenger-title" 
+                        th:data-age-group="${passenger.ageGroup.name()}"
+                        th:data-age-group-name="${passenger.ageGroup.displayName()}"
+                        th:data-index="${iterStat.index}">성인 1</h3>
                     
                     <div class="form-group">
                         <label class="form-label">이름</label>
@@ -176,6 +179,11 @@
     </template>
 
     <style>
+        /* 예약하기 페이지에서 하단 네비게이션 바 숨기기 */
+        #footerSection {
+            display: none !important;
+        }
+
         .reservation-form-container {
             width: 100%;
             min-height: 100%;
@@ -646,6 +654,30 @@
                     phoneBtn.classList.add('active');
                 }
             }, 100);
+
+            // 여행자 제목 업데이트: ageGroup별 번호 매기기
+            function updatePassengerTitles() {
+                const passengerTitles = document.querySelectorAll('.passenger-title');
+                const ageGroupCounts = { ADULT: 0, YOUTH: 0, INFANT: 0 };
+                const ageGroupNames = {
+                    'ADULT': '성인',
+                    'YOUTH': '청소년',
+                    'INFANT': '유아'
+                };
+
+                passengerTitles.forEach(title => {
+                    const ageGroup = title.getAttribute('data-age-group');
+                    const ageGroupName = title.getAttribute('data-age-group-name') || ageGroupNames[ageGroup];
+                    
+                    if (ageGroup) {
+                        ageGroupCounts[ageGroup]++;
+                        title.textContent = ageGroupName + ' ' + ageGroupCounts[ageGroup];
+                    }
+                });
+            }
+
+            // 페이지 로드 시 실행
+            updatePassengerTitles();
 
         })();
     </script>

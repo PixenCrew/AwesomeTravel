@@ -1,42 +1,295 @@
-<div>
-    <header class="section-header">
-        <h1 th:text="${promotion.title}"></h1>
-        <div class="right">
-            <i class="fas fa-chevron-left" onclick="backModal()"></i>
-        </div>
+<div class="promotion-detail-container">
+    <style>
+        .promotion-detail-container {
+            width: 100%;
+            min-height: 100vh;
+            background: #fff;
+        }
+
+        .promotion-detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
+        }
+
+        .promotion-detail-header .back-btn {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .promotion-detail-header .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .promotion-detail-header .menu-btn {
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .promotion-main-banner {
+            width: 100%;
+            min-height: 200px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .promotion-main-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .promotion-ribbon {
+            display: inline-block;
+            background: #e53935;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .promotion-main-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 12px 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .promotion-main-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .promotion-main-period {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fffbfb;
+            position: relative;
+            z-index: 1;
+        }
+
+        .promotion-content-section {
+            padding: 20px 16px;
+        }
+
+        .promotion-content-image {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .promotion-related-products {
+            padding: 20px 16px;
+            background: #f9f9f9;
+        }
+
+        .promotion-related-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .promotion-product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .promotion-product-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .promotion-product-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .promotion-product-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            background: #e0e0e0;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .promotion-product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .promotion-product-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .promotion-product-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .promotion-product-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .promotion-product-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .promotion-product-compare {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .promotion-product-compare input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .promotion-back-button {
+            width: calc(100% - 32px);
+            margin: 20px 16px;
+            padding: 16px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .promotion-back-button:hover {
+            background: #333;
+        }
+    </style>
+
+    <!-- 헤더 -->
+    <header class="promotion-detail-header">
+        <i class="fas fa-chevron-left back-btn" onclick="backModal()"></i>
+        <h1 class="title">기획전</h1>
+        <i class="fas fa-ellipsis-v menu-btn"></i>
     </header>
 
-    <div class="section-body">
-        <div>
-            <img th:src="${promotion.contentImg}">
-        </div>
-        <div th:text="${promotion.description}"> 기획전 설명</div>
-        <div> 시작일 <span th:text="${promotion.startTime}"></span></div>
-        <div> 종료일 <span th:text="${promotion.endTime}"></span></div>
+    <!-- 메인 배너 (contentImg 사용) -->
+    <div class="promotion-main-banner"
+         th:style="${promotion.contentImg != null and !promotion.contentImg.isEmpty() ? 
+                    'background-image: url(' + promotion.contentImg + ');' : 
+                    'background: linear-gradient(135deg, #ff9ec8 0%, #ffb3d9 100%);'}">
+        <h2 class="promotion-main-title" th:text="${promotion.title}">꽃따라 떠나봄</h2>
+        <p class="promotion-main-description" th:text="${promotion.description}">전국 각지로 떠나보는 사계절 꽃나들이 상품 추천</p>
+        <p class="promotion-main-period">
+            <span th:text="${#temporals.format(promotion.startTime, 'yy.MM.dd')}">25.04.01</span>
+            <span> ~ </span>
+            <span th:text="${#temporals.format(promotion.endTime, 'yy.MM.dd')}">25.05.21</span>
+        </p>
+    </div>
 
-        <h2>관련 상품</h2>
-
-        <div>
-            <ul>
-                <li th:each="product : ${products}"
-                    th:onclick="|openModal('/product/${product.id}')|">
-
-                    <div th:style="|background-image: url('${product.thumbnail}');|">
-                        <div>
-                            <div th:text="${product.title}"></div>
-
-                            <div>
-                                <span th:text="${#numbers.formatInteger(product.finalPriceAdult, 3, 'COMMA')}"></span>원~
-                            </div>
-
-                            <div th:text="${#temporals.format(product.departDateTime, 'yyyy.MM.dd')}">
-                            </div>
-                        </div>
+    <!-- 관련 여행상품 -->
+    <div class="promotion-related-products" th:if="${products != null and !products.empty}">
+        <h2 class="promotion-related-title">관련 여행상품</h2>
+        <div class="promotion-product-list">
+            <div class="promotion-product-item"
+                 th:each="product : ${products}"
+                 th:data-product-id="${product.id}"
+                 onclick="openProductModal(this.dataset.productId)">
+                <img th:src="${product.thumbnail != null and !product.thumbnail.isEmpty() ? product.thumbnail : '/images/placeholder.png'}"
+                     alt="상품 이미지"
+                     class="promotion-product-image"
+                     onerror="this.src='/images/placeholder.png'">
+                <div class="promotion-product-info">
+                    <div class="promotion-product-title" th:text="${product.title}">동유럽 1박 2일</div>
+                    <div class="promotion-product-description" th:text="${product.noShopping and product.noOption ? '럭셔리 여행 노옵션 노쇼핑 풀패키지' : (product.noShopping ? '노쇼핑' : (product.noOption ? '노옵션' : product.title))}">럭셔리 여행 노옵션 노쇼핑 풀패키지</div>
+                    <div class="promotion-product-footer">
+                        <span class="promotion-product-price">
+                            <span th:text="${#numbers.formatInteger(product.finalPriceAdult != null ? product.finalPriceAdult : (product.price != null ? product.price : 0), 3, 'COMMA')}"></span>원
+                        </span>
+                        <label class="promotion-product-compare" th:onclick="|event.stopPropagation();|">
+                            <input type="checkbox" 
+                                   th:id="'promotion-compare-' + ${product.id}"
+                                   th:data-product-id="${product.id}"
+                                   onchange="event.stopPropagation(); if(typeof toggleCompare === 'function') toggleCompare(this);">
+                            <span>비교하기</span>
+                        </label>
                     </div>
-                </li>
-            </ul>
-
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- 관련 상품이 없을 때 -->
+    <div class="promotion-related-products" th:if="${products == null or products.empty}">
+        <h2 class="promotion-related-title">관련 여행상품</h2>
+        <div style="text-align: center; padding: 40px 20px; color: #999;">
+            관련 상품이 없습니다.
+        </div>
+    </div>
+
+    <!-- 목록으로 버튼 -->
+    <button class="promotion-back-button" onclick="backModal()">목록으로</button>
 </div>
+
+<script>
+    function openProductModal(productId) {
+        if (typeof addModal === 'function') {
+            addModal(`/product/${productId}`);
+        } else if (typeof openModal === 'function') {
+            openModal(`/product/${productId}`);
+        }
+    }
+</script>
