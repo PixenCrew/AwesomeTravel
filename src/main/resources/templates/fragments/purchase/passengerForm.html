@@ -616,45 +616,53 @@
                 return response.text();
             })
             .then(html => {
+                // 서버에서 반환된 HTML을 파싱하여 부모 모달 업데이트
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.querySelector('.reservation-detail-body, .air-purchase-detail-body, body');
+                
+                if (newContent) {
+                    // modalBody에서 부모 모달 찾기
+                    const modalBody = document.getElementById('modalBody');
+                    if (modalBody) {
+                        // 모든 모달 슬라이드 찾기 (현재 모달 제외)
+                        const allModals = Array.from(modalBody.querySelectorAll('.modal-slide'));
+                        const currentModal = modalBody.querySelector('.modal-slide.show');
+                        
+                        // 현재 모달을 제외한 모달 중 가장 마지막 것이 부모 모달
+                        // (modalStack의 마지막 요소가 DOM에서 가장 마지막에 추가된 모달)
+                        const parentModal = allModals
+                            .filter(modal => modal !== currentModal && !modal.classList.contains('leave'))
+                            .pop();
+                        
+                        if (parentModal) {
+                            // 부모 모달의 내용 업데이트
+                            parentModal.innerHTML = newContent.innerHTML || newContent.outerHTML;
+                            // 스크립트 재실행
+                            const scripts = Array.from(parentModal.querySelectorAll('script'));
+                            scripts.forEach(script => {
+                                const s = document.createElement('script');
+                                if (script.src) {
+                                    s.src = script.src;
+                                    s.async = false;
+                                } else {
+                                    s.textContent = script.textContent;
+                                }
+                                document.body.appendChild(s);
+                                document.body.removeChild(s);
+                            });
+                        }
+                    }
+                }
+                
                 // 모달 닫기
                 if (typeof backModal === 'function') {
                     backModal();
                 }
-                
-                // 원래 페이지 업데이트 (이전 모달의 내용을 새로고침)
-                setTimeout(() => {
-                    const modalBody = document.getElementById('modalBody');
-                    if (modalBody && !modalBody.classList.contains('hide')) {
-                        // 현재 모달이 purchaseProductDetail 또는 purchaseAirDetail인 경우 업데이트
-                        const currentUrl = window.location.pathname;
-                        let updateUrl = null;
-                        
-                        if (currentUrl.includes('/purchase/product/')) {
-                            const purchaseId = currentUrl.match(/\/purchase\/product\/(\d+)/)?.[1];
-                            if (purchaseId) {
-                                updateUrl = `/product/purchase/${purchaseId}`;
-                            }
-                        } else if (currentUrl.includes('/purchase/air/')) {
-                            const purchaseId = currentUrl.match(/\/purchase\/air\/(\d+)/)?.[1];
-                            if (purchaseId) {
-                                updateUrl = `/air/purchase/${purchaseId}`;
-                            }
-                        }
-                        
-                        if (updateUrl) {
-                            fetch(updateUrl)
-                                .then(res => res.text())
-                                .then(updatedHtml => {
-                                    const parser = new DOMParser();
-                                    const doc = parser.parseFromString(updatedHtml, 'text/html');
-                                    const newContent = doc.querySelector('.reservation-detail-body, .air-purchase-detail-body, body');
-                                    if (newContent && modalBody) {
-                                        modalBody.innerHTML = newContent.innerHTML || newContent.outerHTML;
-                                    }
-                                })
-                                .catch(err => console.error('페이지 업데이트 실패:', err));
-                        }
-                    }
+
+                // 예약 상세로 돌아왔을 때 변경 사항이 바로 보이도록 전체 페이지 새로고침
+                setTimeout(function() {
+                    window.location.reload();
                 }, 300);
             })
             .catch(error => {

@@ -119,16 +119,12 @@
                         <h3 class="traveler-item-title" th:text="${'탑승객 ' + (iterStat.index + 1)}">탑승객 1</h3>
                         <div class="traveler-details">
                             <div class="detail-item">
-                                <span class="detail-label">회원구분:</span>
-                                <span class="detail-value" th:text="${purchaseProduct.user != null ? '회원(' + purchaseProduct.user.email.substring(0, 2) + '****@' + purchaseProduct.user.email.split('@')[1] + ')' : '비회원'}">회원(eu****@naver.com)</span>
-                            </div>
-                            <div class="detail-item">
                                 <span class="detail-label">이름:</span>
                                 <span class="detail-value" th:text="${passenger.lastNameKor + ' ' + passenger.firstNameKor}">유지민</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">생년월일/성별:</span>
-                                <span class="detail-value" th:text="${#temporals.format(passenger.birth, 'yyyy.MM.dd')} + '/' + ${passenger.sex == 'MALE' ? '남' : '여'}">2000.04.11/여</span>
+                                <span class="detail-value" th:text="${#temporals.format(passenger.birth, 'yyyy.MM.dd')} + '/' + (passenger.sex == T(renewal.common.entity.Passenger.Sex).MALE ? '남' : '여')}">2000.04.11/여</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">연령구분:</span>
@@ -712,16 +708,7 @@
 
         /* 하단 버튼 */
         .reservation-detail-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 12px 16px;
-            background: white;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            display: none;
         }
 
         .inquiry-btn,
