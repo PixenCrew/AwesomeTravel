@@ -154,7 +154,7 @@
             transition: all 0.2s;
         }
 
-        .reservation-btn:hover {
+        .reservation-btn:hover:not(.disabled) {
             background: #f5f5f5;
         }
 
@@ -162,9 +162,46 @@
             border-color: #333;
         }
 
+        .reservation-btn.primary.disabled {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+            border-color: #ccc;
+        }
+
         .reservation-btn.secondary {
             background: #f5f5f5;
             color: #666;
+        }
+
+        .refund-status {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .refund-status.requested {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .refund-status.approved {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .refund-status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .refund-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
         }
 
         .reservation-empty {
@@ -214,16 +251,28 @@
                 <div class="reservation-status" th:text="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID ? '결제완료' : 
                                                               (purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).CANCELLED ? '예약 취소' : 
                                                               (purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).RESERVED ? '결제진행' : '예약확정'))}">결제완료</div>
+                <!-- 환불 요청 상태 표시 -->
+                <div class="refund-status" 
+                     th:if="${refundMap != null and refundMap.containsKey(purchaseProduct.id)}"
+                     th:with="refund=${refundMap.get(purchaseProduct.id)}"
+                     th:class="${refund.status == T(renewal.common.entity.Refund.RefundStatus).REQUESTED ? 'refund-status requested' : 
+                                (refund.status == T(renewal.common.entity.Refund.RefundStatus).APPROVED ? 'refund-status approved' : 
+                                (refund.status == T(renewal.common.entity.Refund.RefundStatus).COMPLETED ? 'refund-status completed' : 
+                                'refund-status rejected'))}"
+                     th:text="${refund.status == T(renewal.common.entity.Refund.RefundStatus).REQUESTED ? '환불 요청 중' : 
+                               (refund.status == T(renewal.common.entity.Refund.RefundStatus).APPROVED ? '환불 승인됨' : 
+                               (refund.status == T(renewal.common.entity.Refund.RefundStatus).COMPLETED ? '환불 완료' : 
+                               '환불 거절'))}">환불 요청 중</div>
                 <div class="reservation-title-text" th:text="${purchaseProduct.product?.title ?: purchaseProduct.title}">나트랑 3박 4일</div>
                 <div class="reservation-info" th:text="'예약번호 : ' + ${purchaseProduct.id}">예약번호 : 3672234</div>
                 <div class="reservation-info" th:text="'기간: ' + ${#temporals.format(purchaseProduct.departDateTime, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(purchaseProduct.returnDateTime, 'yyyy.MM.dd')}">기간: 2025.04.27 ~ 2025.05.01</div>
                 <div class="reservation-actions">
                     <button class="reservation-btn primary" 
-                            th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID}"
-                            th:onclick="'addModal(\'/product/purchase/' + ${purchaseProduct.id} + '/review\')'">후기 작성</button>
-                    <button class="reservation-btn primary" 
+                            th:class="${refundMap != null and refundMap.containsKey(purchaseProduct.id) and refundMap.get(purchaseProduct.id).status == T(renewal.common.entity.Refund.RefundStatus).REQUESTED ? 'reservation-btn primary disabled' : 'reservation-btn primary'}"
+                            th:disabled="${refundMap != null and refundMap.containsKey(purchaseProduct.id) and refundMap.get(purchaseProduct.id).status == T(renewal.common.entity.Refund.RefundStatus).REQUESTED}"
                             th:if="${purchaseProduct.purchaseStatus == T(renewal.common.entity.PurchaseBase.PurchaseStatus).PAID && purchaseProduct.purchaseStatus != T(renewal.common.entity.PurchaseBase.PurchaseStatus).CANCELLED}"
-                            th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'">취소하기</button>
+                            th:onclick="'cancelProductReservation(' + ${purchaseProduct.id} + ')'"
+                            th:text="${refundMap != null and refundMap.containsKey(purchaseProduct.id) and refundMap.get(purchaseProduct.id).status == T(renewal.common.entity.Refund.RefundStatus).REQUESTED ? '환불 요청 중' : '취소하기'}">취소하기</button>
                     <button class="reservation-btn secondary" 
                             th:onclick="'addModal(\'/product/purchase/' + ${purchaseProduct.id} + '\')'">상세 보기</button>
                 </div>
@@ -355,11 +404,15 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({})
                         });
+                        
+                        const data = await response.json();
+                        
                         if (response.ok) {
-                            alert('예약이 취소되었습니다.');
+                            alert(data.message || '예약이 취소되었습니다.');
                             location.reload();
                         } else {
-                            alert('예약 취소에 실패했습니다.');
+                            // 서버에서 반환한 상세 메시지 표시
+                            alert(data.message || '예약 취소에 실패했습니다.');
                         }
                     } catch (error) {
                         console.error('예약 취소 실패:', error);

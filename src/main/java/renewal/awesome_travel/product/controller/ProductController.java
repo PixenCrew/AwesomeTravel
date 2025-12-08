@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -65,17 +67,22 @@ import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.RecentViewedItem;
 import renewal.common.repository.ProductRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.repository.RefundRepository;
 import renewal.common.repository.SeatClassRepository;
+import renewal.common.entity.Refund;
 import renewal.common.service.EmailService;
 import renewal.common.service.PassengerServiceCommon;
 import renewal.common.service.ProductServiceCommon;
 import org.hibernate.Hibernate;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.SeatClass;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/product")
 public class ProductController {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     private final ProductService productService;
     private final ProductServiceCommon productServiceCommon;
@@ -90,6 +97,7 @@ public class ProductController {
     private final ReviewRepository reviewRepo;
     private final ProductCompareService productCompareService;
     private final SeatClassRepository seatClassRepo;
+    private final RefundRepository refundRepo;
 
     @GetMapping("/search")
     public String getProductSearch(@RequestParam(required = false) String keyword, Model model) {
@@ -153,13 +161,19 @@ public class ProductController {
     @GetMapping("/{id}")
     public String getProduct(@PathVariable Long id, Model model) throws CloneNotSupportedException {
 
+        log.debug("========== getProduct 호출됨 ==========");
+        log.debug("Product ID: {}", id);
+        
         Product target = productRepo.findById(id).get();
+        log.debug("Product Title: {}", target.getTitle());
 
         List<ProductCalanderDto> result = new ArrayList<>();
 
         // 특정 상품에 대해 6개월간 calc해서 return
         long cutoff = target.getCutoffDays() != null ? target.getCutoffDays() : 0L;
         LocalDate minDepartDate = LocalDate.now().plusDays(cutoff); // 기본 cutoff 계산
+        
+        log.debug("minDepartDate: {}, 180일치 조회 시작", minDepartDate);
         int itineraryDays = target.getTour() != null && target.getTour().getSchedules() != null
                 ? target.getTour().getSchedules().size()
                 : 1;
@@ -177,10 +191,11 @@ public class ProductController {
         for (int i = 0; i < 180; i++) {
             LocalDate targetDate = minDepartDate.plusDays(i);
 
-            Product productCopy = (Product) target.clone();
-
-            Product calcProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
-            if (calcProduct != null) {
+            // 같은 날짜의 모든 항공편 찾기
+            List<Product> calcProducts = findMultipleProductsForDate(target, targetDate, seatClassRepo);
+            
+            // 각 항공편에 대해 ProductCalanderDto 생성
+            for (Product calcProduct : calcProducts) {
                 ProductCalanderDto productDto = new ProductCalanderDto(calcProduct);
                 if (productDto.getDepartDateTime() == null) {
                     productDto.setDepartDateTime(targetDate.atStartOfDay());
@@ -198,63 +213,120 @@ public class ProductController {
                 if (productDto.getStatus() == null) {
                     productDto.setStatus(ProductStatus.AVAILABLE);
                 }
+                
                 result.add(productDto);
                 calcProduct.setDepartDateTime(null); // 한 Product에 대해 출발일 필드 초기화 / 안하면 출국시간 첫 값 고정
-            } else {
-                LocalDateTime departDateTime = targetDate.atStartOfDay();
-                LocalDateTime returnDateTime = departDateTime.plusDays(Math.max(1, itineraryDays));
-
-                ProductCalanderDto fallbackDto = new ProductCalanderDto();
-                fallbackDto.setId(target.getId());
-                fallbackDto.setTitle(target.getTitle());
-                fallbackDto.setDepartDateTimeType(target.getDepartTimeType());
-                fallbackDto.setDepartDateTime(departDateTime);
-                fallbackDto.setReturnDateTime(returnDateTime);
-                fallbackDto.setPrice(defaultAdultPrice);
-                fallbackDto.setFinalPriceAdult(defaultAdultPrice);
-                fallbackDto.setFinalPriceYouth(defaultYouthPrice);
-                fallbackDto.setFinalPriceInfant(defaultInfantPrice);
-                fallbackDto.setRemainSeats(defaultRemainSeats);
-                fallbackDto.setStatus(ProductStatus.AVAILABLE);
-
-                if (target.getTimeDeal() != null && target.getTimeDeal().isActive()) {
-                    // originalPriceAdult는 @Transient 필드이므로 직접 계산
-                    Long originalPrice = defaultAdultPrice;
-                    if (target.getTour() != null) {
-                        // Tour의 기본 가격 + 항공편/호텔 가격을 추정할 수 없으므로 기본 가격 사용
-                        originalPrice = target.getPrice() != null ? target.getPrice() : defaultAdultPrice;
-                    }
-                    fallbackDto.setOriginalPrice(originalPrice);
-                    fallbackDto.setDiscountType(target.getTimeDeal().getDiscountType());
-                    fallbackDto.setDiscountValue(target.getTimeDeal().getValue());
-                    fallbackDto.setStartTime(target.getTimeDeal().getStartTime());
-                    fallbackDto.setEndTime(target.getTimeDeal().getEndTime());
-                    
-                    // 할인 가격 계산
-                    if (target.getTimeDeal().getDiscountType() == renewal.common.entity.TimeDeal.DiscountType.ABSOLUTE) {
-                        fallbackDto.setPrice(Math.max(0, originalPrice - target.getTimeDeal().getValue()));
-                        fallbackDto.setFinalPriceAdult(Math.max(0, originalPrice - target.getTimeDeal().getValue()));
-                    } else {
-                        fallbackDto.setPrice(originalPrice * (100 - target.getTimeDeal().getValue()) / 100);
-                        fallbackDto.setFinalPriceAdult(originalPrice * (100 - target.getTimeDeal().getValue()) / 100);
-                    }
-                }
-                result.add(fallbackDto);
             }
-
-            calcProduct = null;
-            productCopy = null;
+            // 항공편이 없는 날짜는 달력에 표시하지 않음 (fallback 로직 제거)
         }
 
         model.addAttribute("products", result);
 
         return "fragments/product/productCalander";
     }
+    
+    /**
+     * 같은 날짜에 여러 항공편을 찾아서 각각에 대해 Product를 계산하여 반환
+     */
+    private List<Product> findMultipleProductsForDate(Product product, LocalDate departDate, SeatClassRepository seatClassRepo) {
+        List<Product> results = new ArrayList<>();
+        
+        try {
+            Product productCopy = (Product) product.clone();
+            Hibernate.initialize(productCopy.getTour());
+            
+            if (productCopy.getTour() == null || productCopy.getTour().getSchedules() == null) {
+                return results;
+            }
+            
+            // 첫 번째 출국 항공편(day 0)의 모든 항공편을 찾기
+            for (Schedule sced : productCopy.getTour().getSchedules()) {
+                if (sced == null || sced.getDay() != 0) {
+                    continue;
+                }
+                
+                Hibernate.initialize(sced.getLocations());
+                if (sced.getLocations() == null) {
+                    continue;
+                }
+                
+                for (Location loc : sced.getLocations()) {
+                    if (loc == null || loc.getLocationType() != LocationType.AIR) {
+                        continue;
+                    }
+                    
+                    AirportCode departAirport = loc.getDepartAirport();
+                    AirportCode arriveAirport = loc.getArriveAirport();
+                    
+                    if (departAirport != null) {
+                        Hibernate.initialize(departAirport);
+                    }
+                    if (arriveAirport != null) {
+                        Hibernate.initialize(arriveAirport);
+                    }
+                    
+                    if (departAirport == null || arriveAirport == null) {
+                        continue;
+                    }
+                    
+                    // 같은 날짜의 모든 항공편을 찾기 위해 하루 전체 시간 범위 사용 (00:00 ~ 23:59:59)
+                    LocalDateTime startDateTime = departDate.atTime(0, 0);
+                    LocalDateTime endDateTime = departDate.atTime(23, 59, 59);
+                    
+                    // 같은 날짜의 모든 항공편 조회
+                    List<SeatClass> allSeats = seatClassRepo.findLowestPriceSeatsByAirportCodes(
+                        startDateTime, endDateTime,
+                        departAirport.getAirportCode(),
+                        arriveAirport.getAirportCode(),
+                        productCopy.getSeatClassTypes());
+                    
+                    // 각 항공편에 대해 Product 계산
+                    for (SeatClass seat : allSeats) {
+                        try {
+                            Product productForSeat = (Product) product.clone();
+                            // 첫 번째 날 항공편을 지정하기 위해 Location에 SeatClass 설정
+                            for (Schedule schedule : productForSeat.getTour().getSchedules()) {
+                                if (schedule.getDay() == 0) {
+                                    Hibernate.initialize(schedule.getLocations());
+                                    for (Location location : schedule.getLocations()) {
+                                        if (location != null && location.getLocationType() == LocationType.AIR
+                                            && location.getDepartAirport() != null 
+                                            && location.getArriveAirport() != null
+                                            && location.getDepartAirport().getAirportCode().equals(departAirport.getAirportCode())
+                                            && location.getArriveAirport().getAirportCode().equals(arriveAirport.getAirportCode())) {
+                                            location.setSeatClass(seat);
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            
+                            Product calcProduct = productServiceCommon.calcSingleProduct(productForSeat, departDate);
+                            if (calcProduct != null) {
+                                results.add(calcProduct);
+                            }
+                        } catch (CloneNotSupportedException e) {
+                            log.error("Product clone failed for seat: {}", seat.getId(), e);
+                        }
+                    }
+                    
+                    break; // 첫 번째 AIR Location만 처리
+                }
+                break; // day 0만 처리
+            }
+        } catch (CloneNotSupportedException e) {
+            log.error("Product clone failed", e);
+        }
+        
+        return results;
+    }
 
     @GetMapping("/detail/{id}")
     public String getProductDetail(
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate,
+            @RequestParam(required = false) String departTime,
             Model model,
             Principal principal,
             HttpSession session,
@@ -269,7 +341,27 @@ public class ProductController {
             productCopy = target;
         }
 
-        Product calcProduct = productServiceCommon.calcSingleProduct(productCopy, departDate);
+        // 선택한 항공편의 출발 시간이 전달된 경우, 해당 시간대의 항공편을 찾아서 처리
+        Product calcProduct = null;
+        if (departTime != null && !departTime.isEmpty()) {
+            // 출발 시간이 전달된 경우, 해당 시간대의 항공편을 찾아서 calcSingleProduct 호출
+            List<Product> calcProducts = findMultipleProductsForDate(productCopy, departDate, seatClassRepo);
+            for (Product p : calcProducts) {
+                if (p.getDepartDateTime() != null) {
+                    String pDepartTime = p.getDepartDateTime().toLocalTime().toString();
+                    // 시간 비교 (초 단위 제외하고 비교)
+                    if (pDepartTime.startsWith(departTime.substring(0, 5))) { // "08:40" 형식으로 비교
+                        calcProduct = p;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 출발 시간으로 찾지 못한 경우 기본 로직 사용
+        if (calcProduct == null) {
+            calcProduct = productServiceCommon.calcSingleProduct(productCopy, departDate);
+        }
         if (calcProduct == null) {
             calcProduct = productCopy;
             LocalDateTime departDateTime = departDate.atStartOfDay();
@@ -396,9 +488,11 @@ public class ProductController {
             // 로그인한 사용자가 찜한 상품인지 여부 확인
             boolean wished = productService.wished(user, id);
             model.addAttribute("wished", wished);
+            model.addAttribute("currentUserId", user.getId()); // 현재 로그인한 사용자 ID 추가
         } else {
             // 비로그인: 쿠키에 저장
             productService.saveRecentViewToCookie(request, response, id, LocalDateTime.now());
+            model.addAttribute("currentUserId", null); // 비로그인 시 null
         }
 
         return "fragments/product/productDetail";
@@ -708,6 +802,7 @@ public class ProductController {
 
         // 구매 상태 업데이트
         purchaseProduct.setPurchaseStatus(PurchaseStatus.PAID);
+        purchaseProduct.setIsTransactionComplete(true);
         purchaseProductRepo.save(purchaseProduct);
 
         return ResponseEntity.ok().build();
@@ -781,8 +876,28 @@ public class ProductController {
                 productServiceCommon.requestRefund(id, amount, reason);
                 return ResponseEntity.ok(Map.of("success", true, "message", "환불 요청이 접수되었습니다. 관리자 승인 후 처리됩니다."));
             } catch (IllegalStateException e) {
+                // 환불 요청 상태 확인
+                Refund existingRefund = refundRepo.findByPurchaseIdAndRefundType(id, Refund.RefundType.PRODUCT)
+                        .orElse(null);
+                String detailedMessage = "이미 환불 요청이 진행 중입니다.";
+                if (existingRefund != null) {
+                    switch (existingRefund.getStatus()) {
+                        case REQUESTED:
+                            detailedMessage = "환불 요청이 이미 접수되어 관리자 승인 대기 중입니다. 중복 요청은 불가능합니다.";
+                            break;
+                        case APPROVED:
+                            detailedMessage = "환불이 이미 승인되어 처리 중입니다.";
+                            break;
+                        case COMPLETED:
+                            detailedMessage = "환불이 이미 완료되었습니다.";
+                            break;
+                        case REJECTED:
+                            detailedMessage = "환불 요청이 거절되었습니다. 새로운 환불 요청을 진행할 수 있습니다.";
+                            break;
+                    }
+                }
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", e.getMessage()));
+                        .body(Map.of("success", false, "message", detailedMessage));
             }
         } else {
             // 결제 전 예약 취소: 예약 상태만 변경

@@ -124,7 +124,7 @@
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">생년월일/성별:</span>
-                                <span class="detail-value" th:text="${#temporals.format(passenger.birth, 'yyyy.MM.dd')} + '/' + (passenger.sex == T(renewal.common.entity.Passenger.Sex).MALE ? '남' : '여')}">2000.04.11/여</span>
+                                <span class="detail-value" th:with="birthStr=${#temporals.format(passenger.birth, 'yyyy.MM.dd')}, genderStr=${passenger.sex == T(renewal.common.entity.Passenger.Sex).MALE ? '남' : '여'}" th:text="${birthStr + '/' + genderStr}">2000.04.11/여</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">연령구분:</span>
