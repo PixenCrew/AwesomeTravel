@@ -80,51 +80,204 @@
             padding-bottom: 100px;
         }
 
-        /* FullCalendar 커스터마이징 */
+        /* FullCalendar 커스터마이징 - 깔끔한 미니멀 디자인 */
         #calendar {
             margin-bottom: 24px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            overflow: hidden;
         }
 
         .fc-header-toolbar {
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+            padding: 0;
         }
 
         .fc-toolbar-title {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 600;
+            color: #1a1a1a;
         }
 
         .fc-button {
             padding: 6px 12px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
             border-radius: 6px;
             font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .fc-button:hover {
-            background: #f5f5f5;
+            background: #f9fafb;
+            border-color: #9ca3af;
         }
 
+        .fc-button:active {
+            background: #f3f4f6;
+        }
+
+        .fc-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* 요일 헤더 스타일 */
+        .fc-col-header-cell {
+            background: #ffffff;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 0;
+        }
+
+        .fc-col-header-cell-cushion {
+            font-weight: 600;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* 일요일 색상 */
+        .fc-col-header-cell:first-child .fc-col-header-cell-cushion {
+            color: #dc2626;
+        }
+
+        /* 토요일 색상 */
+        .fc-col-header-cell:last-child .fc-col-header-cell-cushion {
+            color: #2563eb;
+        }
+
+        /* 날짜 셀 스타일 */
         .fc-daygrid-day {
             cursor: pointer;
+            border: 1px solid #f3f4f6;
+            background: #ffffff;
+            transition: background-color 0.2s ease;
         }
 
         .fc-daygrid-day:hover {
-            background: #f9f9f9;
+            background: #f9fafb;
         }
 
-        /* 날짜별 가격 표시 스타일 */
+        .fc-daygrid-day-frame {
+            padding: 6px;
+            min-height: 90px;
+        }
+
+        /* 다른 달의 날짜 스타일 */
+        .fc-day-other {
+            background: #fafafa;
+        }
+
+        .fc-day-other .fc-daygrid-day-number {
+            color: #d1d5db;
+        }
+
+        /* 오늘 날짜 스타일 */
+        .fc-day-today {
+            background: #fef3c7 !important;
+        }
+
+        .fc-day-today .fc-daygrid-day-number {
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        /* 날짜 숫자 기본 스타일 */
+        .fc-daygrid-day-number {
+            font-weight: 500;
+            color: #374151;
+            padding: 4px 6px;
+            transition: all 0.2s ease;
+        }
+
+        /* 예약가능한 날짜 셀 전체 배경 - 연한 파란색 */
+        .fc-daygrid-day.has-available {
+            background-color: #e3f2fd !important;
+        }
+
+        .fc-daygrid-day.has-available .fc-daygrid-day-number {
+            color: #1976d2;
+            font-weight: 600;
+        }
+
+        .fc-daygrid-day.has-available:hover {
+            background-color: #bbdefb !important;
+        }
+
+        /* 예약대기 상태 날짜 셀 전체 배경 - 올리브 그린 */
+        .fc-daygrid-day.has-waiting {
+            background-color: #6b8e23 !important;
+        }
+
+        .fc-daygrid-day.has-waiting .fc-daygrid-day-number {
+            color: white;
+            font-weight: 600;
+        }
+
+        .fc-daygrid-day.has-waiting:hover {
+            background-color: #556b2f !important;
+        }
+
+        /* 출발확정 상태 날짜 셀 전체 배경 - 초록색 */
+        .fc-daygrid-day.has-confirmed {
+            background-color: #388e3c !important;
+        }
+
+        .fc-daygrid-day.has-confirmed .fc-daygrid-day-number {
+            color: white;
+            font-weight: 600;
+        }
+
+        .fc-daygrid-day.has-confirmed:hover {
+            background-color: #2e7d32 !important;
+        }
+
+        /* 달력 이벤트 컨테이너 - 모바일 대응 */
+        .fc-daygrid-event {
+            margin: 1px 0;
+            overflow: hidden;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .fc-event {
+            overflow: hidden;
+            word-wrap: break-word;
+            word-break: break-all;
+            padding: 2px 4px;
+        }
+
+        /* 날짜별 가격 표시 스타일 - 깔끔한 미니멀 */
         .fc-event-price-available,
         .fc-event-price-confirmed,
         .fc-event-price-wait {
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
             line-height: 1.4;
-            font-weight: 600;
-            padding: 4px 6px;
+            font-weight: 500;
+            padding: 2px 4px;
             border-radius: 4px;
             margin: 2px 0;
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow: hidden;
+        }
+
+        /* 가격 텍스트 스타일 */
+        .fc-price,
+        .fc-final-price,
+        .fc-old-price,
+        .fc-discount {
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
 
         /* 예약가능 (파란색 박스) */
@@ -142,7 +295,7 @@
         .fc-event-status-confirmed {
             display: block;
             margin-top: 4px;
-            font-size: 11px;
+            font-size: 10px;
             background-color: #c8e6c9;
             color: #2e7d32;
             border-radius: 4px;
@@ -153,17 +306,17 @@
             margin-right: auto;
         }
 
-        /* 예약대기 (초록색 박스) */
+        /* 예약대기 (올리브 그린 박스) */
         .fc-event-price-wait {
-            background: #e8f5e9;
-            color: #388e3c;
+            background: #f1f8e9;
+            color: #558b2f;
         }
 
         .fc-event-status-wait {
             display: block;
-            font-size: 11px;
-            background-color: #c8e6c9;
-            color: #2e7d32;
+            font-size: 10px;
+            background-color: #c5e1a5;
+            color: #558b2f;
             border-radius: 4px;
             font-weight: 600;
             padding: 2px 6px;
@@ -171,13 +324,13 @@
             margin: 4px auto 0;
         }
 
-        /* 필터 및 정렬 */
+        /* 필터 및 정렬 - 깔끔한 스타일 */
         .calendar-filters {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #e5e7eb;
             margin-bottom: 16px;
         }
 
@@ -186,25 +339,44 @@
             align-items: center;
             gap: 8px;
             font-size: 14px;
-            color: #333;
+            font-weight: 500;
+            color: #374151;
             cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .filter-checkbox:hover {
+            color: #1976d2;
         }
 
         .filter-checkbox input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
+            accent-color: #1976d2;
         }
 
         .sort-select {
             padding: 8px 12px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #d1d5db;
             border-radius: 6px;
             background: white;
             font-size: 14px;
-            color: #333;
+            font-weight: 500;
+            color: #374151;
             cursor: pointer;
             outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .sort-select:hover {
+            border-color: #9ca3af;
+            background: #f9fafb;
+        }
+
+        .sort-select:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
         }
 
         /* 상품 목록 */
@@ -220,15 +392,16 @@
 
         .product-item {
             padding: 16px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
-            background: white;
+            background: #ffffff;
             cursor: pointer;
-            transition: box-shadow 0.2s;
+            transition: all 0.2s ease;
         }
 
         .product-item:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-color: #1976d2;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
         }
 
         .product-date {
@@ -285,6 +458,114 @@
             color: #f44336;
             text-align: right;
         }
+
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            /* 달력 셀 크기 조정 */
+            .fc-daygrid-day-frame {
+                min-height: 60px;
+            }
+
+            /* 이벤트 컨테이너 */
+            .fc-event {
+                font-size: 10px;
+                padding: 1px 2px;
+                margin: 0;
+            }
+
+            /* 가격 텍스트 모바일 스타일 */
+            .fc-price,
+            .fc-final-price {
+                font-size: 10px !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                display: block;
+            }
+
+            .fc-old-price {
+                font-size: 8px !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .fc-discount {
+                font-size: 9px !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .fc-remain-seats {
+                font-size: 8px !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .fc-event-status-confirmed,
+            .fc-event-status-wait {
+                font-size: 9px !important;
+                padding: 1px 4px !important;
+            }
+
+            /* 달력 헤더 모바일 */
+            .fc-toolbar-title {
+                font-size: 16px;
+            }
+
+            .fc-button {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* 더 작은 화면 */
+            .fc-price,
+            .fc-final-price {
+                font-size: 9px !important;
+            }
+
+            .fc-old-price {
+                font-size: 7px !important;
+            }
+
+            .fc-discount {
+                font-size: 8px !important;
+            }
+
+            .fc-remain-seats {
+                font-size: 7px !important;
+            }
+
+            .fc-daygrid-day-frame {
+                min-height: 50px;
+            }
+
+            /* 모바일에서 날짜 숫자 크기 조정 */
+            .fc-daygrid-day-number span.available,
+            .fc-daygrid-day-number span.waiting,
+            .fc-daygrid-day-number span.confirmed {
+                width: 26px !important;
+                height: 26px !important;
+                line-height: 26px !important;
+                font-size: 11px !important;
+            }
+
+            /* 모바일에서 달력 패딩 조정 */
+            #calendar {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            .fc-daygrid-day-frame {
+                min-height: 60px;
+                padding: 2px;
+            }
+        }
     </style>
 
     <script th:inline="javascript">
@@ -310,11 +591,49 @@
                 locale: 'ko',
                 height: 'auto',
                 headerToolbar: {
-                    left: 'prev,next',
-                    center: 'title'
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
                 },
                 buttonText: {
                     today: '오늘'
+                },
+
+                // 날짜 셀에 클래스 추가 - 예약가능한 날짜 하이라이트
+                dayCellClassNames: function(arg) {
+                    // 로컬 날짜로 변환 (시간대 문제 방지)
+                    const calendarDate = arg.date;
+                    const dateStr = calendarDate.getFullYear() + '-' + 
+                        String(calendarDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(calendarDate.getDate()).padStart(2, '0');
+                    const classes = [];
+                    
+                    // 해당 날짜의 이벤트 찾기
+                    for (let i = 0; i < products.length; i++) {
+                        const product = products[i];
+                        if (product.departDateTime) {
+                            // product.departDateTime을 로컬 날짜로 파싱
+                            const productDate = new Date(product.departDateTime);
+                            const productDateStr = productDate.getFullYear() + '-' + 
+                                String(productDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(productDate.getDate()).padStart(2, '0');
+                            
+                            if (productDateStr === dateStr) {
+                                // 이벤트가 있는 날짜
+                                const status = product.status;
+                                if (status === 'WAITING') {
+                                    classes.push('has-waiting');
+                                } else if (status === 'CONFIRMED') {
+                                    classes.push('has-confirmed');
+                                } else {
+                                    classes.push('has-available');
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    return classes;
                 },
 
                 // eventContent: function (arg) {
@@ -355,39 +674,39 @@
                     if (hasTimeDeal) {
                         // 기존가 취소선
                         html += `
-                                    <div class="fc-old-price" style="text-decoration:line-through;color:#999;font-size:10px;">
-                                        ${originalPrice.toLocaleString()}원
-                                    </div><br>
+                                    <div class="fc-old-price" style="text-decoration:line-through;color:#999;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">
+${originalPrice.toLocaleString()}원
+                                    </div>
                                 `;
 
                         // 할인 정보
                         if (discountType === 'PERCENT') {
                             html += `
-                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;">
+                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">
                                             🔥 ${discountValue}%↓
-                                        </div><br>
+                                        </div>
                                     `;
                         } else {
                             html += `
-                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;">
+                                        <div class="fc-discount" style="color:#d93025;font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">
                                             🔥 ${discountValue.toLocaleString()}원↓
-                                        </div><br>
+                                        </div>
                                     `;
                         }
 
                         // 최종가격
                         html += `
-                                    <div class="fc-final-price" style="font-weight:bold;font-size:13px;">
+                                    <div class="fc-final-price" style="font-weight:bold;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">
                                         ${price.toLocaleString()}원~
-                                    </div><br>
+                                    </div>
                                 `;
                     } else {
                         // 일반가
-                        html += `<div class="fc-price">${price.toLocaleString()}원~</div>`;
+                        html += `<div class="fc-price" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${price.toLocaleString()}원~</div>`;
                     }
 
                     // 잔여 좌석 수 표시
-                    html += `<div class="fc-remain-seats" style="font-size:10px;color:#666;margin-top:2px;">잔여 ${remainSeats}석</div>`;
+                    html += `<div class="fc-remain-seats" style="font-size:10px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">잔여 ${remainSeats}석</div>`;
 
                     // 상태 표시
                     if (status === 'CONFIRMED') {
