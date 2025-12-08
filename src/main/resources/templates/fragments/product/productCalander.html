@@ -348,6 +348,7 @@
                     const discountValue = arg.event.extendedProps.discountValue;
                     const status = arg.event.extendedProps.status;
                     const hasTimeDeal = arg.event.extendedProps.hasTimeDeal;
+                    const remainSeats = arg.event.extendedProps.remainSeats || 0;
 
                     let html = "";
 
@@ -384,6 +385,9 @@
                         // 일반가
                         html += `<div class="fc-price">${price.toLocaleString()}원~</div>`;
                     }
+
+                    // 잔여 좌석 수 표시
+                    html += `<div class="fc-remain-seats" style="font-size:10px;color:#666;margin-top:2px;">잔여 ${remainSeats}석</div>`;
 
                     // 상태 표시
                     if (status === 'CONFIRMED') {
@@ -422,7 +426,8 @@
                         discountType: e.discountType,
                         discountValue: e.discountValue,
                         status: e.status,
-                        hasTimeDeal: e.originalPrice != null
+                        hasTimeDeal: e.originalPrice != null,
+                        remainSeats: e.remainSeats || 0  // 잔여 좌석 수
                     }
                 }))
 
@@ -452,6 +457,11 @@
                 console.log('Selected date:', dateStr);
                 console.log('Matching products:', matchingProducts.length);
                 console.log('All products count:', filteredProducts.length);
+                
+                // 각 매칭된 상품의 잔여 좌석 수 확인
+                matchingProducts.forEach((p, idx) => {
+                    console.log(`Product ${idx + 1}: ID=${p.id}, Title=${p.title}, remainSeats=${p.remainSeats}, departDateTime=${p.departDateTime}`);
+                });
 
                 productList.innerHTML = '';
 
@@ -501,7 +511,9 @@
                         `;
 
                         const departDateOnly = p.departDateTime.split('T')[0];
-                        const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDateOnly)}`;
+                        // 선택한 항공편의 출발 시간을 전달 (같은 날짜에 여러 항공편이 있을 때 구분하기 위해)
+                        const departTime = p.departDateTime.split('T')[1]; // "08:40:00" 형식
+                        const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDateOnly)}&departTime=${encodeURIComponent(departTime || '')}`;
                         item.addEventListener('click', () => {
                             addModal(fetchTarget);
                         });

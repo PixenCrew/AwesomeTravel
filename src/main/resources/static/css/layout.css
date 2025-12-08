@@ -64,11 +64,17 @@
 }
 
 .section-header {
-    flex: 0 0 0px;
+    flex: 0 0 auto;
     position: sticky;
     top: 0;
     background: white;
     z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    min-height: 48px;
+    box-sizing: border-box;
 }
 
 .section-footer {
@@ -99,18 +105,41 @@
 .section-header .left {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    min-width: 40px;
+}
+
+.section-header .left i {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+    padding: 4px;
 }
 
 .section-header .right {
-    margin-left: auto;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    min-width: 40px;
+    justify-content: flex-end;
+}
+
+.section-header .right i {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+    padding: 4px;
 }
 
 .section-header .center {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 100px);
+    text-align: center;
 }
 
 .section-header img {
@@ -2639,8 +2668,13 @@
 }
 
 .promotion-title-text {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .promotion-body {

@@ -424,12 +424,30 @@
 
             <!-- 리뷰 목록 -->
             <div class="review-list" th:if="${product.reviews != null && !product.reviews.isEmpty()}">
-                <article class="review-item" th:each="review : ${product.reviews}">
+                <article class="review-item" th:each="review : ${product.reviews}" th:data-review-id="${review.id}">
                     <div class="review-header-row">
                         <div class="review-author" th:text="${review.writer?.name ?: '익명'}">kimchilover</div>
-                        <button type="button" class="review-report-btn" th:onclick="'openReportModal(' + ${review.id} + ')'" title="신고">
-                            <i class="fas fa-flag"></i>
-                        </button>
+                        <div class="review-actions">
+                            <!-- 본인 리뷰인 경우 수정/삭제 버튼 표시 -->
+                            <div th:if="${currentUserId != null && review.writer != null && currentUserId == review.writer.id}" class="review-owner-actions">
+                                <button type="button" class="review-edit-btn" 
+                                        th:data-review-id="${review.id}"
+                                        th:data-review-rating="${review.rating}"
+                                        th:data-review-content="${review.content}"
+                                        onclick="openEditReviewModalFromButton(this)" title="수정">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="review-delete-btn" th:onclick="'deleteReview(' + ${review.id} + ')'" title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <!-- 다른 사람 리뷰인 경우 신고 버튼만 표시 -->
+                            <button type="button" class="review-report-btn" 
+                                    th:if="${currentUserId == null || review.writer == null || currentUserId != review.writer.id}"
+                                    th:onclick="'openReportModal(' + ${review.id} + ')'" title="신고">
+                                <i class="fas fa-flag"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="review-rating">
                         <span th:each="i : ${#numbers.sequence(1, 5)}" 
@@ -574,8 +592,40 @@
         </div>
     </div>
 
+    <!-- 리뷰 수정 모달 (센터 모달) -->
+    <div id="editReviewModal" class="review-modal hidden">
+        <div class="review-modal-content">
+            <header class="review-modal-header">
+                <h2 class="review-modal-title">리뷰 수정</h2>
+                <i class="fas fa-times review-close-btn" onclick="closeEditReviewModal()"></i>
+            </header>
+
+            <div class="review-modal-body">
+                <div class="review-rating-section">
+                    <label class="review-rating-label">별점 선택</label>
+                    <div class="star-rating-selector" id="editStarRating">
+                        <span class="star-icon" th:each="i : ${#numbers.sequence(1, 5)}" 
+                              th:onclick="'setEditReviewStar(this, ' + ${i} + ')'">☆</span>
+                    </div>
+                </div>
+
+                <div class="review-content-section">
+                    <label class="review-content-label">리뷰 내용</label>
+                    <textarea id="editReviewContent" class="review-textarea" placeholder="리뷰 내용을 입력하세요." maxlength="500"></textarea>
+                    <div class="review-char-count" id="editCharCount">0 / 500</div>
+                </div>
+            </div>
+
+            <footer class="review-modal-footer">
+                <button class="review-submit-btn" onclick="submitEditReview()">수정하기</button>
+                <button class="review-cancel-btn" onclick="closeEditReviewModal()">취소</button>
+            </footer>
+        </div>
+    </div>
+
     <input type="hidden" id="departDateHidden" th:value="${departDate}">
     <input type="hidden" id="productIdHidden" th:value="${product.id}">
+    <input type="hidden" id="editingReviewId" value="">
 
     <style>
         /* 상품 상세를 볼 땐 글로벌 하단 네비게이션을 숨긴다 */
@@ -1103,6 +1153,20 @@
             color: #333;
         }
 
+        .review-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .review-owner-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .review-edit-btn,
+        .review-delete-btn,
         .review-report-btn {
             background: none;
             border: none;
@@ -1113,10 +1177,20 @@
             transition: color 0.2s;
         }
 
+        .review-edit-btn:hover {
+            color: #2196f3;
+        }
+
+        .review-delete-btn:hover {
+            color: #f44336;
+        }
+
         .review-report-btn:hover {
             color: #f44336;
         }
 
+        .review-edit-btn i,
+        .review-delete-btn i,
         .review-report-btn i {
             font-size: 14px;
         }
@@ -1859,6 +1933,178 @@
                 .catch(err => {
                     console.error(err);
                     alert(err.message || '리뷰 등록 중 오류가 발생했습니다.');
+                });
+            };
+
+            // 리뷰 수정 모달
+            let editCurrentStar = 0;
+
+            window.openEditReviewModalFromButton = function(buttonElement) {
+                const reviewId = buttonElement.dataset.reviewId;
+                const rating = parseInt(buttonElement.dataset.reviewRating);
+                const content = buttonElement.dataset.reviewContent || '';
+                openEditReviewModal(reviewId, rating, content);
+            };
+
+            window.openEditReviewModal = function(reviewId, rating, content) {
+                if (!isLoggedIn) {
+                    addModal('login');
+                    return;
+                }
+                document.getElementById('editingReviewId').value = reviewId;
+                editCurrentStar = rating;
+                
+                const modalEl = document.getElementById('editReviewModal');
+                modalEl.classList.remove('hidden');
+                modalEl.scrollTop = 0;
+                document.body.classList.add('modal-open');
+
+                // 별점 표시
+                const starIcons = document.querySelectorAll('#editStarRating .star-icon');
+                starIcons.forEach((star, i) => {
+                    if (i < rating) {
+                        star.textContent = '★';
+                        star.classList.add('filled');
+                        star.classList.remove('empty');
+                    } else {
+                        star.textContent = '☆';
+                        star.classList.remove('filled');
+                        star.classList.add('empty');
+                    }
+                });
+
+                // 내용 설정
+                const editContent = document.getElementById('editReviewContent');
+                editContent.value = content;
+                document.getElementById('editCharCount').textContent = content.length + ' / 500';
+
+                // 문자 수 카운트 이벤트
+                editContent.oninput = function() {
+                    const length = this.value.length;
+                    document.getElementById('editCharCount').textContent = length + ' / 500';
+                };
+            };
+
+            window.closeEditReviewModal = function() {
+                const modalEl = document.getElementById('editReviewModal');
+                modalEl.classList.add('hidden');
+                document.body.classList.remove('modal-open');
+                document.getElementById('editingReviewId').value = '';
+                editCurrentStar = 0;
+            };
+
+            window.setEditReviewStar = function(starElement, rating) {
+                editCurrentStar = rating;
+                const starIcons = document.querySelectorAll('#editStarRating .star-icon');
+                starIcons.forEach((star, i) => {
+                    if (i < rating) {
+                        star.textContent = '★';
+                        star.classList.add('filled');
+                        star.classList.remove('empty');
+                    } else {
+                        star.textContent = '☆';
+                        star.classList.remove('filled');
+                        star.classList.add('empty');
+                    }
+                });
+            };
+
+            window.submitEditReview = function() {
+                const content = document.getElementById('editReviewContent').value;
+                if (editCurrentStar === 0) {
+                    alert('별점을 선택해주세요.');
+                    return;
+                }
+                if (!content.trim()) {
+                    alert('리뷰 내용을 입력해주세요.');
+                    return;
+                }
+
+                const reviewId = document.getElementById('editingReviewId').value;
+                const productId = document.getElementById('productIdHidden')?.value;
+                
+                // 리뷰 수정 API 호출
+                fetch(`/api/products/comments/${reviewId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rating: editCurrentStar,
+                        content: content
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            try {
+                                const errorData = JSON.parse(text);
+                                throw new Error(errorData.message || '리뷰 수정에 실패했습니다.');
+                            } catch (e) {
+                                throw new Error(text || '리뷰 수정에 실패했습니다.');
+                            }
+                        });
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    alert('리뷰가 수정되었습니다.');
+                    closeEditReviewModal();
+
+                    const departDate = document.getElementById('departDateHidden')?.value;
+                    const detailUrl = departDate
+                        ? `/product/detail/${productId}?departDate=${encodeURIComponent(departDate)}`
+                        : `/product/detail/${productId}`;
+
+                    if (typeof addModal === 'function') {
+                        addModal(detailUrl, true);
+                    } else {
+                        window.location.href = detailUrl;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(err.message || '리뷰 수정 중 오류가 발생했습니다.');
+                });
+            };
+
+            window.deleteReview = function(reviewId) {
+                if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+                    return;
+                }
+
+                const productId = document.getElementById('productIdHidden')?.value;
+                
+                // 리뷰 삭제 API 호출
+                fetch(`/api/products/comments/${reviewId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('리뷰 삭제에 실패했습니다.');
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    alert('리뷰가 삭제되었습니다.');
+
+                    const departDate = document.getElementById('departDateHidden')?.value;
+                    const detailUrl = departDate
+                        ? `/product/detail/${productId}?departDate=${encodeURIComponent(departDate)}`
+                        : `/product/detail/${productId}`;
+
+                    if (typeof addModal === 'function') {
+                        addModal(detailUrl, true);
+                    } else {
+                        window.location.href = detailUrl;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(err.message || '리뷰 삭제 중 오류가 발생했습니다.');
                 });
             };
 

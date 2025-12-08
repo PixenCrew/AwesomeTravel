@@ -52,6 +52,8 @@ import renewal.common.entity.User.UserStatus;
 import renewal.common.repository.CountryCodeRepository;
 import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.PurchaseProductRepository;
+import renewal.common.repository.RefundRepository;
+import renewal.common.entity.Refund;
 import renewal.common.service.EmailService;
 import renewal.awesome_travel.notification.service.NotificationService;
 
@@ -73,19 +75,51 @@ public class MyPageController {
     private final MateVerificationTokenRepository mateTokenRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final RefundRepository refundRepo;
 
     @GetMapping("/reservation")
     public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
 
+        if (principal == null || principal.getUser() == null) {
+            // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+            return "fragments/login";
+        }
+
         User user = principal.getUser(); // detached 상태
-        List<PurchaseProduct> purchaseProducts = purchaseProductRepo.findByUserId(user.getId());
-        List<PurchaseAir> purchaseAirs = purchaseAirRepo.findByUserId(user.getId());
+        
+        if (user == null || user.getId() == null) {
+            // 사용자 정보가 없는 경우 로그인 페이지로 리다이렉트
+            return "fragments/login";
+        }
 
-        model.addAttribute("purchaseProducts", purchaseProducts);
-        model.addAttribute("purchaseAirs", purchaseAirs);
+        try {
+            List<PurchaseProduct> purchaseProducts = purchaseProductRepo.findByUserId(user.getId());
+            List<PurchaseAir> purchaseAirs = purchaseAirRepo.findByUserId(user.getId());
 
-        // 로그인 되어 있으면 mypage fragment 반환
-        return "fragments/purchase/purchaseList";
+            // 각 PurchaseProduct에 대한 환불 정보 조회
+            Map<Long, Refund> refundMap = new HashMap<>();
+            if (purchaseProducts != null) {
+                for (PurchaseProduct pp : purchaseProducts) {
+                    refundRepo.findByPurchaseIdAndRefundType(pp.getId(), Refund.RefundType.PRODUCT)
+                            .ifPresent(refund -> refundMap.put(pp.getId(), refund));
+                }
+            }
+
+            model.addAttribute("purchaseProducts", purchaseProducts != null ? purchaseProducts : java.util.Collections.emptyList());
+            model.addAttribute("purchaseAirs", purchaseAirs != null ? purchaseAirs : java.util.Collections.emptyList());
+            model.addAttribute("refundMap", refundMap);
+
+            // 로그인 되어 있으면 mypage fragment 반환
+            return "fragments/purchase/purchaseList";
+        } catch (Exception e) {
+            // 예외 발생 시 로그 출력 및 빈 리스트 반환
+            System.err.println("예약내역 조회 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("purchaseProducts", java.util.Collections.emptyList());
+            model.addAttribute("purchaseAirs", java.util.Collections.emptyList());
+            model.addAttribute("refundMap", new HashMap<>());
+            return "fragments/purchase/purchaseList";
+        }
     }
 
     @GetMapping("/inquiry")

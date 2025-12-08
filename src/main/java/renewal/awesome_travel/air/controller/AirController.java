@@ -156,6 +156,7 @@ public class AirController {
 
         // 구매 상태 업데이트
         purchaseAir.setPurchaseStatus(PurchaseStatus.PAID);
+        purchaseAir.setIsTransactionComplete(true);
         purchaseAirRepo.save(purchaseAir);
 
         // 결제 엔티티 생성

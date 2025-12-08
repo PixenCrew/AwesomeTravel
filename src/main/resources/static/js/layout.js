@@ -667,11 +667,15 @@ function fetchContent(endPoint, payload = null) {
 
     return fetch(endPoint, options)
         .then(res => {
-            // if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status} - ${res.statusText}`);
+            }
             return res.text();
         })
         .then(html => {
-            if (!html) throw new Error('Fetch returned empty content');
+            if (!html || html.trim().length === 0) {
+                throw new Error(`Fetch returned empty content from ${endPoint}. Please check if you are logged in and try again.`);
+            }
             
             // 로그인 페이지 HTML인지 확인 (로그인 페이지로 리다이렉트된 경우)
             if (html.includes('login-container') || html.includes('login-submit-btn') || 
