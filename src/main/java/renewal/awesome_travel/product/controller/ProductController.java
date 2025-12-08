@@ -49,6 +49,7 @@ import renewal.awesome_travel.product.service.ProductCompareService;
 import renewal.common.dto.ReservationRequestDto;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Inquiry.InquiryCategory;
+import renewal.common.entity.AirportCode;
 import renewal.common.entity.Inquiry.InquiryStatus;
 import renewal.common.entity.Location;
 import renewal.common.entity.Location.LocationType;
@@ -74,15 +75,12 @@ import renewal.common.service.EmailService;
 import renewal.common.service.PassengerServiceCommon;
 import renewal.common.service.ProductServiceCommon;
 import org.hibernate.Hibernate;
-import renewal.common.entity.AirportCode;
 import renewal.common.entity.SeatClass;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/product")
 public class ProductController {
-
-    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     private final ProductService productService;
     private final ProductServiceCommon productServiceCommon;
@@ -98,6 +96,8 @@ public class ProductController {
     private final ProductCompareService productCompareService;
     private final SeatClassRepository seatClassRepo;
     private final RefundRepository refundRepo;
+    
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @GetMapping("/search")
     public String getProductSearch(@RequestParam(required = false) String keyword, Model model) {
@@ -161,19 +161,17 @@ public class ProductController {
     @GetMapping("/{id}")
     public String getProduct(@PathVariable Long id, Model model) throws CloneNotSupportedException {
 
-        log.debug("========== getProduct 호출됨 ==========");
-        log.debug("Product ID: {}", id);
+        System.err.println("========== getProduct 호출됨 ==========");
+        System.err.println("Product ID: " + id);
         
         Product target = productRepo.findById(id).get();
-        log.debug("Product Title: {}", target.getTitle());
+        System.err.println("Product Title: " + target.getTitle());
 
         List<ProductCalanderDto> result = new ArrayList<>();
 
         // 특정 상품에 대해 6개월간 calc해서 return
         long cutoff = target.getCutoffDays() != null ? target.getCutoffDays() : 0L;
         LocalDate minDepartDate = LocalDate.now().plusDays(cutoff); // 기본 cutoff 계산
-        
-        log.debug("minDepartDate: {}, 180일치 조회 시작", minDepartDate);
         int itineraryDays = target.getTour() != null && target.getTour().getSchedules() != null
                 ? target.getTour().getSchedules().size()
                 : 1;
@@ -217,7 +215,8 @@ public class ProductController {
                 result.add(productDto);
                 calcProduct.setDepartDateTime(null); // 한 Product에 대해 출발일 필드 초기화 / 안하면 출국시간 첫 값 고정
             }
-            // 항공편이 없는 날짜는 달력에 표시하지 않음 (fallback 로직 제거)
+            
+            // 항공편이 없는 날짜는 달력에 표시하지 않음 (fallback 로직 완전 제거)
         }
 
         model.addAttribute("products", result);
@@ -342,25 +341,54 @@ public class ProductController {
         }
 
         // 선택한 항공편의 출발 시간이 전달된 경우, 해당 시간대의 항공편을 찾아서 처리
+        // 달력에서 사용자가 선택한 항공편의 정확한 정보(잔여석, 시간, 가격 등)를 표시하기 위해
         Product calcProduct = null;
         if (departTime != null && !departTime.isEmpty()) {
-            // 출발 시간이 전달된 경우, 해당 시간대의 항공편을 찾아서 calcSingleProduct 호출
+            // 출발 시간이 전달된 경우, 같은 날짜의 모든 항공편을 찾아서 정확히 일치하는 항공편 선택
             List<Product> calcProducts = findMultipleProductsForDate(productCopy, departDate, seatClassRepo);
-            for (Product p : calcProducts) {
-                if (p.getDepartDateTime() != null) {
-                    String pDepartTime = p.getDepartDateTime().toLocalTime().toString();
-                    // 시간 비교 (초 단위 제외하고 비교)
-                    if (pDepartTime.startsWith(departTime.substring(0, 5))) { // "08:40" 형식으로 비교
-                        calcProduct = p;
-                        break;
+            
+            // departTime을 LocalTime으로 파싱 (형식: "08:40:00" 또는 "08:40")
+            java.time.LocalTime targetTime = null;
+            try {
+                if (departTime.length() >= 5) {
+                    String timeStr = departTime.substring(0, 5); // "HH:mm" 형식
+                    String[] parts = timeStr.split(":");
+                    if (parts.length == 2) {
+                        targetTime = java.time.LocalTime.of(
+                            Integer.parseInt(parts[0]),
+                            Integer.parseInt(parts[1])
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse departTime: {}", departTime, e);
+            }
+            
+            // 정확히 일치하는 항공편 찾기
+            if (targetTime != null) {
+                for (Product p : calcProducts) {
+                    if (p.getDepartDateTime() != null) {
+                        java.time.LocalTime pTime = p.getDepartDateTime().toLocalTime();
+                        // 시간과 분만 비교 (초는 무시)
+                        if (pTime.getHour() == targetTime.getHour() 
+                            && pTime.getMinute() == targetTime.getMinute()) {
+                            calcProduct = p; // 선택한 항공편의 정확한 정보 사용
+                            break;
+                        }
                     }
                 }
             }
         }
         
-        // 출발 시간으로 찾지 못한 경우 기본 로직 사용
+        // 출발 시간으로 찾지 못한 경우, 같은 날짜의 모든 항공편 중 첫 번째 항공편 사용
         if (calcProduct == null) {
-            calcProduct = productServiceCommon.calcSingleProduct(productCopy, departDate);
+            List<Product> calcProducts = findMultipleProductsForDate(productCopy, departDate, seatClassRepo);
+            if (!calcProducts.isEmpty()) {
+                calcProduct = calcProducts.get(0); // 첫 번째 항공편 사용
+            } else {
+                // 항공편이 없는 경우 기본 로직 사용
+                calcProduct = productServiceCommon.calcSingleProduct(productCopy, departDate);
+            }
         }
         if (calcProduct == null) {
             calcProduct = productCopy;
