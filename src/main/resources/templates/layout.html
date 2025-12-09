@@ -57,13 +57,13 @@
                         <button type="button" class="menu-category-btn" onclick="fetchSection('/air/search')">항공</button>
                     </div>
                     <div class="menu-category">
-                        <button type="button" class="menu-category-btn">기획전</button>
+                        <button type="button" class="menu-category-btn" onclick="fetchSection('/promotion')">기획전</button>
                     </div>
                     <div class="menu-category">
                         <button type="button" class="menu-category-btn">이벤트</button>
                     </div>
                     <div class="menu-category">
-                        <button type="button" class="menu-category-btn">타임딜</button>
+                        <button type="button" class="menu-category-btn" onclick="fetchSection('/timedeal')">타임딜</button>
                     </div>
                 </div>
 
@@ -177,6 +177,7 @@
 
     <!-- 센터 모달 -->
     <section id="centerModal" class="hide">
+        <div id="centerModalBackground"></div>
         <div id="centerModalBody"></div>
     </section>
 
@@ -187,6 +188,9 @@
             <p>잠시만 기다려 주세요...</p>
         </div>
     </div>
+
+    <!-- 토스트 메시지 컨테이너 -->
+    <div id="toastContainer"></div>
 
     <script th:inline="javascript">
         // 로그인 여부 확인

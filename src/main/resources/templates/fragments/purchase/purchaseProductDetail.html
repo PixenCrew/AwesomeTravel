@@ -777,7 +777,8 @@
             };
 
             window.cancelProductReservation = async function(purchaseProductId) {
-                    if (confirm("예약을 취소하시겠습니까?")) {
+                    const confirmed = await showConfirmModal("예약을 취소하시겠습니까?");
+                    if (confirmed) {
                         const dummyload = {};
                         try {
                             const response = await fetch(`/product/purchase/${purchaseProductId}/cancel`, {
@@ -791,7 +792,7 @@
                                 throw new Error(errorText || '예약 취소 실패');
                             }
 
-                            alert('예약이 취소되었습니다.');
+                            showSuccessToast('예약이 취소되었습니다.');
                             backModal();
                         } catch (error) {
                             console.error('예약 취소 실패:', error);

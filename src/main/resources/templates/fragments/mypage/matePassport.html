@@ -364,20 +364,21 @@
                     if (!payload.id) {
                         addModal('/mypage/matePassport/complete', true);
                     } else {
-                    alert("여행메이트 정보가 저장되었습니다.");
+                        showSuccessToast("여행메이트 정보가 저장되었습니다.");
                         backModal();
                     }
 
                 } catch (err) {
                     console.error(err);
-                    alert("네트워크 오류가 발생했습니다.");
+                    showErrorToast("네트워크 오류가 발생했습니다.");
                 } finally {
                     isSubmitting = false;
                 }
             };
 
             window.deleteMatePassport = async function (id) {
-                if (!confirm("정말 삭제하시겠습니까?")) return;
+                const confirmed = await showConfirmModal("정말 삭제하시겠습니까?");
+                if (!confirmed) return;
 
                 try {
                     const response = await fetch(`/mypage/matePassport/${id}/delete`, {
@@ -388,16 +389,16 @@
                     const result = await response.json();
 
                     if (!response.ok || !result.success) {
-                        alert(result.message || "오류가 발생했습니다.");
+                        showErrorToast(result.message || "오류가 발생했습니다.");
                         return;
                     }
 
-                    alert("여행메이트 정보가 삭제되었습니다.");
+                    showSuccessToast("여행메이트 정보가 삭제되었습니다.");
                     backModal();
 
                 } catch (err) {
                     console.error(err);
-                    alert("네트워크 오류가 발생했습니다.");
+                    showErrorToast("네트워크 오류가 발생했습니다.");
                 }
             };
         })();
