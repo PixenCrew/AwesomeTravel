@@ -149,6 +149,31 @@ public class MainController {
         return "layout";
     }
 
+    @GetMapping("wish")
+    public String wish(Principal principal, Model model) {
+        // ============로그인 한 경우=================
+        if (principal != null) {
+            User user = userRepo.findByEmail(principal.getName()).get();
+            Hibernate.initialize(user.getRecentProducts());
+            Hibernate.initialize(user.getLikedProducts());
+
+            List<Product> actualRecentProducts = productService.convertToProducts(user.getRecentProducts());
+            List<Product> actualLikedProducts = productService.convertToProducts(user.getLikedProducts());
+
+            // 로그인 상태 → User의 element collections 사용
+            model.addAttribute("currentUser", user);
+            model.addAttribute("recentProducts", actualRecentProducts);
+            model.addAttribute("likedProducts", actualLikedProducts);
+        } else {
+            // 비로그인 상태
+            model.addAttribute("currentUser", null);
+            model.addAttribute("recentProducts", Collections.emptyList());
+            model.addAttribute("likedProducts", Collections.emptyList());
+        }
+
+        return "fragments/wish";
+    }
+
     @GetMapping("login")
     public String loginPage(Authentication authentication) throws InterruptedException {
         Thread.sleep(200);

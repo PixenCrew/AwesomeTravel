@@ -1213,7 +1213,8 @@
             }
 
             window.proceedPay = async function (purchaseBaseId) {
-                if (confirm('[TEST] 테스트 결제 진행')) {
+                const confirmed = await showConfirmModal('[TEST] 테스트 결제 진행');
+                if (confirmed) {
                     const loadingEl = document.getElementById('loading');
                     if (loadingEl) loadingEl.style.display = 'flex';
 

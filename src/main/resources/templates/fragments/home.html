@@ -442,7 +442,6 @@
                             <input type="checkbox" th:id="'popupCheck_' + ${popup.id}" class="popup-checkbox" />
                             <span>하루동안 보지않기</span>
                         </label>
-                        <button class="popup-close-button" th:data-popup-id="${popup.id}" onclick="closePopupWithCheckboxFromButton(this)">닫기</button>
                     </div>
                 </div>
             </div>
@@ -597,21 +596,6 @@
             cursor: pointer;
         }
 
-        .popup-close-button {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 6px;
-            background: #333;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .popup-close-button:hover {
-            background: #555;
-        }
 
         .popup-indicator {
             display: flex;
@@ -751,15 +735,26 @@
             // 팝업 표시
             function showPopup() {
                 filterVisiblePopups();
-
+                
                 if (visiblePopups.length === 0) {
                     return;
                 }
-
+                
                 const popupModal = document.getElementById('popupModal');
                 if (popupModal) {
                     popupModal.style.display = 'flex';
                     showPopupSlide(0);
+                    
+                    // 뒤 화면 스크롤 막기
+                    if (document && document.body) {
+                        document.body.style.overflow = 'hidden';
+                    }
+                    
+                    // 메인 섹션 스크롤도 막기
+                    const mainSection = document.getElementById('mainSection');
+                    if (mainSection) {
+                        mainSection.style.overflow = 'hidden';
+                    }
                 }
             }
 
@@ -768,6 +763,17 @@
                 const popupModal = document.getElementById('popupModal');
                 if (popupModal) {
                     popupModal.style.display = 'none';
+                    
+                    // 뒤 화면 스크롤 복구
+                    if (document && document.body) {
+                        document.body.style.overflow = '';
+                    }
+                    
+                    // 메인 섹션 스크롤도 복구
+                    const mainSection = document.getElementById('mainSection');
+                    if (mainSection) {
+                        mainSection.style.overflow = '';
+                    }
                 }
             };
 

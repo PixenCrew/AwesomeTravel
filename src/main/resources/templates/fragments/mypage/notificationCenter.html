@@ -235,8 +235,9 @@
             });
         }
 
-        function markAllAsRead() {
-            if (confirm('모든 알림을 읽음 처리하시겠습니까?')) {
+        async function markAllAsRead() {
+            const confirmed = await showConfirmModal('모든 알림을 읽음 처리하시겠습니까?');
+            if (confirmed) {
                 fetch('/api/notifications/read?userId=' + /*[[${currentUser.id}]]*/ 0, {
                     method: 'PATCH',
                     headers: {

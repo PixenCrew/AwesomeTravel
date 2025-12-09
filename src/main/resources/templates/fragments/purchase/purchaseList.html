@@ -397,7 +397,8 @@
             }
 
             window.cancelProductReservation = async function(id) {
-                if (confirm('예약을 취소하시겠습니까?')) {
+                const confirmed = await showConfirmModal('예약을 취소하시겠습니까?');
+                if (confirmed) {
                     try {
                         const response = await fetch(`/product/purchase/${id}/cancel`, {
                             method: 'POST',
@@ -408,7 +409,7 @@
                         const data = await response.json();
                         
                         if (response.ok) {
-                            alert(data.message || '예약이 취소되었습니다.');
+                            showSuccessToast(data.message || '예약이 취소되었습니다.');
                             location.reload();
                         } else {
                             // 서버에서 반환한 상세 메시지 표시

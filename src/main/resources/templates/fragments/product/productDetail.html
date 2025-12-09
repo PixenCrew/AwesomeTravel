@@ -1916,7 +1916,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert('리뷰가 등록되었습니다.');
+                    showSuccessToast('리뷰가 등록되었습니다.');
                     closeReviewModal();
 
                     const departDate = document.getElementById('departDateHidden')?.value;
@@ -2048,7 +2048,7 @@
                     return response.text();
                 })
                 .then(() => {
-                    alert('리뷰가 수정되었습니다.');
+                    showSuccessToast('리뷰가 수정되었습니다.');
                     closeEditReviewModal();
 
                     const departDate = document.getElementById('departDateHidden')?.value;
@@ -2068,8 +2068,9 @@
                 });
             };
 
-            window.deleteReview = function(reviewId) {
-                if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+            window.deleteReview = async function(reviewId) {
+                const confirmed = await showConfirmModal('정말로 이 리뷰를 삭제하시겠습니까?');
+                if (!confirmed) {
                     return;
                 }
 
@@ -2089,7 +2090,7 @@
                     return response.text();
                 })
                 .then(() => {
-                    alert('리뷰가 삭제되었습니다.');
+                    showSuccessToast('리뷰가 삭제되었습니다.');
 
                     const departDate = document.getElementById('departDateHidden')?.value;
                     const detailUrl = departDate

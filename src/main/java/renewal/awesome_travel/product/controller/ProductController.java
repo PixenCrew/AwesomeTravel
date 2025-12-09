@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -562,6 +563,76 @@ public class ProductController {
         userRepo.saveAndFlush(user); // 즉시 DB에 반영
 
         return Map.of("wished", !wasWished);
+    }
+
+    // 최근 본 상품 단일 삭제
+    @DeleteMapping("/wish/recent/{productId}")
+    @ResponseBody
+    @Transactional
+    public Map<String, Boolean> removeRecentProduct(
+            @PathVariable Long productId,
+            Principal principal) {
+        
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        user = userRepo.findById(user.getId()).orElseThrow();
+        
+        List<RecentViewedItem> currentList = new ArrayList<>(user.getRecentProducts());
+        boolean removed = currentList.removeIf(item -> item.getProductId().equals(productId));
+        
+        user.setRecentProducts(currentList);
+        userRepo.saveAndFlush(user);
+        
+        return Map.of("success", removed);
+    }
+    
+    // 찜한 상품 단일 삭제
+    @DeleteMapping("/wish/liked/{productId}")
+    @ResponseBody
+    @Transactional
+    public Map<String, Boolean> removeLikedProduct(
+            @PathVariable Long productId,
+            Principal principal) {
+        
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        user = userRepo.findById(user.getId()).orElseThrow();
+        
+        List<RecentViewedItem> currentList = new ArrayList<>(user.getLikedProducts());
+        boolean removed = currentList.removeIf(item -> item.getProductId().equals(productId));
+        
+        user.setLikedProducts(currentList);
+        userRepo.saveAndFlush(user);
+        
+        return Map.of("success", removed);
+    }
+    
+    // 최근 본 상품 전체 삭제
+    @DeleteMapping("/wish/recent/all")
+    @ResponseBody
+    @Transactional
+    public Map<String, Boolean> clearRecentProducts(Principal principal) {
+        
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        user = userRepo.findById(user.getId()).orElseThrow();
+        
+        user.setRecentProducts(new ArrayList<>());
+        userRepo.saveAndFlush(user);
+        
+        return Map.of("success", true);
+    }
+    
+    // 찜한 상품 전체 삭제
+    @DeleteMapping("/wish/liked/all")
+    @ResponseBody
+    @Transactional
+    public Map<String, Boolean> clearLikedProducts(Principal principal) {
+        
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow();
+        user = userRepo.findById(user.getId()).orElseThrow();
+        
+        user.setLikedProducts(new ArrayList<>());
+        userRepo.saveAndFlush(user);
+        
+        return Map.of("success", true);
     }
 
     @PostMapping("/reservation/save")

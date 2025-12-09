@@ -257,7 +257,7 @@
                         throw new Error(errorText || '문의 등록 실패');
                     }
 
-                    alert('문의가 등록되었습니다.');
+                    showSuccessToast('문의가 등록되었습니다.');
                     closeInquiryForm();
                 } catch (error) {
                     console.error('문의 등록 실패:', error);

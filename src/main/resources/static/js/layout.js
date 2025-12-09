@@ -150,6 +150,11 @@ function showSection(sectionIndex, push = true) {
     }, 200);
 
     currentSection = sectionIndex;
+    
+    // 찜목록 섹션 활성화 시 최신 데이터 새로고침
+    if (sectionIndex === 4) {
+        refreshWishSection();
+    }
 }
 
 // 푸터 네비게이션 활성화 상태 업데이트
@@ -364,6 +369,34 @@ function prevSection() {
     }
 }
 
+// 찜목록 섹션 새로고침
+async function refreshWishSection() {
+    try {
+        const response = await fetch('/wish', {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+        
+        if (response.ok) {
+            const html = await response.text();
+            const wishSection = document.getElementById('wishSection');
+            if (wishSection) {
+                // wishSection 내부의 div 교체
+                const innerDiv = wishSection.querySelector('div');
+                if (innerDiv) {
+                    innerDiv.outerHTML = html;
+                    executeScripts(wishSection);
+                } else {
+                    // fallback: 전체 교체
+                    wishSection.innerHTML = html;
+                    executeScripts(wishSection);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('찜목록 새로고침 실패:', error);
+    }
+}
+
 // 로그인시 찜, 마이페이지 다시 fetch
 async function refreshSectionsAfterLogin() {
     console.log("refreshSectionsAfterLogin1");
@@ -470,6 +503,11 @@ function openModal(endPoint, payload = null) {
     if (document && document.body) {
         document.body.style.overflow = 'hidden';
     }
+    // 메인 섹션 스크롤도 막기
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection) {
+        mainSection.style.overflow = 'hidden';
+    }
 
     // 새 모달 DOM 생성
     const newModal = document.createElement('div');
@@ -497,6 +535,11 @@ function openModalHtml(htmlString) {
     // 모달이 열릴 때 배경 스크롤 막기
     if (document && document.body) {
         document.body.style.overflow = 'hidden';
+    }
+    // 메인 섹션 스크롤도 막기
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection) {
+        mainSection.style.overflow = 'hidden';
     }
 
     const newModal = document.createElement('div');
@@ -570,6 +613,258 @@ function addModal(endPoint, flush = false, payload = null) {
 // 전역 스코프에 노출
 window.addModal = addModal;
 
+// ===========================센터 모달 제어========================
+const centerModal = document.getElementById('centerModal');
+const centerModalBody = document.getElementById('centerModalBody');
+const centerModalBackground = document.getElementById('centerModalBackground');
+
+// 커스텀 확인 모달 (모바일 친화적)
+function showConfirmModal(message, onConfirm, onCancel = null) {
+    return new Promise((resolve) => {
+        const html = `
+            <div class="confirm-modal-content">
+                <div class="confirm-modal-message">${message}</div>
+                <div class="confirm-modal-buttons">
+                    <button type="button" class="confirm-btn-cancel">취소</button>
+                    <button type="button" class="confirm-btn-ok">확인</button>
+                </div>
+            </div>
+        `;
+        
+        // 결과 처리 함수 (먼저 정의)
+        let isResolved = false;
+        const closeConfirmModal = function(result) {
+            if (isResolved) return; // 중복 호출 방지
+            isResolved = true;
+            
+            // 먼저 resolve를 호출하여 Promise가 완료되도록 함
+            if (result) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+            
+            // 그 다음 모달 닫기
+            centerModal.classList.remove('show');
+            centerModal.classList.add('hide');
+            
+            if (centerModalBackground) {
+                centerModalBackground.style.opacity = '0';
+                centerModalBackground.style.pointerEvents = 'none';
+                
+                // 이벤트 리스너 제거
+                if (centerModalBackground._backgroundClickHandler) {
+                    centerModalBackground.removeEventListener('click', centerModalBackground._backgroundClickHandler, true);
+                    centerModalBackground.removeEventListener('touchstart', centerModalBackground._backgroundClickHandler, true);
+                    centerModalBackground.removeEventListener('mousedown', centerModalBackground._backgroundClickHandler, true);
+                    delete centerModalBackground._backgroundClickHandler;
+                }
+            }
+            
+            // 배경 스크롤 복구
+            if (document && document.body) {
+                document.body.style.overflow = '';
+            }
+            
+            // 메인 섹션 스크롤도 복구
+            const mainSection = document.getElementById('mainSection');
+            if (mainSection) {
+                mainSection.style.overflow = '';
+                mainSection.style.pointerEvents = '';
+            }
+            
+            // 뒤 화면의 모든 클릭 가능한 요소들 다시 활성화
+            const footer = document.getElementById('footerSection');
+            if (footer) {
+                footer.style.pointerEvents = '';
+            }
+            
+            // 메인 섹션을 다시 활성화하면 내부 모든 요소가 자동으로 활성화됨
+            if (mainSection) {
+                mainSection.style.pointerEvents = '';
+            }
+            
+            // fullModal 내부의 스크롤 가능한 요소들 복구
+            const fullModal = document.getElementById('fullModal');
+            if (fullModal) {
+                const modalBody = document.getElementById('modalBody');
+                if (modalBody) {
+                    // modalBody 자체 복구
+                    if (modalBody.dataset.originalOverflow !== undefined) {
+                        modalBody.style.overflow = modalBody.dataset.originalOverflow || '';
+                        modalBody.style.pointerEvents = '';
+                        delete modalBody.dataset.originalOverflow;
+                    }
+                    
+                    // 모든 스크롤 가능한 요소들 복구
+                    const allElements = modalBody.querySelectorAll('[data-original-overflow]');
+                    allElements.forEach(el => {
+                        const originalOverflow = el.dataset.originalOverflow;
+                        el.style.overflow = originalOverflow || '';
+                        delete el.dataset.originalOverflow;
+                    });
+                    
+                    // pointer-events가 none으로 설정된 모든 요소들 복구
+                    const disabledElements = modalBody.querySelectorAll('[style*="pointer-events: none"]');
+                    disabledElements.forEach(el => {
+                        // centerModal 내부 요소는 제외
+                        if (!centerModal.contains(el) && !centerModalBody.contains(el)) {
+                            el.style.pointerEvents = '';
+                        }
+                    });
+                }
+            }
+            
+            setTimeout(() => {
+                centerModalBody.innerHTML = '';
+            }, 300);
+        };
+        
+        // HTML 삽입
+        centerModalBody.innerHTML = html;
+        
+        // 배경 스크롤 막기
+        if (document && document.body) {
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 메인 섹션 스크롤도 막기
+        const mainSection = document.getElementById('mainSection');
+        if (mainSection) {
+            mainSection.style.overflow = 'hidden';
+        }
+        
+        // 모달 표시
+        centerModal.classList.remove('hide');
+        centerModal.classList.add('show');
+        
+        // 뒤 화면의 모든 클릭 가능한 요소들 비활성화
+        const disableBackgroundElements = () => {
+            // 하단 네비게이션 바
+            const footer = document.getElementById('footerSection');
+            if (footer) {
+                footer.style.pointerEvents = 'none';
+            }
+            
+            // 메인 섹션의 모든 클릭 가능한 요소들 (메인 섹션 전체를 비활성화하면 내부 모든 요소가 자동으로 비활성화됨)
+            const mainSection = document.getElementById('mainSection');
+            if (mainSection) {
+                mainSection.style.pointerEvents = 'none';
+            }
+            
+            // fullModal이 열려있는 경우 (상품상세 등이 모달 안에 있는 경우)
+            const fullModal = document.getElementById('fullModal');
+            if (fullModal && !fullModal.classList.contains('hide')) {
+                // fullModal 내부의 모든 클릭 가능한 요소들 비활성화 (centerModal 내부는 제외)
+                const modalBody = document.getElementById('modalBody');
+                if (modalBody) {
+                    // modalBody 자체 스크롤 막기 (먼저 처리)
+                    const originalModalBodyOverflow = modalBody.style.overflow;
+                    if (!modalBody.dataset.originalOverflow) {
+                        modalBody.dataset.originalOverflow = originalModalBodyOverflow || '';
+                    }
+                    modalBody.style.overflow = 'hidden';
+                    modalBody.style.pointerEvents = 'none';
+                    
+                    // modalBody 내부의 모든 스크롤 가능한 요소들 찾아서 막기
+                    const scrollableSelectors = [
+                        '.modal-slide',
+                        '.section-body',
+                        '[style*="overflow"]',
+                        '[class*="scroll"]',
+                        'div[style*="overflow-y"]',
+                        'div[style*="overflow-x"]'
+                    ];
+                    
+                    scrollableSelectors.forEach(selector => {
+                        try {
+                            const elements = modalBody.querySelectorAll(selector);
+                            elements.forEach(el => {
+                                // centerModal 내부 요소는 제외
+                                if (!centerModal.contains(el) && !centerModalBody.contains(el)) {
+                                    const computedStyle = window.getComputedStyle(el);
+                                    const originalOverflow = el.style.overflow || computedStyle.overflow;
+                                    if (!el.dataset.originalOverflow) {
+                                        el.dataset.originalOverflow = originalOverflow || '';
+                                    }
+                                    el.style.overflow = 'hidden';
+                                }
+                            });
+                        } catch (e) {
+                            // selector 오류 무시
+                        }
+                    });
+                    
+                    // 모든 클릭 가능한 요소들 비활성화
+                    const clickableElements = modalBody.querySelectorAll('button, a, input, select, textarea, [onclick], [role="button"]');
+                    clickableElements.forEach(el => {
+                        // centerModal 내부 요소는 제외
+                        if (!centerModal.contains(el) && !centerModalBody.contains(el)) {
+                            el.style.pointerEvents = 'none';
+                        }
+                    });
+                }
+            }
+        };
+        disableBackgroundElements();
+        
+        if (centerModalBackground) {
+            centerModalBackground.style.opacity = '1';
+            // 배경을 클릭 가능하게 설정하여 뒤 화면 클릭을 막기 (모달은 닫지 않음)
+            centerModalBackground.style.pointerEvents = 'auto';
+            
+            // 배경 클릭 시 이벤트만 막고 모달은 닫지 않음
+            const backgroundClickHandler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            };
+            centerModalBackground.addEventListener('click', backgroundClickHandler, true);
+            centerModalBackground.addEventListener('touchstart', backgroundClickHandler, true);
+            centerModalBackground.addEventListener('mousedown', backgroundClickHandler, true);
+            
+            // 모달 닫을 때 이벤트 리스너 제거를 위해 저장
+            centerModalBackground._backgroundClickHandler = backgroundClickHandler;
+        }
+        
+        // 버튼 직접 찾아서 이벤트 바인딩
+        setTimeout(() => {
+            const cancelBtn = centerModalBody.querySelector('.confirm-btn-cancel');
+            const okBtn = centerModalBody.querySelector('.confirm-btn-ok');
+            
+            if (cancelBtn) {
+                const cancelHandler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    if (cancelBtn) {
+                        cancelBtn.removeEventListener('click', cancelHandler);
+                    }
+                    closeConfirmModal(false);
+                };
+                cancelBtn.addEventListener('click', cancelHandler);
+            }
+            
+            if (okBtn) {
+                const okHandler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    if (okBtn) {
+                        okBtn.removeEventListener('click', okHandler);
+                    }
+                    closeConfirmModal(true);
+                };
+                okBtn.addEventListener('click', okHandler);
+            }
+        }, 10);
+        
+        // 배경 클릭 시 모달 닫기 기능 제거 - 취소 버튼을 눌렀을 때만 닫힘
+    });
+}
+
+// 전역 스코프에 노출
+window.showConfirmModal = showConfirmModal;
 
 // 뒤로가기
 function backModal() {
@@ -602,6 +897,11 @@ function closeModal() {
     if (document && document.body) {
         document.body.style.overflow = '';
     }
+    // 메인 섹션 스크롤도 다시 허용
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection) {
+        mainSection.style.overflow = '';
+    }
     // 하단 네비게이션 바 다시 보이기 (모달이 모두 닫혔을 때)
     const footer = document.getElementById('footerSection');
     if (footer) footer.classList.remove('hidden');
@@ -622,6 +922,16 @@ function openHalfModal(containerId) {
     content.innerHTML = '';
 
     modal.classList.remove('hide');
+    
+    // 배경 스크롤 막기
+    if (document && document.body) {
+        document.body.style.overflow = 'hidden';
+    }
+    // 메인 섹션 스크롤도 막기
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection) {
+        mainSection.style.overflow = 'hidden';
+    }
 }
 
 // 하프모달 닫기
@@ -633,6 +943,17 @@ function closeHalfModal(containerId) {
     const modal = document.getElementById('halfModal');
 
     modal.classList.add('hide');
+    
+    // 배경 스크롤 복구
+    if (document && document.body) {
+        document.body.style.overflow = '';
+    }
+    // 메인 섹션 스크롤도 복구
+    const mainSection = document.getElementById('mainSection');
+    if (mainSection) {
+        mainSection.style.overflow = '';
+    }
+    
     setTimeout(() => {
         content.innerHTML = modalSection.innerHTML;
         modalSection.innerHTML = '';
@@ -853,9 +1174,17 @@ function removeRecent(keyword) {
 /* -------------------------------
    전체 삭제
 -------------------------------- */
-function clearAllRecent() {
-    localStorage.removeItem('recentSearches');
-    loadRecentSearches();
+async function clearAllRecent() {
+    const data = JSON.parse(localStorage.getItem('recentSearches') || "[]");
+    if (data.length === 0) {
+        return; // 저장된 검색어가 없으면 아무 동작 안 함
+    }
+    
+    const confirmed = await showConfirmModal('저장된 검색어를 모두 삭제하시겠습니까?');
+    if (confirmed) {
+        localStorage.removeItem('recentSearches');
+        loadRecentSearches();
+    }
 }
 
 /* -------------------------------
@@ -905,7 +1234,21 @@ function toggleAutoSave() {
    자동저장 버튼 텍스트 반영
 --------------------------------------- */
 function updateAutoSaveText() {
-    const el = document.querySelector('.options span:last-child');
+    // 마지막 option-link 클래스를 가진 span 선택 (자동저장 버튼)
+    const el = document.querySelector('.options .option-link:last-child');
+    
+    if (!el) {
+        // fallback: 마지막 span 선택
+        const fallbackEl = document.querySelector('.options span:last-child');
+        if (!fallbackEl) return; // 요소를 찾지 못하면 종료
+        const status = localStorage.getItem('searchAutoSave') || "on";
+        if (status === "on") {
+            fallbackEl.textContent = "자동저장 끄기";
+        } else {
+            fallbackEl.textContent = "자동저장 켜기";
+        }
+        return;
+    }
 
     const status = localStorage.getItem('searchAutoSave') || "on";
 
@@ -921,4 +1264,69 @@ function clearSearchInput() {
 
     input.value = "";
     input.focus();
+}
+
+// ===========================토스트 메시지========================
+/**
+ * 토스트 메시지 표시
+ * @param {string} message - 표시할 메시지
+ * @param {string} type - 메시지 타입: 'success', 'error', 'info' (기본값: 'success')
+ * @param {number} duration - 표시 시간(ms) (기본값: 3000)
+ */
+function showToast(message, type = 'success', duration = 3000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        console.error('toastContainer not found');
+        return;
+    }
+
+    // 토스트 요소 생성
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    // 아이콘 설정
+    let icon = '';
+    if (type === 'success') {
+        icon = '<i class="fas fa-check-circle"></i>';
+    } else if (type === 'error') {
+        icon = '<i class="fas fa-exclamation-circle"></i>';
+    } else {
+        icon = '<i class="fas fa-info-circle"></i>';
+    }
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-message">${message}</div>
+    `;
+    
+    // 컨테이너에 추가
+    container.appendChild(toast);
+    
+    // 애니메이션을 위해 약간의 지연 후 show 클래스 추가
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // 자동 제거
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300); // 애니메이션 시간과 동일
+    }, duration);
+}
+
+// 편의 함수들
+function showSuccessToast(message, duration = 3000) {
+    showToast(message, 'success', duration);
+}
+
+function showErrorToast(message, duration = 3000) {
+    showToast(message, 'error', duration);
+}
+
+function showInfoToast(message, duration = 3000) {
+    showToast(message, 'info', duration);
 }
