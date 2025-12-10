@@ -56,6 +56,11 @@ import renewal.common.repository.RefundRepository;
 import renewal.common.entity.Refund;
 import renewal.common.service.EmailService;
 import renewal.awesome_travel.notification.service.NotificationService;
+import renewal.awesome_travel.review.service.ReviewService;
+import renewal.awesome_travel.review.dto.response.ReviewResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Controller
 @RequiredArgsConstructor
@@ -76,6 +81,7 @@ public class MyPageController {
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final RefundRepository refundRepo;
+    private final ReviewService reviewService;
 
     @GetMapping("/reservation")
     public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
@@ -636,7 +642,8 @@ public class MyPageController {
     }
 
     @PostMapping("/withdrawal")
-    public ResponseEntity<?> withdrawalUser(@RequestBody Map<String, String> payload, Principal principal) {
+    @Transactional
+    public ResponseEntity<?> withdrawalUser(@RequestBody Map<String, String> payload, Principal principal, HttpSession session) {
 
         if (principal == null) {
             return ResponseEntity
@@ -652,6 +659,11 @@ public class MyPageController {
         if (user.getProvider() != UserProvider.LOCAL) {
             user.setStatus(UserStatus.WITHDRAWN);
             userRepo.save(user);
+            
+            // 세션 무효화
+            if (session != null) {
+                session.invalidate();
+            }
 
             return ResponseEntity.ok(Map.of("success", true));
         }
@@ -676,6 +688,11 @@ public class MyPageController {
             // 최종 탈퇴처리
             user.setStatus(UserStatus.WITHDRAWN);
             userRepo.save(user);
+            
+            // 세션 무효화
+            if (session != null) {
+                session.invalidate();
+            }
         }
 
         return ResponseEntity.ok(Map.of("success", true));
@@ -707,5 +724,33 @@ public class MyPageController {
         model.addAttribute("totalPrice5Years", stats.getTotalPrice5Years());
 
         return "fragments/mypage/grade";
+    }
+
+    // 내가 쓴 리뷰 목록
+    @GetMapping("/reviews")
+    public String mypageReviewsFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
+        if (principal == null || principal.getUser() == null) {
+            return "fragments/login";
+        }
+
+        User user = principal.getUser();
+        
+        if (user == null || user.getId() == null) {
+            return "fragments/login";
+        }
+
+        try {
+            // 내가 쓴 리뷰 목록 조회 (최대 50개)
+            Pageable pageable = PageRequest.of(0, 50);
+            Page<ReviewResponseDto> reviews = reviewService.getMyComments(user, pageable);
+            
+            model.addAttribute("reviews", reviews.getContent());
+            model.addAttribute("totalCount", reviews.getTotalElements());
+        } catch (Exception e) {
+            model.addAttribute("reviews", java.util.Collections.emptyList());
+            model.addAttribute("totalCount", 0);
+        }
+
+        return "fragments/mypage/myReviews";
     }
 }

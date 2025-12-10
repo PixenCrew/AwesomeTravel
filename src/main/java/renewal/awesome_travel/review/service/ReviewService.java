@@ -100,12 +100,20 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<ReviewResponseDto> getMyComments(User user, Pageable pageable) {
         return commentRepository.findByWriterId(user.getId(), pageable)
-                .map(this::toResponseDto);
+                .map(review -> {
+                    // Product 정보 초기화
+                    if (review.getProduct() != null) {
+                        org.hibernate.Hibernate.initialize(review.getProduct());
+                    }
+                    return toResponseDto(review);
+                });
     }
 
     private ReviewResponseDto toResponseDto(Review comment) {
         return ReviewResponseDto.builder()
                 .id(comment.getId())
+                .productId(comment.getProduct() != null ? comment.getProduct().getId() : null)
+                .productTitle(comment.getProduct() != null ? comment.getProduct().getTitle() : null)
                 .writerName(comment.getWriter().getName())
                 .content(comment.getContent())
                 .rating(comment.getRating())
