@@ -165,40 +165,68 @@
 
         // 날짜를 "N일 전" 형식으로 변환
         function formatDateAgo(dateString) {
-            const now = new Date();
-            const date = new Date(dateString);
-            const diffTime = Math.abs(now - date);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (!dateString) return '';
             
-            if (diffDays === 0) {
-                const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-                if (diffHours === 0) {
-                    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-                    return diffMinutes === 0 ? '방금 전' : diffMinutes + '분 전';
+            // "yyyy-MM-dd HH:mm:ss" 형식을 파싱 (로컬 타임존으로 해석)
+            const parts = dateString.split(' ');
+            const dateParts = parts[0].split('-');
+            const timeParts = parts[1] ? parts[1].split(':') : ['0', '0', '0'];
+            
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]) - 1; // JavaScript month는 0부터 시작
+            const day = parseInt(dateParts[2]);
+            const hour = parseInt(timeParts[0]);
+            const minute = parseInt(timeParts[1]);
+            const second = parseInt(timeParts[2] || '0');
+            
+            const date = new Date(year, month, day, hour, minute, second);
+            const now = new Date();
+            const diff = now - date;
+            
+            // 음수 차이는 미래 날짜이므로 "방금 전"으로 표시
+            if (diff < 0) {
+                return '방금 전';
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                if (hours === 0) {
+                    const minutes = Math.floor(diff / (1000 * 60));
+                    return minutes <= 0 ? '방금 전' : minutes + '분 전';
                 }
-                return diffHours + '시간 전';
-            } else if (diffDays < 7) {
-                return diffDays + '일 전';
-            } else if (diffDays < 30) {
-                const weeks = Math.floor(diffDays / 7);
+                return hours + '시간 전';
+            } else if (days < 7) {
+                return days + '일 전';
+            } else if (days < 30) {
+                const weeks = Math.floor(days / 7);
                 return weeks + '주 전';
-            } else if (diffDays < 365) {
-                const months = Math.floor(diffDays / 30);
+            } else if (days < 365) {
+                const months = Math.floor(days / 30);
                 return months + '개월 전';
             } else {
-                const years = Math.floor(diffDays / 365);
+                const years = Math.floor(days / 365);
                 return years + '년 전';
             }
         }
 
-        // 페이지 로드 시 날짜 변환
-        document.addEventListener('DOMContentLoaded', function() {
+        // 날짜 변환 함수 (즉시 실행 및 DOMContentLoaded 모두 지원)
+        function updateInquiryDates() {
             document.querySelectorAll('.inquiry-item-date[data-date]').forEach(function(el) {
                 const dateString = el.getAttribute('data-date');
                 if (dateString) {
                     el.textContent = formatDateAgo(dateString);
                 }
             });
-        });
+        }
+
+        // 페이지 로드 시 날짜 변환
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateInquiryDates);
+        } else {
+            // 이미 로드된 경우 즉시 실행
+            updateInquiryDates();
+        }
     </script>
 </div>
