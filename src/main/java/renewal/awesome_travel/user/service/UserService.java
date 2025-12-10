@@ -221,6 +221,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         user.setStatus(UserStatus.WITHDRAWN);
+        userRepository.save(user); // 명시적으로 저장
     }
 
     // 최근 본 상품 Top N
@@ -232,6 +233,23 @@ public class UserService {
     // 찜한 상품
     public List<UserLikedProduct> getLikedProducts(User user) {
         return userLikedProductRepo.findByUserAndActiveTrueOrderByLikedAtDesc(user);
+    }
+
+    // 찜한 상품 개수 (ElementCollection 사용)
+    @Transactional(readOnly = true)
+    public int getLikedProductsCount(Long userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+            // ElementCollection 초기화
+            org.hibernate.Hibernate.initialize(user.getLikedProducts());
+            int count = user.getLikedProducts() != null ? user.getLikedProducts().size() : 0;
+            log.debug("getLikedProductsCount for userId {}: {}", userId, count);
+            return count;
+        } catch (Exception e) {
+            log.error("Error getting liked products count for userId {}", userId, e);
+            return 0;
+        }
     }
 
     // 사용 가능한 쿠폰

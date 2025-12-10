@@ -28,9 +28,9 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("likedProductsCount")
     public Integer likedProductsCount(@AuthenticationPrincipal CustomUserDetails principal) {
-        if (principal != null) {
-            User user = principal.getUser();
-            return userService.getLikedProducts(user).size();
+        if (principal != null && principal.getUser() != null && principal.getUser().getId() != null) {
+            // UserService를 통해 세션 내에서 초기화하여 조회
+            return userService.getLikedProductsCount(principal.getUser().getId());
         }
         return 0;
     }
