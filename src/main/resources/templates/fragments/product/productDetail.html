@@ -130,7 +130,7 @@
 
 
                 <div class="product-status">
-                    <span th:text="'상태: ' + ${product.productStatus}"></span><br />
+                    <span th:text="'상태: ' + ${product.productStatus == T(renewal.common.entity.Product.ProductStatus).AVAILABLE ? '예약가능' : (product.productStatus == T(renewal.common.entity.Product.ProductStatus).CONFIRMED ? '출발확정' : (product.productStatus == T(renewal.common.entity.Product.ProductStatus).WAITING ? '예약대기' : '예약마감'))}"></span><br />
                     <span th:text="'남은 좌석: ' + ${product.availableSeats}"></span>
                 </div>
         </section>
