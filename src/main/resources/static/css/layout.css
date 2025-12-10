@@ -1086,6 +1086,33 @@
     padding: 4px;
 }
 
+/* 알림 아이콘 래퍼 (배지 포함) */
+.notification-icon-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* 알림 배지 */
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #f44336;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1;
+}
+
 .mypage-body {
     padding: 24px 16px;
     padding-bottom: 100px;

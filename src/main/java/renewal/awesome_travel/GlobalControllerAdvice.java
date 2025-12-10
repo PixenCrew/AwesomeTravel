@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.config.security.CustomUserDetails;
+import renewal.awesome_travel.notification.service.NotificationService;
 import renewal.awesome_travel.user.dto.response.UserResponseDto;
 import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.User;
@@ -15,6 +16,7 @@ import renewal.common.entity.User;
 public class GlobalControllerAdvice {
 
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @ModelAttribute("currentUser")
     public UserResponseDto currentUser(@AuthenticationPrincipal CustomUserDetails principal) {
@@ -40,6 +42,14 @@ public class GlobalControllerAdvice {
         if (principal != null) {
             User user = principal.getUser();
             return userService.getAvailableCoupons(user).size();
+        }
+        return 0;
+    }
+
+    @ModelAttribute("unreadNotificationCount")
+    public Integer unreadNotificationCount(@AuthenticationPrincipal CustomUserDetails principal) {
+        if (principal != null && principal.getUser() != null && principal.getUser().getId() != null) {
+            return notificationService.getUnreadNotifications(principal.getUser().getId()).size();
         }
         return 0;
     }
