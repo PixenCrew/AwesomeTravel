@@ -1817,7 +1817,10 @@
 }
 
 /* =========================== 비밀번호 찾기 =========================== */
-.recovery-container {
+.recovery-container,
+.recovery-password-container,
+.recovery-password-new-container,
+.recovery-id-container {
     width: 100%;
     min-height: 100%;
     background: white;
@@ -2183,6 +2186,22 @@
     border-color: #333;
 }
 
+.recovery-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.recovery-check-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #4CAF50;
+}
+
 .recovery-input::placeholder {
     color: #999;
 }
@@ -2236,6 +2255,93 @@
     font-size: 13px;
     margin-top: 8px;
     min-height: 20px;
+}
+
+/* =========================== 비밀번호 재설정 =========================== */
+.password-reset-container {
+    width: 100%;
+    min-height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.password-reset-guide {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 24px 0 32px 0;
+    border: 1px solid #e8e8e8;
+}
+
+.reset-guide-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+}
+
+.reset-guide-text {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.reset-hint-text {
+    font-size: 13px;
+    color: #999;
+    line-height: 1.5;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.reset-primary-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #333;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.reset-primary-btn:hover:not(:disabled) {
+    background: #555;
+}
+
+.reset-primary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.reset-secondary-link {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    text-align: center;
+    color: #666;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+}
+
+.reset-secondary-link:hover {
+    color: #333;
+}
+
+.header-spacer {
+    width: 26px;
+    flex-shrink: 0;
 }
 
 /* =========================== 홈화면 =========================== */
