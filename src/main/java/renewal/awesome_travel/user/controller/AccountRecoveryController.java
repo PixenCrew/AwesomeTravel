@@ -61,6 +61,12 @@ public class AccountRecoveryController {
         }
 
         User user = userRepo.findByPhone(number);
+        if (user == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "등록된 휴대폰 번호가 아닙니다."));
+        }
+
         tempUser.setEmail(user.getEmail());
 
         return ResponseEntity.ok(Map.of("success", true));
@@ -90,18 +96,30 @@ public class AccountRecoveryController {
     }
 
     @PostMapping("/password")
+    @Transactional
     public ResponseEntity<?> recoveryPasswordPost(@RequestBody Map<String, String> payload) {
 
-        User user = userRepo.findByEmail(payload.get("email")).get();
+        try {
+            User user = userRepo.findByEmail(payload.get("email"))
+                    .orElseThrow(() -> new IllegalArgumentException("등록된 이메일이 아닙니다."));
 
-        if (user != null) {
-            // 이메일 발송
+            // 기존 토큰 삭제 (중복 방지) - 트랜잭션 내에서 즉시 반영
+            tokenRepository.deleteAllByUser(user);
+            tokenRepository.flush(); // 삭제를 즉시 DB에 반영
+
+            // 새 토큰 생성 및 이메일 발송
             EmailVerificationToken token = EmailVerificationToken.create(user);
             tokenRepository.save(token);
             emailService.sendVerificationMail(user.getEmail(), token.getToken(), "/recovery/password/verified?token="); // 비동기
-        }
 
-        return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "이메일 발송 중 오류가 발생했습니다."));
+        }
     }
 
     @GetMapping("/password/verified")
