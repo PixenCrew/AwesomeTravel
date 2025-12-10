@@ -1,0 +1,699 @@
+<div class="my-reviews-container">
+    <style>
+        .my-reviews-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            padding-bottom: 60px;
+            background: white;
+        }
+
+        .my-reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        .my-reviews-back {
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .my-reviews-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .my-reviews-spacer {
+            width: 26px;
+        }
+
+        .my-reviews-body {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .my-reviews-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .my-reviews-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .my-reviews-count {
+            font-size: 14px;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .review-item {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+            cursor: default;
+            transition: background 0.2s;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .review-item-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .review-product-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: default;
+        }
+
+        .review-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .review-star {
+            color: #ffc107;
+            font-size: 14px;
+        }
+
+        .review-star.empty {
+            color: #ddd;
+        }
+
+        .review-content {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .review-item-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            margin-left: 16px;
+        }
+
+        .review-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .review-edit-btn,
+        .review-delete-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .review-edit-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .review-delete-btn:hover {
+            background: #fee;
+            border-color: #f44336;
+            color: #f44336;
+        }
+
+        .reviews-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .reviews-empty-icon {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+
+        .reviews-empty-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 리뷰 수정 모달 */
+        .my-review-edit-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .my-review-edit-modal.hidden {
+            display: none;
+        }
+
+        .my-review-edit-modal-content {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .my-review-edit-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .my-review-edit-modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .my-review-edit-close-btn {
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .my-review-edit-modal-body {
+            flex: 1;
+            padding: 24px 16px;
+            overflow-y: auto;
+        }
+
+        .my-review-edit-rating-section {
+            margin-bottom: 24px;
+        }
+
+        .my-review-edit-rating-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .my-review-edit-star-rating-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .my-review-edit-star-icon {
+            font-size: 32px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .my-review-edit-star-icon.filled {
+            color: #ffc107;
+        }
+
+        .my-review-edit-star-icon.empty {
+            color: #ddd;
+        }
+
+        .my-review-edit-content-section {
+            margin-bottom: 24px;
+        }
+
+        .my-review-edit-content-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .my-review-edit-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            resize: vertical;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .my-review-edit-textarea:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .my-review-edit-char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .my-review-edit-modal-footer {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .my-review-edit-submit-btn,
+        .my-review-edit-cancel-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .my-review-edit-submit-btn {
+            background: #333;
+            color: white;
+        }
+
+        .my-review-edit-submit-btn:hover {
+            background: #555;
+        }
+
+        .my-review-edit-cancel-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .my-review-edit-cancel-btn:hover {
+            background: #e0e0e0;
+        }
+    </style>
+
+    <header class="my-reviews-header">
+        <i class="fas fa-chevron-left my-reviews-back" onclick="prevSection()"></i>
+        <h1 class="my-reviews-title">내가 쓴 리뷰</h1>
+        <div class="my-reviews-spacer"></div>
+    </header>
+
+    <div class="my-reviews-body">
+        <div class="my-reviews-section-header">
+            <div>
+                <h2 class="my-reviews-section-title">리뷰 목록</h2>
+                <span class="my-reviews-count" th:text="'총 ' + ${totalCount} + '개'">총 0개</span>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(reviews)}" class="reviews-empty">
+            <div class="reviews-empty-icon">
+                <i class="far fa-comment"></i>
+            </div>
+            <div class="reviews-empty-text">
+                작성한 리뷰가 없습니다.<br>
+                상품을 이용하신 후 리뷰를 작성해주세요.
+            </div>
+        </div>
+
+        <div th:each="review : ${reviews}" class="review-item">
+            <div class="review-item-header">
+                <div class="review-item-left">
+                    <div class="review-product-title" 
+                         th:text="${review.productTitle}">
+                        상품명
+                    </div>
+                    <div class="review-rating">
+                        <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                              th:class="'review-star ' + (${i <= review.rating} ? '' : 'empty')"
+                              th:text="${i <= review.rating} ? '★' : '☆'">★</span>
+                    </div>
+                    <div class="review-content" th:text="${review.content}">
+                        리뷰 내용입니다.
+                    </div>
+                </div>
+                <div class="review-item-right">
+                    <div class="review-date" 
+                         th:attr="data-date=${review.updatedAt != null ? #temporals.format(review.updatedAt, 'yyyy-MM-dd HH:mm:ss') : #temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm:ss')}">
+                        날짜
+                    </div>
+                    <div class="review-actions">
+                        <button type="button" class="review-edit-btn" 
+                                th:attr="data-review-id=${review.id}, data-review-rating=${review.rating}"
+                                th:data-review-content="${review.content}"
+                                onclick="openEditReviewModalFromButton(this)">
+                            수정
+                        </button>
+                        <button type="button" class="review-delete-btn" 
+                                th:onclick="'deleteMyReview(' + ${review.id} + ')'">
+                            삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 리뷰 수정 모달 -->
+    <div id="editReviewModal" class="my-review-edit-modal hidden">
+        <div class="my-review-edit-modal-content">
+            <header class="my-review-edit-modal-header">
+                <h2 class="my-review-edit-modal-title">리뷰 수정</h2>
+                <i class="fas fa-times my-review-edit-close-btn" onclick="closeEditReviewModal()"></i>
+            </header>
+
+            <div class="my-review-edit-modal-body">
+                <div class="my-review-edit-rating-section">
+                    <label class="my-review-edit-rating-label">별점 선택</label>
+                    <div class="my-review-edit-star-rating-selector" id="editStarRating">
+                        <span class="my-review-edit-star-icon" onclick="setEditReviewStar(this, 1)">☆</span>
+                        <span class="my-review-edit-star-icon" onclick="setEditReviewStar(this, 2)">☆</span>
+                        <span class="my-review-edit-star-icon" onclick="setEditReviewStar(this, 3)">☆</span>
+                        <span class="my-review-edit-star-icon" onclick="setEditReviewStar(this, 4)">☆</span>
+                        <span class="my-review-edit-star-icon" onclick="setEditReviewStar(this, 5)">☆</span>
+                    </div>
+                </div>
+
+                <div class="my-review-edit-content-section">
+                    <label class="my-review-edit-content-label">리뷰 내용</label>
+                    <textarea id="editReviewContent" class="my-review-edit-textarea" placeholder="리뷰 내용을 입력하세요." maxlength="500"></textarea>
+                    <div class="my-review-edit-char-count" id="editCharCount">0 / 500</div>
+                </div>
+            </div>
+
+            <footer class="my-review-edit-modal-footer">
+                <button class="my-review-edit-submit-btn" onclick="submitEditReview()">수정하기</button>
+                <button class="my-review-edit-cancel-btn" onclick="closeEditReviewModal()">취소</button>
+            </footer>
+        </div>
+    </div>
+
+    <input type="hidden" id="editingReviewId" value="">
+
+    <script th:inline="javascript">
+        (function() {
+            // 날짜를 "N일 전" 형식으로 변환
+            function formatRelativeDate(dateString) {
+                if (!dateString) return '';
+                
+                // "yyyy-MM-dd HH:mm:ss" 형식을 파싱 (로컬 타임존으로 해석)
+                const parts = dateString.split(' ');
+                const dateParts = parts[0].split('-');
+                const timeParts = parts[1] ? parts[1].split(':') : ['0', '0', '0'];
+                
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1; // JavaScript month는 0부터 시작
+                const day = parseInt(dateParts[2]);
+                const hour = parseInt(timeParts[0]);
+                const minute = parseInt(timeParts[1]);
+                const second = parseInt(timeParts[2] || '0');
+                
+                const date = new Date(year, month, day, hour, minute, second);
+                const now = new Date();
+                const diff = now - date;
+                
+                // 음수 차이는 미래 날짜이므로 "방금 전"으로 표시
+                if (diff < 0) {
+                    return '방금 전';
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                
+                if (days === 0) {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    if (hours === 0) {
+                        const minutes = Math.floor(diff / (1000 * 60));
+                        return minutes <= 0 ? '방금 전' : minutes + '분 전';
+                    }
+                    return hours + '시간 전';
+                } else if (days < 7) {
+                    return days + '일 전';
+                } else if (days < 30) {
+                    const weeks = Math.floor(days / 7);
+                    return weeks + '주 전';
+                } else if (days < 365) {
+                    const months = Math.floor(days / 30);
+                    return months + '개월 전';
+                } else {
+                    const years = Math.floor(days / 365);
+                    return years + '년 전';
+                }
+            }
+
+            // 모든 날짜 요소 업데이트
+            document.querySelectorAll('.review-date[data-date]').forEach(el => {
+                const dateStr = el.getAttribute('data-date');
+                if (dateStr) {
+                    el.textContent = formatRelativeDate(dateStr);
+                }
+            });
+
+            // 현재 수정 중인 리뷰 정보
+            let editCurrentStar = 0;
+
+            // 리뷰 수정 모달 열기 (버튼에서 호출)
+            window.openEditReviewModalFromButton = function(button) {
+                const reviewId = button.getAttribute('data-review-id');
+                const rating = parseInt(button.getAttribute('data-review-rating')) || 0;
+                const content = button.getAttribute('data-review-content') || '';
+                openEditReviewModal(reviewId, rating, content);
+            };
+
+            // 리뷰 수정 모달 열기
+            window.openEditReviewModal = function(reviewId, rating, content) {
+                document.getElementById('editingReviewId').value = reviewId;
+                editCurrentStar = rating;
+                
+                const modalEl = document.getElementById('editReviewModal');
+                modalEl.classList.remove('hidden');
+                modalEl.scrollTop = 0;
+                
+                // 배경 스크롤 막기
+                if (document && document.body) {
+                    document.body.style.overflow = 'hidden';
+                }
+                const mainSection = document.getElementById('mainSection');
+                if (mainSection) {
+                    mainSection.style.overflow = 'hidden';
+                }
+
+                // 별점 표시
+                const starIcons = document.querySelectorAll('#editStarRating .my-review-edit-star-icon');
+                starIcons.forEach((star, i) => {
+                    if (i < rating) {
+                        star.textContent = '★';
+                        star.classList.add('filled');
+                        star.classList.remove('empty');
+                    } else {
+                        star.textContent = '☆';
+                        star.classList.remove('filled');
+                        star.classList.add('empty');
+                    }
+                });
+
+                // 내용 설정
+                const editContent = document.getElementById('editReviewContent');
+                editContent.value = content || '';
+                document.getElementById('editCharCount').textContent = (content || '').length + ' / 500';
+
+                // 문자 수 카운트 이벤트
+                editContent.oninput = function() {
+                    const length = this.value.length;
+                    document.getElementById('editCharCount').textContent = length + ' / 500';
+                };
+            };
+
+            // 리뷰 수정 모달 닫기
+            window.closeEditReviewModal = function() {
+                const modalEl = document.getElementById('editReviewModal');
+                modalEl.classList.add('hidden');
+                
+                // 배경 스크롤 복구
+                if (document && document.body) {
+                    document.body.style.overflow = '';
+                }
+                const mainSection = document.getElementById('mainSection');
+                if (mainSection) {
+                    mainSection.style.overflow = '';
+                }
+                
+                document.getElementById('editingReviewId').value = '';
+                editCurrentStar = 0;
+            };
+
+            // 별점 선택
+            window.setEditReviewStar = function(starElement, rating) {
+                editCurrentStar = rating;
+                const starIcons = document.querySelectorAll('#editStarRating .my-review-edit-star-icon');
+                starIcons.forEach((star, i) => {
+                    if (i < rating) {
+                        star.textContent = '★';
+                        star.classList.add('filled');
+                        star.classList.remove('empty');
+                    } else {
+                        star.textContent = '☆';
+                        star.classList.remove('filled');
+                        star.classList.add('empty');
+                    }
+                });
+            };
+
+            // 리뷰 수정 제출
+            window.submitEditReview = function() {
+                const content = document.getElementById('editReviewContent').value;
+                if (editCurrentStar === 0) {
+                    showErrorToast('별점을 선택해주세요.');
+                    return;
+                }
+                if (!content.trim()) {
+                    showErrorToast('리뷰 내용을 입력해주세요.');
+                    return;
+                }
+
+                const reviewId = document.getElementById('editingReviewId').value;
+                
+                // 리뷰 수정 API 호출
+                fetch(`/api/products/comments/${reviewId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rating: editCurrentStar,
+                        content: content
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            try {
+                                const errorData = JSON.parse(text);
+                                throw new Error(errorData.message || '리뷰 수정에 실패했습니다.');
+                            } catch (e) {
+                                if (e instanceof Error && e.message) {
+                                    throw e;
+                                }
+                                throw new Error(text || '리뷰 수정에 실패했습니다.');
+                            }
+                        });
+                    }
+                    // 응답 본문이 있는 경우에만 JSON 파싱
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    }
+                    return {}; // 빈 응답인 경우 빈 객체 반환
+                })
+                .then(data => {
+                    showSuccessToast('리뷰가 수정되었습니다.');
+                    closeEditReviewModal();
+                    
+                    // 내가 쓴 리뷰 페이지 새로고침
+                    setTimeout(() => {
+                        if (typeof fetchSection === 'function') {
+                            fetchSection('/mypage/reviews');
+                        } else {
+                            location.reload();
+                        }
+                    }, 300);
+                })
+                .catch(err => {
+                    console.error(err);
+                    showErrorToast(err.message || '리뷰 수정 중 오류가 발생했습니다.');
+                });
+            };
+
+            // 리뷰 삭제 함수
+            window.deleteMyReview = async function(reviewId) {
+                const confirmed = await showConfirmModal('정말로 이 리뷰를 삭제하시겠습니까?');
+                if (!confirmed) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/products/comments/${reviewId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('리뷰 삭제에 실패했습니다.');
+                    }
+
+                    showSuccessToast('리뷰가 삭제되었습니다.');
+                    
+                    // 내가 쓴 리뷰 페이지 새로고침
+                    setTimeout(() => {
+                        if (typeof fetchSection === 'function') {
+                            fetchSection('/mypage/reviews');
+                        } else {
+                            location.reload();
+                        }
+                    }, 300);
+                } catch (err) {
+                    console.error(err);
+                    showErrorToast(err.message || '리뷰 삭제 중 오류가 발생했습니다.');
+                }
+            };
+        })();
+    </script>
+</div>
+
