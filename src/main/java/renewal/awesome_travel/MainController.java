@@ -80,7 +80,8 @@ public class MainController {
 
             model.addAttribute("recentProducts", actualRecentProducts);
             model.addAttribute("likedProducts", actualLikedProducts);
-            model.addAttribute("likedProductsCount", userService.getLikedProducts(user).size());
+            // ElementCollection의 개수 사용 (UserLikedProduct 엔티티가 아님)
+            model.addAttribute("likedProductsCount", user.getLikedProducts() != null ? user.getLikedProducts().size() : 0);
             model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
 
         } else {

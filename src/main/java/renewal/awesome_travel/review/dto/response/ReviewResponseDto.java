@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 public class ReviewResponseDto {
     private Long id;
+    private Long productId;
+    private String productTitle;
     private String writerName;
     private String content;
     private int rating;

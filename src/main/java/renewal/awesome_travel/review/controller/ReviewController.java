@@ -54,7 +54,7 @@ public class ReviewController {
         try {
             User user = userDetails.getUser();
             commentService.updateComment(commentId, user, dto);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(java.util.Map.of("message", "리뷰가 수정되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(java.util.Map.of("message", e.getMessage()));

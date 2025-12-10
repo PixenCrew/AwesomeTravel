@@ -146,7 +146,7 @@
                 <span class="inquiry-meta-text" th:if="${hasProduct}" th:text="${'상품번호: ' + inquiry.productId}">상품번호: 12345</span>
                 <span class="inquiry-meta-text" th:if="${hasPurchase}" th:text="${'구매번호: ' + inquiry.purchaseId}">구매번호: 98765</span>
             </div>
-            <div class="inquiry-section-date" th:text="${#temporals.format(inquiry.createdAt, 'yyyy년 M월', new java.util.Locale('ko', 'KR'))}">2024년 10월</div>
+            <div class="inquiry-section-date" th:text="${#temporals.format(inquiry.createdAt, 'yyyy년 M월 d일', new java.util.Locale('ko', 'KR'))}">2024년 10월 15일</div>
             <div class="inquiry-divider"></div>
             <div class="inquiry-section-content" th:utext="${inquiry.content}">안녕하세요.
 결제 과정에서 문제가 하나 있었는데, 이를 해결하기
@@ -156,7 +156,7 @@
         <!-- 답변 -->
         <div class="inquiry-section" th:if="${answer != null}">
             <div class="inquiry-section-title" th:text="${categoryName + ' 문의 답변입니다.'}">주문/결제 문의 답변입니다.</div>
-            <div class="inquiry-section-date" th:text="${#temporals.format(answer.createdAt, 'yyyy년 M월', new java.util.Locale('ko', 'KR'))}">2024년 10월</div>
+            <div class="inquiry-section-date" th:text="${#temporals.format(answer.createdAt, 'yyyy년 M월 d일', new java.util.Locale('ko', 'KR'))}">2024년 10월 15일</div>
             <div class="inquiry-divider"></div>
             <div class="inquiry-section-content" th:utext="${answer.content}">문의에 대한 답변입니다.
 한번 더 시도해보시고 문의를 다시 부탁드리겠습니다.

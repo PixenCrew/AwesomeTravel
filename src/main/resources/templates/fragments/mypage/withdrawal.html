@@ -243,7 +243,7 @@
                 passwordError.classList.remove("show");
 
                 if (!agree) {
-                    alert("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
+                    showErrorToast("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
                     isSubmitting = false;
                     return;
                 }
