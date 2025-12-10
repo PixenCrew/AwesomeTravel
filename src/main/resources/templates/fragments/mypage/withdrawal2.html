@@ -50,7 +50,7 @@
                 const agree = document.getElementById("agree").checked;
 
                 if (!agree) {
-                    alert("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
+                    showErrorToast("회원탈퇴를 진행하시려면 동의에 체크해주세요.");
                     isSubmitting = false;
                     return;
                 }
@@ -61,19 +61,23 @@
                         method: "POST",
                         headers: { "Content-Type": "application/json" }
                     });
-                    if (!response.ok) {
-                        alert(result.message || "회원탈퇴 중 오류가 발생했습니다.");
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok || !result.success) {
+                        showErrorToast(result.message || "회원탈퇴 중 오류가 발생했습니다.");
+                        isSubmitting = false;
                         return;
                     }
 
                     showSuccessToast('회원탈퇴가 완료되었습니다.');
-                    addModal('/mypage/withdrawal/done', true);
+                    setTimeout(() => {
+                        addModal('/mypage/withdrawal/done', true);
+                    }, 1000);
 
                 } catch (err) {
-
                     console.error(err);
-                    alert("회원탈퇴 중 오류가 발생했습니다.");
-
+                    showErrorToast("회원탈퇴 중 오류가 발생했습니다.");
                 } finally {
                     isSubmitting = false;
                 }
