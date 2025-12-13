@@ -195,6 +195,34 @@ public class ProductController {
             
             // 각 항공편에 대해 ProductCalanderDto 생성
             for (Product calcProduct : calcProducts) {
+                // Tour/Schedules/Locations 초기화 (좌석 등급 및 항공사 정보를 가져오기 위해)
+                if (calcProduct.getTour() != null) {
+                    Hibernate.initialize(calcProduct.getTour().getSchedules());
+                    if (calcProduct.getTour().getSchedules() != null) {
+                        for (Schedule schedule : calcProduct.getTour().getSchedules()) {
+                            if (schedule != null) {
+                                Hibernate.initialize(schedule.getLocations());
+                                if (schedule.getLocations() != null) {
+                                    for (Location location : schedule.getLocations()) {
+                                        if (location != null && location.getSeatClass() != null) {
+                                            Hibernate.initialize(location.getSeatClass());
+                                            if (location.getSeatClass().getAir() != null) {
+                                                Hibernate.initialize(location.getSeatClass().getAir());
+                                                if (location.getSeatClass().getAir().getAirline() != null) {
+                                                    Hibernate.initialize(location.getSeatClass().getAir().getAirline());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Product의 airline 필드도 초기화
+                if (calcProduct.getAirline() != null) {
+                    Hibernate.initialize(calcProduct.getAirline());
+                }
                 ProductCalanderDto productDto = new ProductCalanderDto(calcProduct);
                 if (productDto.getDepartDateTime() == null) {
                     productDto.setDepartDateTime(targetDate.atStartOfDay());
@@ -227,6 +255,7 @@ public class ProductController {
     
     /**
      * 같은 날짜에 여러 항공편을 찾아서 각각에 대해 Product를 계산하여 반환
+     * 모든 Schedule의 모든 AIR Location에 대해 모든 항공편 조합을 생성
      */
     private List<Product> findMultipleProductsForDate(Product product, LocalDate departDate, SeatClassRepository seatClassRepo) {
         List<Product> results = new ArrayList<>();
@@ -239,9 +268,10 @@ public class ProductController {
                 return results;
             }
             
-            // 첫 번째 출국 항공편(day 0)의 모든 항공편을 찾기
+            // 모든 Schedule의 모든 AIR Location에 대해 항공편 찾기
+            List<AirLocationInfo> airLocationInfos = new ArrayList<>();
             for (Schedule sced : productCopy.getTour().getSchedules()) {
-                if (sced == null || sced.getDay() != 0) {
+                if (sced == null) {
                     continue;
                 }
                 
@@ -269,9 +299,10 @@ public class ProductController {
                         continue;
                     }
                     
-                    // 같은 날짜의 모든 항공편을 찾기 위해 하루 전체 시간 범위 사용 (00:00 ~ 23:59:59)
-                    LocalDateTime startDateTime = departDate.atTime(0, 0);
-                    LocalDateTime endDateTime = departDate.atTime(23, 59, 59);
+                    // 해당 Schedule의 날짜 계산
+                    LocalDate currentScheduleDate = departDate.plusDays(sced.getDay());
+                    LocalDateTime startDateTime = currentScheduleDate.atTime(0, 0);
+                    LocalDateTime endDateTime = currentScheduleDate.atTime(23, 59, 59);
                     
                     // 같은 날짜의 모든 항공편 조회
                     List<SeatClass> allSeats = seatClassRepo.findLowestPriceSeatsByAirportCodes(
@@ -280,46 +311,362 @@ public class ProductController {
                         arriveAirport.getAirportCode(),
                         productCopy.getSeatClassTypes());
                     
-                    // 각 항공편에 대해 Product 계산
-                    for (SeatClass seat : allSeats) {
+                    // 조합 생성 순서를 고정하기 위해 가격순으로 정렬 (같은 출국 시간에 대해 항상 같은 조합 선택)
+                    allSeats.sort((a, b) -> {
+                        int priceCompare = Long.compare(
+                            a.getPriceAdult() != null ? a.getPriceAdult() : 0L,
+                            b.getPriceAdult() != null ? b.getPriceAdult() : 0L
+                        );
+                        if (priceCompare != 0) {
+                            return priceCompare;
+                        }
+                        // 가격이 같으면 출발 시간순으로 정렬
+                        if (a.getAir() != null && b.getAir() != null) {
+                            return a.getAir().getDepartDateTime().compareTo(b.getAir().getDepartDateTime());
+                        }
+                        return 0;
+                    });
+                    
+                    if (!allSeats.isEmpty()) {
+                        airLocationInfos.add(new AirLocationInfo(sced.getDay(), loc, departAirport, arriveAirport, allSeats));
+                    }
+                }
+            }
+            
+            // 좌석 등급별로 그룹화하여 같은 등급끼리만 매칭
+            // 각 좌석 등급(ECONOMY, BUSINESS 등)별로 별도의 조합 생성
+            List<Product> tempProducts = new ArrayList<>();
+            
+            // 허용된 모든 좌석 등급에 대해 각각 조합 생성
+            if (productCopy.getSeatClassTypes() != null && !productCopy.getSeatClassTypes().isEmpty()) {
+                for (SeatClass.SeatClassType seatClassType : productCopy.getSeatClassTypes()) {
+                    // 해당 좌석 등급만 필터링한 AirLocationInfo 리스트 생성
+                    List<AirLocationInfo> filteredAirLocationInfos = new ArrayList<>();
+                    for (AirLocationInfo info : airLocationInfos) {
+                        List<SeatClass> filteredSeats = info.seatClasses.stream()
+                            .filter(seat -> seat.getClassType() == seatClassType)
+                            .collect(java.util.stream.Collectors.toList());
+                        if (!filteredSeats.isEmpty()) {
+                            filteredAirLocationInfos.add(new AirLocationInfo(
+                                info.day, info.location, info.departAirport, info.arriveAirport, filteredSeats));
+                        }
+                    }
+                    
+                    // 해당 좌석 등급의 모든 조합 생성 (카르테시안 곱)
+                    List<List<SeatClassAssignment>> combinations = generateCartesianProduct(filteredAirLocationInfos);
+                    
+                    // 출국일(day 0)과 귀국일(마지막 day)의 항공사가 같은 조합만 필터링
+                    Long firstDay = filteredAirLocationInfos.stream()
+                        .mapToLong(info -> info.day)
+                        .min()
+                        .orElse(0L);
+                    Long lastDay = filteredAirLocationInfos.stream()
+                        .mapToLong(info -> info.day)
+                        .max()
+                        .orElse(0L);
+                    
+                    List<List<SeatClassAssignment>> filteredCombinations = new ArrayList<>();
+                    for (List<SeatClassAssignment> combination : combinations) {
+                        // 출국일(day 0)의 항공사 찾기
+                        SeatClassAssignment departAssignment = combination.stream()
+                            .filter(a -> a.day.equals(firstDay))
+                            .findFirst()
+                            .orElse(null);
+                        
+                        // 귀국일(마지막 day)의 항공사 찾기
+                        SeatClassAssignment returnAssignment = combination.stream()
+                            .filter(a -> a.day.equals(lastDay))
+                            .findFirst()
+                            .orElse(null);
+                        
+                        // 출국일과 귀국일의 항공사가 같으면 유지
+                        if (departAssignment != null && returnAssignment != null) {
+                            String departAirline = null;
+                            String returnAirline = null;
+                            
+                            if (departAssignment.seatClass != null 
+                                && departAssignment.seatClass.getAir() != null
+                                && departAssignment.seatClass.getAir().getAirline() != null) {
+                                departAirline = departAssignment.seatClass.getAir().getAirline().getCode();
+                            }
+                            
+                            if (returnAssignment.seatClass != null 
+                                && returnAssignment.seatClass.getAir() != null
+                                && returnAssignment.seatClass.getAir().getAirline() != null) {
+                                returnAirline = returnAssignment.seatClass.getAir().getAirline().getCode();
+                            }
+                            
+                            // 항공사 코드가 같으면 유지
+                            if (departAirline != null && returnAirline != null && departAirline.equals(returnAirline)) {
+                                filteredCombinations.add(combination);
+                            }
+                        }
+                    }
+                    
+                    // 각 조합마다 Product 생성
+                    for (List<SeatClassAssignment> combination : filteredCombinations) {
                         try {
-                            Product productForSeat = (Product) product.clone();
-                            // 첫 번째 날 항공편을 지정하기 위해 Location에 SeatClass 설정
-                            for (Schedule schedule : productForSeat.getTour().getSchedules()) {
-                                if (schedule.getDay() == 0) {
+                            Product productForCombination = (Product) product.clone();
+                            
+                            // 각 AIR Location에 SeatClass 설정
+                            for (SeatClassAssignment assignment : combination) {
+                                for (Schedule schedule : productForCombination.getTour().getSchedules()) {
+                                    if (schedule.getDay() == assignment.day) {
+                                        Hibernate.initialize(schedule.getLocations());
+                                        for (Location location : schedule.getLocations()) {
+                                            if (location != null && location.getLocationType() == LocationType.AIR
+                                                && location.getDepartAirport() != null 
+                                                && location.getArriveAirport() != null
+                                                && location.getDepartAirport().getAirportCode().equals(assignment.departAirport.getAirportCode())
+                                                && location.getArriveAirport().getAirportCode().equals(assignment.arriveAirport.getAirportCode())) {
+                                                location.setSeatClass(assignment.seatClass);
+                                                break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // calcSingleProduct 호출 (이미 설정된 SeatClass는 그대로 사용)
+                            Product calcProduct = productServiceCommon.calcSingleProduct(productForCombination, departDate);
+                            if (calcProduct != null) {
+                                tempProducts.add(calcProduct);
+                            }
+                        } catch (CloneNotSupportedException e) {
+                            log.error("Product clone failed for combination", e);
+                        }
+                    }
+                }
+            } else {
+                // seatClassTypes가 없는 경우 기존 로직 사용 (모든 조합 생성)
+                List<List<SeatClassAssignment>> combinations = generateCartesianProduct(airLocationInfos);
+                
+                // 출국일(day 0)과 귀국일(마지막 day)의 항공사가 같은 조합만 필터링
+                Long firstDay = airLocationInfos.stream()
+                    .mapToLong(info -> info.day)
+                    .min()
+                    .orElse(0L);
+                Long lastDay = airLocationInfos.stream()
+                    .mapToLong(info -> info.day)
+                    .max()
+                    .orElse(0L);
+                
+                List<List<SeatClassAssignment>> filteredCombinations = new ArrayList<>();
+                for (List<SeatClassAssignment> combination : combinations) {
+                    // 출국일(day 0)의 항공사 찾기
+                    SeatClassAssignment departAssignment = combination.stream()
+                        .filter(a -> a.day.equals(firstDay))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    // 귀국일(마지막 day)의 항공사 찾기
+                    SeatClassAssignment returnAssignment = combination.stream()
+                        .filter(a -> a.day.equals(lastDay))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    // 출국일과 귀국일의 항공사가 같으면 유지
+                    if (departAssignment != null && returnAssignment != null) {
+                        String departAirline = null;
+                        String returnAirline = null;
+                        
+                        if (departAssignment.seatClass != null 
+                            && departAssignment.seatClass.getAir() != null
+                            && departAssignment.seatClass.getAir().getAirline() != null) {
+                            departAirline = departAssignment.seatClass.getAir().getAirline().getCode();
+                        }
+                        
+                        if (returnAssignment.seatClass != null 
+                            && returnAssignment.seatClass.getAir() != null
+                            && returnAssignment.seatClass.getAir().getAirline() != null) {
+                            returnAirline = returnAssignment.seatClass.getAir().getAirline().getCode();
+                        }
+                        
+                        // 항공사 코드가 같으면 유지
+                        if (departAirline != null && returnAirline != null && departAirline.equals(returnAirline)) {
+                            filteredCombinations.add(combination);
+                        }
+                    }
+                }
+                
+                for (List<SeatClassAssignment> combination : filteredCombinations) {
+                    try {
+                        Product productForCombination = (Product) product.clone();
+                        
+                        // 각 AIR Location에 SeatClass 설정
+                        for (SeatClassAssignment assignment : combination) {
+                            for (Schedule schedule : productForCombination.getTour().getSchedules()) {
+                                if (schedule.getDay() == assignment.day) {
                                     Hibernate.initialize(schedule.getLocations());
                                     for (Location location : schedule.getLocations()) {
                                         if (location != null && location.getLocationType() == LocationType.AIR
                                             && location.getDepartAirport() != null 
                                             && location.getArriveAirport() != null
-                                            && location.getDepartAirport().getAirportCode().equals(departAirport.getAirportCode())
-                                            && location.getArriveAirport().getAirportCode().equals(arriveAirport.getAirportCode())) {
-                                            location.setSeatClass(seat);
+                                            && location.getDepartAirport().getAirportCode().equals(assignment.departAirport.getAirportCode())
+                                            && location.getArriveAirport().getAirportCode().equals(assignment.arriveAirport.getAirportCode())) {
+                                            location.setSeatClass(assignment.seatClass);
                                             break;
                                         }
                                     }
                                     break;
                                 }
                             }
-                            
-                            Product calcProduct = productServiceCommon.calcSingleProduct(productForSeat, departDate);
-                            if (calcProduct != null) {
-                                results.add(calcProduct);
-                            }
-                        } catch (CloneNotSupportedException e) {
-                            log.error("Product clone failed for seat: {}", seat.getId(), e);
                         }
+                        
+                        // calcSingleProduct 호출 (이미 설정된 SeatClass는 그대로 사용)
+                        Product calcProduct = productServiceCommon.calcSingleProduct(productForCombination, departDate);
+                        if (calcProduct != null) {
+                            tempProducts.add(calcProduct);
+                        }
+                    } catch (CloneNotSupportedException e) {
+                        log.error("Product clone failed for combination", e);
                     }
-                    
-                    break; // 첫 번째 AIR Location만 처리
                 }
-                break; // day 0만 처리
             }
+            
+            // 조합 생성 순서를 고정하기 위해 정렬
+            // 1. 출국 시간순 정렬
+            // 2. 가격순 정렬 (같은 출국 시간에 대해 항상 같은 조합 선택)
+            tempProducts.sort((a, b) -> {
+                // 출국 시간 비교
+                if (a.getDepartDateTime() != null && b.getDepartDateTime() != null) {
+                    int timeCompare = a.getDepartDateTime().compareTo(b.getDepartDateTime());
+                    if (timeCompare != 0) {
+                        return timeCompare;
+                    }
+                }
+                // 출국 시간이 같으면 가격순 정렬
+                Long priceA = a.getFinalPriceAdult() != null ? a.getFinalPriceAdult() : 0L;
+                Long priceB = b.getFinalPriceAdult() != null ? b.getFinalPriceAdult() : 0L;
+                return Long.compare(priceA, priceB);
+            });
+            
+            results.addAll(tempProducts);
         } catch (CloneNotSupportedException e) {
             log.error("Product clone failed", e);
         }
         
         return results;
+    }
+    
+    /**
+     * AIR Location 정보를 담는 내부 클래스
+     */
+    private static class AirLocationInfo {
+        Long day;
+        Location location;
+        AirportCode departAirport;
+        AirportCode arriveAirport;
+        List<SeatClass> seatClasses;
+        
+        AirLocationInfo(Long day, Location location, AirportCode departAirport, AirportCode arriveAirport, List<SeatClass> seatClasses) {
+            this.day = day;
+            this.location = location;
+            this.departAirport = departAirport;
+            this.arriveAirport = arriveAirport;
+            this.seatClasses = seatClasses;
+        }
+    }
+    
+    /**
+     * SeatClass 할당 정보를 담는 내부 클래스
+     */
+    private static class SeatClassAssignment {
+        Long day;
+        AirportCode departAirport;
+        AirportCode arriveAirport;
+        SeatClass seatClass;
+        
+        SeatClassAssignment(Long day, AirportCode departAirport, AirportCode arriveAirport, SeatClass seatClass) {
+            this.day = day;
+            this.departAirport = departAirport;
+            this.arriveAirport = arriveAirport;
+            this.seatClass = seatClass;
+        }
+    }
+    
+    /**
+     * 카르테시안 곱으로 모든 조합 생성
+     */
+    private List<List<SeatClassAssignment>> generateCartesianProduct(List<AirLocationInfo> airLocationInfos) {
+        List<List<SeatClassAssignment>> results = new ArrayList<>();
+        
+        if (airLocationInfos.isEmpty()) {
+            return results;
+        }
+        
+        generateCartesianProductRecursive(airLocationInfos, 0, new ArrayList<>(), results);
+        
+        return results;
+    }
+    
+    /**
+     * 재귀적으로 카르테시안 곱 생성 (시간 제약 검증 포함)
+     */
+    private void generateCartesianProductRecursive(
+            List<AirLocationInfo> airLocationInfos,
+            int index,
+            List<SeatClassAssignment> current,
+            List<List<SeatClassAssignment>> results) {
+        
+        if (index >= airLocationInfos.size()) {
+            results.add(new ArrayList<>(current));
+            return;
+        }
+        
+        AirLocationInfo info = airLocationInfos.get(index);
+        for (SeatClass seatClass : info.seatClasses) {
+            // 같은 day의 이전 항공편이 있으면 시간 제약 확인
+            if (!isValidTimeConstraint(info.day, seatClass, current)) {
+                continue; // 시간 제약을 만족하지 않으면 스킵
+            }
+            
+            SeatClassAssignment assignment = new SeatClassAssignment(
+                info.day,
+                info.departAirport,
+                info.arriveAirport,
+                seatClass
+            );
+            current.add(assignment);
+            generateCartesianProductRecursive(airLocationInfos, index + 1, current, results);
+            current.remove(current.size() - 1);
+        }
+    }
+    
+    /**
+     * 시간 제약 검증: 같은 day의 이전 항공편 도착 시간 이후에 출발하는지 확인
+     * @param day 현재 항공편의 day
+     * @param seatClass 현재 선택하려는 항공편
+     * @param current 이미 선택된 항공편 목록
+     * @return 시간 제약을 만족하면 true
+     */
+    private boolean isValidTimeConstraint(Long day, SeatClass seatClass, List<SeatClassAssignment> current) {
+        // 같은 day의 이전 항공편 찾기
+        SeatClassAssignment previousFlight = null;
+        for (int i = current.size() - 1; i >= 0; i--) {
+            SeatClassAssignment assignment = current.get(i);
+            if (assignment.day.equals(day)) {
+                previousFlight = assignment;
+                break;
+            }
+        }
+        
+        // 같은 day의 이전 항공편이 없으면 제약 없음
+        if (previousFlight == null) {
+            return true;
+        }
+        
+        // 이전 항공편의 도착 시간
+        LocalDateTime previousArriveTime = previousFlight.seatClass.getAir().getArriveDateTime();
+        // 현재 항공편의 출발 시간
+        LocalDateTime currentDepartTime = seatClass.getAir().getDepartDateTime();
+        
+        // 이전 항공편 도착 시간 이후에 출발해야 함 (최소 30분 여유)
+        // 경유 시간을 고려하여 최소 30분 간격 필요
+        LocalDateTime minDepartTime = previousArriveTime.plusMinutes(30);
+        
+        return currentDepartTime.isAfter(minDepartTime) || currentDepartTime.isEqual(minDepartTime);
     }
 
     @GetMapping("/detail/{id}")
@@ -327,6 +674,7 @@ public class ProductController {
             @PathVariable Long id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departDate,
             @RequestParam(required = false) String departTime,
+            @RequestParam(required = false) String returnTime,
             Model model,
             Principal principal,
             HttpSession session,
@@ -349,13 +697,13 @@ public class ProductController {
             List<Product> calcProducts = findMultipleProductsForDate(productCopy, departDate, seatClassRepo);
             
             // departTime을 LocalTime으로 파싱 (형식: "08:40:00" 또는 "08:40")
-            java.time.LocalTime targetTime = null;
+            java.time.LocalTime targetDepartTime = null;
             try {
                 if (departTime.length() >= 5) {
                     String timeStr = departTime.substring(0, 5); // "HH:mm" 형식
                     String[] parts = timeStr.split(":");
                     if (parts.length == 2) {
-                        targetTime = java.time.LocalTime.of(
+                        targetDepartTime = java.time.LocalTime.of(
                             Integer.parseInt(parts[0]),
                             Integer.parseInt(parts[1])
                         );
@@ -365,16 +713,51 @@ public class ProductController {
                 log.warn("Failed to parse departTime: {}", departTime, e);
             }
             
-            // 정확히 일치하는 항공편 찾기
-            if (targetTime != null) {
+            // returnTime도 파싱 (귀국 시간으로 정확한 조합 매칭)
+            java.time.LocalTime targetReturnTime = null;
+            if (returnTime != null && !returnTime.isEmpty()) {
+                try {
+                    if (returnTime.length() >= 5) {
+                        String timeStr = returnTime.substring(0, 5); // "HH:mm" 형식
+                        String[] parts = timeStr.split(":");
+                        if (parts.length == 2) {
+                            targetReturnTime = java.time.LocalTime.of(
+                                Integer.parseInt(parts[0]),
+                                Integer.parseInt(parts[1])
+                            );
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse returnTime: {}", returnTime, e);
+                }
+            }
+            
+            // 정확히 일치하는 항공편 조합 찾기
+            // 출국 시간 + 귀국 시간으로 정확히 매칭하여 달력에서 표시된 것과 동일한 조합 선택
+            if (targetDepartTime != null) {
                 for (Product p : calcProducts) {
                     if (p.getDepartDateTime() != null) {
-                        java.time.LocalTime pTime = p.getDepartDateTime().toLocalTime();
-                        // 시간과 분만 비교 (초는 무시)
-                        if (pTime.getHour() == targetTime.getHour() 
-                            && pTime.getMinute() == targetTime.getMinute()) {
-                            calcProduct = p; // 선택한 항공편의 정확한 정보 사용
-                            break;
+                        java.time.LocalTime pDepartTime = p.getDepartDateTime().toLocalTime();
+                        // 출국 시간 비교
+                        boolean departTimeMatch = pDepartTime.getHour() == targetDepartTime.getHour() 
+                            && pDepartTime.getMinute() == targetDepartTime.getMinute();
+                        
+                        if (departTimeMatch) {
+                            // returnTime이 전달된 경우, 귀국 시간도 비교
+                            if (targetReturnTime != null && p.getReturnDateTime() != null) {
+                                java.time.LocalTime pReturnTime = p.getReturnDateTime().toLocalTime();
+                                boolean returnTimeMatch = pReturnTime.getHour() == targetReturnTime.getHour() 
+                                    && pReturnTime.getMinute() == targetReturnTime.getMinute();
+                                if (returnTimeMatch) {
+                                    calcProduct = p; // 출국 + 귀국 시간이 모두 일치하는 조합
+                                    break;
+                                }
+                            } else {
+                                // returnTime이 없으면 출국 시간만 일치하는 첫 번째 조합 선택
+                                if (calcProduct == null) {
+                                    calcProduct = p;
+                                }
+                            }
                         }
                     }
                 }
@@ -466,6 +849,38 @@ public class ProductController {
         }
 
         // DTO 생성
+        // ProductDetailDto 생성 전에 필요한 엔티티 초기화 (출국편/귀국편 정보 추출을 위해)
+        if (calcProduct.getTour() != null) {
+            Hibernate.initialize(calcProduct.getTour().getSchedules());
+            if (calcProduct.getTour().getSchedules() != null) {
+                for (Schedule schedule : calcProduct.getTour().getSchedules()) {
+                    if (schedule != null) {
+                        Hibernate.initialize(schedule.getLocations());
+                        if (schedule.getLocations() != null) {
+                            for (Location location : schedule.getLocations()) {
+                                if (location != null && location.getLocationType() == LocationType.AIR
+                                    && location.getSeatClass() != null) {
+                                    Hibernate.initialize(location.getSeatClass());
+                                    if (location.getSeatClass().getAir() != null) {
+                                        Hibernate.initialize(location.getSeatClass().getAir());
+                                        if (location.getSeatClass().getAir().getAirline() != null) {
+                                            Hibernate.initialize(location.getSeatClass().getAir().getAirline());
+                                        }
+                                        if (location.getSeatClass().getAir().getDepartAirport() != null) {
+                                            Hibernate.initialize(location.getSeatClass().getAir().getDepartAirport());
+                                        }
+                                        if (location.getSeatClass().getAir().getArriveAirport() != null) {
+                                            Hibernate.initialize(location.getSeatClass().getAir().getArriveAirport());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         ProductDetailDto productDto = new ProductDetailDto(calcProduct);
         productDto.setReviews(reviews);
 
