@@ -56,6 +56,7 @@
             padding: 16px 0;
             border-bottom: 1px solid #e0e0e0;
             cursor: pointer;
+            gap: 12px;
         }
 
         .notice-item:last-child {
@@ -63,6 +64,26 @@
         }
 
         .notice-item-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notice-item-image {
+            width: 80px;
+            height: 80px;
+            min-width: 80px;
+            min-height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: block;
+            background: #f5f5f5;
+        }
+
+        .notice-item-content-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
             flex: 1;
             min-width: 0;
         }
@@ -104,9 +125,16 @@
         <h2 class="notice-section-title">공지사항 목록</h2>
 
         <div th:each="notice : ${notices}" class="notice-item" th:onclick="'fetchSection(\'/notice/' + ${notice.id} + '\')'">
-            <div class="notice-item-left">
-                <div class="notice-label">공지</div>
-                <div class="notice-item-title" th:text="${notice.title}">봄 카드 할인 이벤트 당첨자 발표</div>
+            <div class="notice-item-content-wrapper">
+                <img th:if="${notice.imageUrl != null and notice.imageUrl.length() > 0}" 
+                     th:src="${notice.imageUrl}" 
+                     alt="공지 이미지" 
+                     class="notice-item-image"
+                     loading="lazy" />
+                <div class="notice-item-left">
+                    <div class="notice-label">공지</div>
+                    <div class="notice-item-title" th:text="${notice.title}">봄 카드 할인 이벤트 당첨자 발표</div>
+                </div>
             </div>
             <div class="notice-item-date" th:attr="data-date=${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm:ss')}">3일 전</div>
         </div>
