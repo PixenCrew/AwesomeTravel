@@ -25,11 +25,9 @@
             <div class="product-info">
                 <h1 th:text="${product.title}">상품명</h1>
                 <p>
-                    <span th:text="'상품코드: ' + ${product.productCode}"></span><br />
-                    <span th:text="'출발일: ' + ${#temporals.format(product.departDateTime, 'yyyy-MM-dd HH:mm')}"></span><br />
-                    <span th:text="'항공사: ' + ${product.airline}"></span>
+                    <span th:text="'상품코드: ' + ${product.productCode}"></span>
                 </p>
-
+                
                 <div class="price">
                     <div>
                         <b>성인</b>:
@@ -128,10 +126,66 @@
                     </div>
                 </div>
 
-
                 <div class="product-status">
                     <span th:text="'상태: ' + ${product.productStatus == T(renewal.common.entity.Product.ProductStatus).AVAILABLE ? '예약가능' : (product.productStatus == T(renewal.common.entity.Product.ProductStatus).CONFIRMED ? '출발확정' : (product.productStatus == T(renewal.common.entity.Product.ProductStatus).WAITING ? '예약대기' : '예약마감'))}"></span><br />
                     <span th:text="'남은 좌석: ' + ${product.availableSeats}"></span>
+                </div>
+
+                <!-- 출국편/귀국편 정보 -->
+                <div class="flight-info-section" th:if="${product.departFlightDateTime != null or product.returnFlightDateTime != null}">
+                    <!-- 출국편 -->
+                    <div class="flight-card" th:if="${product.departFlightDateTime != null}">
+                        <div class="flight-card-header">
+                            <span class="flight-label">출국편</span>
+                        </div>
+                        <div class="flight-card-body">
+                            <div class="flight-date-time">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span th:text="${#temporals.format(product.departFlightDateTime, 'yyyy년 M월 d일(E) HH:mm')}">2024년 12월 22일(일) 08:40</span>
+                            </div>
+                            <div class="flight-details">
+                                <div class="flight-airline" th:if="${product.departFlightAirline != null}">
+                                    <i class="fas fa-plane"></i>
+                                    <span th:text="${product.departFlightAirline}">대한항공</span>
+                                </div>
+                                <div class="flight-number" th:if="${product.departFlightNumber != null}">
+                                    <span th:text="${product.departFlightNumber}">KE123</span>
+                                </div>
+                            </div>
+                            <div class="flight-route" th:if="${product.departFlightDepartAirport != null and product.departFlightArriveAirport != null}">
+                                <span th:text="${product.departFlightDepartAirport}">인천</span>
+                                <i class="fas fa-arrow-right"></i>
+                                <span th:text="${product.departFlightArriveAirport}">방콕</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 귀국편 -->
+                    <div class="flight-card" th:if="${product.returnFlightDateTime != null}">
+                        <div class="flight-card-header">
+                            <span class="flight-label">귀국편</span>
+                        </div>
+                        <div class="flight-card-body">
+                            <div class="flight-date-time">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span th:text="${#temporals.format(product.returnFlightDateTime, 'yyyy년 M월 d일(E) HH:mm')}">2024년 12월 25일(수) 10:00</span>
+                            </div>
+                            <div class="flight-details">
+                                <div class="flight-airline" th:if="${product.returnFlightAirline != null}">
+                                    <i class="fas fa-plane"></i>
+                                    <span th:text="${product.returnFlightAirline}">대한항공</span>
+                                </div>
+                                <div class="flight-number" th:if="${product.returnFlightNumber != null}">
+                                    <span th:text="${product.returnFlightNumber}">KE124</span>
+                                </div>
+                            </div>
+                            <div class="flight-route" th:if="${product.returnFlightDepartAirport != null and product.returnFlightArriveAirport != null}">
+                                <span th:text="${product.returnFlightDepartAirport}">방콕</span>
+                                <i class="fas fa-arrow-right"></i>
+                                <span th:text="${product.returnFlightArriveAirport}">인천</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
         </section>
 
@@ -728,6 +782,27 @@
             padding: 16px;
         }
 
+        /* 상품 정보 섹션 */
+        .product-info h1 {
+            padding: 0 16px;
+            margin: 16px 0;
+        }
+
+        .product-info p {
+            padding: 0 16px;
+            margin: 0 0 16px 0;
+        }
+
+        .price {
+            padding: 0 16px;
+            margin: 16px 0;
+        }
+
+        .product-status {
+            padding: 0 16px;
+            margin: 16px 0;
+        }
+
         .product-code {
             font-size: 13px;
             color: #666;
@@ -847,6 +922,99 @@
         }
 
         .info-appendix {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        /* 출국편/귀국편 정보 섹션 */
+        .flight-info-section {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .flight-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .flight-card-header {
+            margin-bottom: 12px;
+        }
+        
+        .flight-label {
+            display: inline-block;
+            background: #1976d2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .flight-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .flight-date-time {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .flight-date-time i {
+            color: #1976d2;
+            font-size: 16px;
+        }
+        
+        .flight-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .flight-airline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .flight-airline i {
+            color: #1976d2;
+            font-size: 14px;
+        }
+        
+        .flight-number {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .flight-route {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .flight-route i {
             color: #999;
             font-size: 12px;
         }
