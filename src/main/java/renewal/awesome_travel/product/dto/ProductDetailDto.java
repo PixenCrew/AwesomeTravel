@@ -53,6 +53,20 @@ public class ProductDetailDto {
     private String airline; // 항공사 ( 출발항공사 이름 넣음 )
     private boolean noShopping; // 노쇼핑?
     private boolean noOption; // 노옵션?
+    
+    // 출국편 정보
+    private LocalDateTime departFlightDateTime;
+    private String departFlightNumber;
+    private String departFlightAirline;
+    private String departFlightDepartAirport;
+    private String departFlightArriveAirport;
+    
+    // 귀국편 정보
+    private LocalDateTime returnFlightDateTime;
+    private String returnFlightNumber;
+    private String returnFlightAirline;
+    private String returnFlightDepartAirport;
+    private String returnFlightArriveAirport;
 
     // 상세.1 상품정보 섹션
     private String image;
@@ -107,6 +121,81 @@ public class ProductDetailDto {
         if (this.airline == null && product.getAirline() != null) {
             this.airline = product.getAirline().getNameKor();
         }
+        
+        // 출국편 정보 추출 (day 0의 첫 번째 AIR Location)
+        if (product.getTour() != null && product.getTour().getSchedules() != null) {
+            for (renewal.common.entity.Schedule schedule : product.getTour().getSchedules()) {
+                if (schedule != null && schedule.getDay() != null && schedule.getDay() == 0L 
+                    && schedule.getLocations() != null) {
+                    for (renewal.common.entity.Location location : schedule.getLocations()) {
+                        if (location != null && location.getLocationType() == LocationType.AIR
+                            && location.getSeatClass() != null
+                            && location.getSeatClass().getAir() != null) {
+                            renewal.common.entity.Air air = location.getSeatClass().getAir();
+                            this.departFlightDateTime = air.getDepartDateTime();
+                            this.departFlightNumber = air.getFlightNumber();
+                            if (air.getAirline() != null) {
+                                this.departFlightAirline = air.getAirline().getNameKor();
+                            }
+                            if (air.getDepartAirport() != null) {
+                                this.departFlightDepartAirport = air.getDepartAirport().getAirportKor() != null 
+                                    ? air.getDepartAirport().getAirportKor() 
+                                    : air.getDepartAirport().getAirportEng();
+                            }
+                            if (air.getArriveAirport() != null) {
+                                this.departFlightArriveAirport = air.getArriveAirport().getAirportKor() != null 
+                                    ? air.getArriveAirport().getAirportKor() 
+                                    : air.getArriveAirport().getAirportEng();
+                            }
+                            break;
+                        }
+                    }
+                    if (this.departFlightDateTime != null) {
+                        break;
+                    }
+                }
+            }
+            
+            // 귀국편 정보 추출 (마지막 day의 첫 번째 AIR Location)
+            Long lastDay = product.getTour().getSchedules().stream()
+                .filter(Objects::nonNull)
+                .mapToLong(s -> s.getDay() != null ? s.getDay() : 0L)
+                .max()
+                .orElse(0L);
+            
+            for (renewal.common.entity.Schedule schedule : product.getTour().getSchedules()) {
+                if (schedule != null && schedule.getDay() != null && schedule.getDay().equals(lastDay)
+                    && schedule.getLocations() != null) {
+                    for (renewal.common.entity.Location location : schedule.getLocations()) {
+                        if (location != null && location.getLocationType() == LocationType.AIR
+                            && location.getSeatClass() != null
+                            && location.getSeatClass().getAir() != null) {
+                            renewal.common.entity.Air air = location.getSeatClass().getAir();
+                            this.returnFlightDateTime = air.getDepartDateTime();
+                            this.returnFlightNumber = air.getFlightNumber();
+                            if (air.getAirline() != null) {
+                                this.returnFlightAirline = air.getAirline().getNameKor();
+                            }
+                            if (air.getDepartAirport() != null) {
+                                this.returnFlightDepartAirport = air.getDepartAirport().getAirportKor() != null 
+                                    ? air.getDepartAirport().getAirportKor() 
+                                    : air.getDepartAirport().getAirportEng();
+                            }
+                            if (air.getArriveAirport() != null) {
+                                this.returnFlightArriveAirport = air.getArriveAirport().getAirportKor() != null 
+                                    ? air.getArriveAirport().getAirportKor() 
+                                    : air.getArriveAirport().getAirportEng();
+                            }
+                            break;
+                        }
+                    }
+                    if (this.returnFlightDateTime != null) {
+                        break;
+                    }
+                }
+            }
+        }
+        
         this.noShopping = product.isNoShopping();
         this.noOption = product.isNoOption();
 

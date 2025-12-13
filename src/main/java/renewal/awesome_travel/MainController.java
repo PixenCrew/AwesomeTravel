@@ -35,7 +35,7 @@ import renewal.common.repository.ProductRepository;
 import renewal.common.repository.PromotionRepository;
 import renewal.common.service.ProductServiceCommon;
 import renewal.awesome_travel.banner.dto.repository.BannerRepository;
-import renewal.awesome_travel.popup.entity.Popup;
+import renewal.common.entity.Popup;
 import renewal.awesome_travel.popup.repository.PopupRepository;
 
 @RequiredArgsConstructor

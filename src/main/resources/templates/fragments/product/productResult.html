@@ -507,7 +507,7 @@
     </template>
 
     <script th:inline="javascript">
-        const isSearchContext = /*[[${menuCode == null}]]*/ false;
+        window.isSearchContext = /*[[${menuCode == null}]]*/ false;
         function getCityDropdownElements() {
             return {
                 dropdown: document.getElementById('cityDropdown'),
@@ -577,7 +577,7 @@
                 console.warn('모달 상태 확인 실패:', err);
             }
 
-            if (isSearchContext) {
+            if (window.isSearchContext) {
                 try {
                     if (typeof prevSection === 'function' && typeof sectionStack !== 'undefined' && sectionStack.length > 0) {
                         prevSection();

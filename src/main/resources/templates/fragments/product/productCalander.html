@@ -382,21 +382,35 @@
         /* 상품 목록 */
         .product-list-container {
             margin-top: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            padding: 0;
         }
 
         .product-list {
             display: flex;
             flex-direction: column;
             gap: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0;
         }
 
         .product-item {
             padding: 16px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            background: #ffffff;
+            background: #f5f5f5;
             cursor: pointer;
             transition: all 0.2s ease;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+            width: 100%;
+            max-width: 100%;
         }
 
         .product-item:hover {
@@ -404,58 +418,113 @@
             box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
         }
 
-        .product-date {
+        .product-item-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .product-date-range {
             font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
+            color: #333;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .product-description {
             font-size: 15px;
             color: #333;
             line-height: 1.5;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            max-height: 3em;
         }
 
-        .product-airline {
-            font-size: 13px;
-            color: #999;
-            margin-bottom: 8px;
-        }
-
-        .product-availability {
+        .product-info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
+            font-size: 14px;
         }
 
-        .product-seats {
-            font-size: 13px;
+        .product-info-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-info-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-align: right;
+            justify-content: flex-end;
+        }
+
+        .product-airline-text {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .product-seats-text {
             color: #666;
+            text-align: right;
         }
 
-        .product-status-badge {
-            padding: 4px 8px;
+        .product-status-text {
+            color: #333;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .product-price-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-start;
+        }
+
+        .price-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .product-seat-class {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #e3f2fd;
+            color: #1976d2;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
-        }
-
-        .product-status-badge.available {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .product-status-badge.waiting {
-            background: #fff3e0;
-            color: #f57c00;
         }
 
         .product-price {
             font-size: 18px;
             font-weight: bold;
             color: #f44336;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: hidden;
+            margin-left: auto;
+        }
+        
+        .product-price > div {
             text-align: right;
         }
 
@@ -471,6 +540,64 @@
                 font-size: 10px;
                 padding: 1px 2px;
                 margin: 0;
+            }
+            
+            /* 모바일에서 텍스트 오버플로우 방지 */
+            .product-item {
+                padding: 12px;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .product-description {
+                font-size: 14px;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                max-height: 2.8em;
+            }
+            
+            .product-date-range {
+                font-size: 13px;
+            }
+            
+            .product-info-row {
+                font-size: 13px;
+            }
+            
+            .product-airline-info {
+                font-size: 13px;
+            }
+            
+            .product-seats-status {
+                font-size: 13px;
+            }
+            
+            .price-label {
+                font-size: 13px;
+            }
+            
+            .product-date-range {
+                font-size: 13px;
+            }
+            
+            .product-info-row {
+                font-size: 13px;
+            }
+            
+            .product-airline-info {
+                font-size: 13px;
+            }
+            
+            .product-seats-status {
+                font-size: 13px;
+            }
+            
+            .product-price {
+                font-size: 16px;
+            }
+            
+            .price-label {
+                font-size: 13px;
             }
 
             /* 가격 텍스트 모바일 스타일 */
@@ -733,22 +860,92 @@ ${originalPrice.toLocaleString()}원
                     showProductsForDate(clickedDateStr);
                 },
 
-                events: products.map(e => ({
-                    id: e.id,
-                    title: e.title,
-                    start: e.departDateTime,
-                    extendedProps: {
-                        id: e.id,
-                        departDate: e.departDateTime,
-                        price: e.price,                 // 최종가
-                        originalPrice: e.originalPrice, // 기존가
-                        discountType: e.discountType,
-                        discountValue: e.discountValue,
-                        status: e.status,
-                        hasTimeDeal: e.originalPrice != null,
-                        remainSeats: e.remainSeats || 0  // 잔여 좌석 수
-                    }
-                }))
+                events: (function() {
+                    // 날짜별로 상품 그룹화
+                    const productsByDate = {};
+                    
+                    products.forEach(e => {
+                        if (!e.departDateTime) return;
+                        
+                        // 날짜만 추출 (시간 제외)
+                        const date = new Date(e.departDateTime);
+                        const dateKey = date.getFullYear() + '-' + 
+                                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                                       String(date.getDate()).padStart(2, '0');
+                        
+                        if (!productsByDate[dateKey]) {
+                            productsByDate[dateKey] = [];
+                        }
+                        productsByDate[dateKey].push(e);
+                    });
+                    
+                    // 각 날짜별로 최저가 이벤트 생성
+                    const events = [];
+                    Object.keys(productsByDate).forEach(dateKey => {
+                        const dateProducts = productsByDate[dateKey];
+                        
+                        // 최저가 찾기
+                        let minPrice = Infinity;
+                        let minOriginalPrice = null;
+                        let minPriceProduct = null;
+                        let hasTimeDeal = false;
+                        let discountType = null;
+                        let discountValue = null;
+                        let maxRemainSeats = 0;
+                        let status = 'AVAILABLE';
+                        
+                        dateProducts.forEach(p => {
+                            const price = p.price || 0;
+                            if (price < minPrice) {
+                                minPrice = price;
+                                minPriceProduct = p;
+                                minOriginalPrice = p.originalPrice;
+                                hasTimeDeal = p.originalPrice != null;
+                                discountType = p.discountType;
+                                discountValue = p.discountValue;
+                            }
+                            
+                            // 최대 잔여 좌석
+                            const seats = p.remainSeats || 0;
+                            if (seats > maxRemainSeats) {
+                                maxRemainSeats = seats;
+                            }
+                            
+                            // 상태 우선순위: CONFIRMED > WAITING > AVAILABLE
+                            if (p.status === 'CONFIRMED') {
+                                status = 'CONFIRMED';
+                            } else if (p.status === 'WAITING' && status !== 'CONFIRMED') {
+                                status = 'WAITING';
+                            }
+                        });
+                        
+                        if (minPriceProduct) {
+                            // 첫 번째 상품의 출발 시간 사용 (날짜는 dateKey 사용)
+                            const firstProduct = dateProducts[0];
+                            const eventDate = new Date(firstProduct.departDateTime);
+                            eventDate.setHours(0, 0, 0, 0);
+                            
+                            events.push({
+                                id: 'date-' + dateKey,
+                                title: minPriceProduct.title,
+                                start: eventDate.toISOString(),
+                                extendedProps: {
+                                    dateKey: dateKey,
+                                    productIds: dateProducts.map(p => p.id),
+                                    price: minPrice,
+                                    originalPrice: minOriginalPrice,
+                                    discountType: discountType,
+                                    discountValue: discountValue,
+                                    status: status,
+                                    hasTimeDeal: hasTimeDeal,
+                                    remainSeats: maxRemainSeats
+                                }
+                            });
+                        }
+                    });
+                    
+                    return events;
+                })()
 
             });
 
@@ -792,47 +989,54 @@ ${originalPrice.toLocaleString()}원
                         
                         const departDateStr = `${departDate.getFullYear()}.${String(departDate.getMonth() + 1).padStart(2, '0')}.${String(departDate.getDate()).padStart(2, '0')}(${days[departDate.getDay()]}) ${String(departDate.getHours()).padStart(2, '0')}:${String(departDate.getMinutes()).padStart(2, '0')}`;
                         const returnDateStr = `${returnDate.getFullYear()}.${String(returnDate.getMonth() + 1).padStart(2, '0')}.${String(returnDate.getDate()).padStart(2, '0')}(${days[returnDate.getDay()]})`;
+                        const dateRangeStr = `${departDateStr} ~ ${returnDateStr}`;
 
                         const statusBadge = p.status === 'WAITING' 
                             ? '<span class="product-status-badge waiting">예약대기</span>'
                             : '<span class="product-status-badge available">예약가능</span>';
 
-                        // 타임딜 가격 표시
-                        let priceHtml = '';
-                        if (p.originalPrice != null) {
-                            priceHtml = `
-                                <div style="text-decoration:line-through;color:#999;font-size:14px;">
-                                    ${p.originalPrice.toLocaleString()}원
-                                </div>
-                                <div style="color:#d93025;font-weight:bold;font-size:14px;">
-                                    ${p.discountType === 'PERCENT' ? '🔥 ' + p.discountValue + '%↓' : '🔥 ' + p.discountValue.toLocaleString() + '원↓'}
-                                </div>
-                                <div style="font-weight:bold;font-size:16px;color:#f44336;">
-                                    ${(p.price || 0).toLocaleString()}원
-                                </div>
-                            `;
-                        } else {
-                            priceHtml = `<div style="font-weight:bold;font-size:16px;color:#f44336;">${(p.price || 0).toLocaleString()}원</div>`;
-                        }
+                        // 가격 표시 (이미지 디자인에 맞게)
+                        let priceHtml = `
+                            <div style="font-weight:bold;font-size:18px;color:#f44336;">
+                                ${(p.price || 0).toLocaleString()}원
+                            </div>
+                        `;
 
                         const item = document.createElement('div');
                         item.className = 'product-item';
                         item.style.cursor = 'pointer';
+                        // 좌석 등급 표시
+                        const seatClassBadge = p.seatClassType 
+                            ? `<span class="product-seat-class">${p.seatClassType}</span>` 
+                            : '';
+                        
                         item.innerHTML = `
-                            <div class="product-date">${departDateStr} ~ ${returnDateStr}</div>
-                            <div class="product-description">${p.title || ''} ${p.description || ''}</div>
-                            <div class="product-airline">${p.airline || ''}</div>
-                            <div class="product-availability">
-                                <span class="product-seats">(잔여 ${p.remainSeats || 0}석) ${p.status === 'WAITING' ? '예약대기' : '예약가능'}</span>
-                                ${statusBadge}
+                            <div class="product-item-content">
+                                <div class="product-date-range">${dateRangeStr}</div>
+                                <div class="product-description">${p.title || ''}</div>
+                                <div class="product-info-row">
+                                    <div class="product-info-left">
+                                        <span class="product-airline-text">${p.airline || ''}</span>
+                                    </div>
+                                    <div class="product-info-right">
+                                        <span class="product-seats-text">(잔여 ${p.remainSeats || 0}석)</span>
+                                        <span class="product-status-text">${p.status === 'WAITING' ? '예약대기' : '예약가능'}</span>
+                                    </div>
+                                </div>
+                                <div class="product-price-row">
+                                    <div class="price-label">금액</div>
+                                    ${seatClassBadge}
+                                    <div class="product-price">${priceHtml}</div>
+                                </div>
                             </div>
-                            <div class="product-price">${priceHtml}</div>
                         `;
 
                         const departDateOnly = p.departDateTime.split('T')[0];
                         // 선택한 항공편의 출발 시간을 전달 (같은 날짜에 여러 항공편이 있을 때 구분하기 위해)
                         const departTime = p.departDateTime.split('T')[1]; // "08:40:00" 형식
-                        const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDateOnly)}&departTime=${encodeURIComponent(departTime || '')}`;
+                        // 귀국 시간도 함께 전달하여 정확한 조합 매칭
+                        const returnTime = p.returnDateTime ? p.returnDateTime.split('T')[1] : '';
+                        const fetchTarget = `/product/detail/${p.id}?departDate=${encodeURIComponent(departDateOnly)}&departTime=${encodeURIComponent(departTime || '')}&returnTime=${encodeURIComponent(returnTime || '')}`;
                         item.addEventListener('click', () => {
                             addModal(fetchTarget);
                         });
