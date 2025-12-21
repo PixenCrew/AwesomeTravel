@@ -393,9 +393,6 @@
     <div class="air-search-container">
         <header class="air-search-header">
             <h1 class="air-search-main-title">항공편 예약</h1>
-            <div class="air-search-sub-header">
-                <span class="air-search-sub-title">항공 예약</span>
-            </div>
         </header>
 
         <div class="section-body">
@@ -586,7 +583,21 @@
             </div>
 
             <!-- 프로모션 배너 -->
-            <div class="air-search-promo-banner">
+            <div class="air-search-promo-banner" th:if="${banners != null and !banners.empty}">
+                <div th:each="banner, iterStat : ${banners}" 
+                     th:style="|background-image: url('${banner.file}');|"
+                     th:onclick="|if('${banner.url}' != '') { window.location.href='${banner.url}'; }|"
+                     style="cursor: pointer; padding: 20px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 10px;">
+                    <p class="air-search-promo-text" th:text="${banner.title}">신용카드 결제 시 5% 추가 할인</p>
+                </div>
+                <div class="air-search-promo-dots" th:if="${#lists.size(banners) > 1}">
+                    <div class="air-search-promo-dot" 
+                         th:each="banner, iterStat : ${banners}"
+                         th:classappend="${iterStat.first} ? 'active' : ''"></div>
+                </div>
+            </div>
+            <!-- 배너가 없을 때 기본 배너 -->
+            <div class="air-search-promo-banner" th:unless="${banners != null and !banners.empty}">
                 <p class="air-search-promo-text">신용카드 결제 시 5% 추가 할인</p>
                 <p class="air-search-promo-text">로열티 프로그램</p>
                 <div class="air-search-promo-dots">

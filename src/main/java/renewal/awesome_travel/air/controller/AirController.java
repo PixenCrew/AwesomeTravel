@@ -42,6 +42,8 @@ import renewal.common.repository.PurchaseAirRepository;
 import renewal.common.repository.SeatClassRepository;
 import renewal.common.service.AirServiceCommon;
 import renewal.common.service.PassengerServiceCommon;
+import renewal.awesome_travel.banner.dto.repository.BannerRepository;
+import renewal.common.entity.Banner;
 
 @Controller
 @RequiredArgsConstructor
@@ -57,10 +59,17 @@ public class AirController {
     private final PassengerServiceCommon passengerServiceCommon;
     private final PurchaseAirService purchaseAirService;
     private final AirRepository airRepo;
+    private final BannerRepository bannerRepo;
 
     @GetMapping("/search")
     public String getAirSearch(Model model) {
+        // 항공선택 페이지 배너 조회
+        java.time.LocalDate today = java.time.LocalDate.now();
+        List<Banner> airBanners = bannerRepo.findByLocationTypeAndLocationIdentifierAndActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
+                Banner.BannerLocationType.AIR_SEARCH, "air_search", today, today);
+        
         model.addAttribute("searchRequest", new AirSearchRequestDto());
+        model.addAttribute("banners", airBanners);
         return "fragments/air/airSearch";
     }
 
