@@ -63,13 +63,20 @@ public class AirController {
 
     @GetMapping("/search")
     public String getAirSearch(Model model) {
-        // 항공선택 페이지 배너 조회
-        java.time.LocalDate today = java.time.LocalDate.now();
-        List<Banner> airBanners = bannerRepo.findByLocationTypeAndLocationIdentifierAndActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
-                Banner.BannerLocationType.AIR_SEARCH, "air_search", today, today);
-        
-        model.addAttribute("searchRequest", new AirSearchRequestDto());
-        model.addAttribute("banners", airBanners);
+        try {
+            // 항공선택 페이지 배너 조회
+            java.time.LocalDate today = java.time.LocalDate.now();
+            List<Banner> airBanners = bannerRepo.findByLocationTypeAndLocationIdentifierAndActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
+                    Banner.BannerLocationType.AIR_SEARCH, "air_search", today, today);
+            
+            model.addAttribute("searchRequest", new AirSearchRequestDto());
+            model.addAttribute("banners", airBanners != null ? airBanners : java.util.Collections.emptyList());
+        } catch (Exception e) {
+            // 배너 조회 실패 시 빈 리스트로 처리
+            e.printStackTrace();
+            model.addAttribute("searchRequest", new AirSearchRequestDto());
+            model.addAttribute("banners", java.util.Collections.emptyList());
+        }
         return "fragments/air/airSearch";
     }
 

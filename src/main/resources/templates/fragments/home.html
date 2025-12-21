@@ -340,25 +340,52 @@
 
             // 배너 클릭 핸들러
             window.handleBannerClick = function(element) {
-                const url = element.dataset.url;
-                if (url && url.trim() !== '') {
-                    // /menu/101001 형식의 URL인지 확인
-                    const menuMatch = url.match(/^\/menu\/(\d{6})$/);
-                    if (menuMatch) {
-                        const menuCode = menuMatch[1];
-                        // 앞 3자리를 추출하여 서브메인 코드 생성
-                        const subMainCode = menuCode.substring(0, 3);
-                        // 전역 변수에 targetMenu 저장 (서브메인 페이지에서 사용)
-                        window.pendingTargetMenu = menuCode;
-                        // 서브메인으로 이동
-                        fetchSection('/subMain/' + subMainCode);
+                const url = element.getAttribute('data-url');
+                if (!url || url.trim() === '') {
+                    return;
+                }
+                
+                const trimmedUrl = url.trim();
+                
+                // 외부 URL인 경우 (http:// 또는 https://로 시작)
+                if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+                    window.location.href = trimmedUrl;
+                    return;
+                }
+                
+                // /menu/101001 형식의 URL인지 확인
+                const menuMatch = trimmedUrl.match(/^\/menu\/(\d{6})$/);
+                if (menuMatch) {
+                    const menuCode = menuMatch[1];
+                    // 앞 3자리를 추출하여 서브메인 코드 생성
+                    const subMainCode = menuCode.substring(0, 3);
+                    // 전역 변수에 targetMenu 저장 (서브메인 페이지에서 사용)
+                    window.pendingTargetMenu = menuCode;
+                    // 서브메인으로 이동
+                    if (typeof fetchSection === 'function') {
+                        fetchSection('/subMain/' + subMainCode).catch(err => {
+                            console.error('배너 클릭 오류:', err);
+                            // fetchSection 실패 시 일반 페이지 이동으로 fallback
+                            window.location.href = trimmedUrl;
+                        });
                     } else {
-                        // 메뉴 경로가 아니면 기존대로 이동
+                        window.location.href = trimmedUrl;
+                    }
+                } else {
+                    // 내부 경로인 경우 (/로 시작하는 경로)
+                    if (trimmedUrl.startsWith('/')) {
                         if (typeof fetchSection === 'function') {
-                            fetchSection(url);
+                            fetchSection(trimmedUrl).catch(err => {
+                                console.error('배너 클릭 오류:', err);
+                                // fetchSection 실패 시 일반 페이지 이동으로 fallback
+                                window.location.href = trimmedUrl;
+                            });
                         } else {
-                            window.location.href = url;
+                            window.location.href = trimmedUrl;
                         }
+                    } else {
+                        // 상대 경로나 기타 경우 일반 페이지 이동
+                        window.location.href = trimmedUrl;
                     }
                 }
             };

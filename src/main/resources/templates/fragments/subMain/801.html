@@ -30,24 +30,30 @@
             </div>
         </div>
 
-        <!-- 배너 섹션 -->
-        <div class="europe-banner-section" th:if="${banners != null and !banners.empty}">
-            <div class="europe-banner-content" 
-                 th:each="banner : ${banners}"
-                 th:style="|background-image: url('${banner.file}');|"
-                 th:onclick="|if('${banner.url}' != '') { window.location.href='${banner.url}'; }|"
-                 style="cursor: pointer;">
-                <p class="europe-banner-title" th:text="${banner.title}">배너 이미지입니다.</p>
-                <p class="europe-banner-text">어디로 떠날지 고민이시라면?</p>
-                <p class="europe-banner-text">여기서 추천받으세요!</p>
+        <!-- 배너 캐러셀 -->
+        <div class="europe-banner-carousel" th:if="${banners != null and !banners.empty}">
+            <div class="banner-carousel-container">
+                <div class="banner-carousel-track" id="europeBannerCarouselTrack">
+                    <div class="banner-carousel-slide" th:each="banner, iterStat : ${banners}" 
+                         th:style="|background-image: url('${banner.file}');|"
+                         th:attr="data-url=${banner.url != null and !banner.url.isEmpty() ? banner.url : ''}"
+                         onclick="handleBannerClick(this)">
+                    </div>
+                </div>
+            </div>
+            <div class="banner-indicator">
+                <span id="europeBannerIndicator" th:text="|1/${#lists.size(banners)}|">1/1</span>
+            </div>
+            <div class="banner-dots" th:if="${#lists.size(banners) > 1}">
+                <span class="banner-dot" th:each="banner, iterStat : ${banners}" 
+                      th:classappend="${iterStat.first} ? 'active' : ''"
+                      th:data-slide-index="${iterStat.index}"
+                      onclick="goToEuropeBannerSlideFromDot(this)"></span>
             </div>
         </div>
         <!-- 배너가 없을 때 기본 배너 -->
         <div class="europe-banner-section" th:unless="${banners != null and !banners.empty}">
             <div class="europe-banner-content">
-                <p class="europe-banner-title">배너 이미지입니다.</p>
-                <p class="europe-banner-text">어디로 떠날지 고민이시라면?</p>
-                <p class="europe-banner-text">여기서 추천받으세요!</p>
             </div>
         </div>
 
@@ -60,7 +66,8 @@
                 <div class="europe-product-item" 
                      th:each="menuCode : ${menuCodes}" 
                      th:if="${menuCode.code2 >= 801001 && menuCode.code2 <= 802001 && menuCodeProductMap.containsKey(menuCode.code)}"
-                     th:onclick="|addModal('/product/' + ${menuCodeProductMap.get(menuCode.code).id})|"
+                     th:attr="data-product-id=${menuCodeProductMap.get(menuCode.code).id}"
+                     onclick="handleProductClick(this)"
                      style="cursor: pointer;">
                     <div class="europe-product-image">
                         <img src="/images/placeholder.png" alt="상품 이미지" />
@@ -171,6 +178,80 @@
                 }
             }, 300);
         }
+
+        // 배너 클릭 처리 함수
+        window.handleBannerClick = function(element) {
+            const url = element.getAttribute('data-url');
+            if (url && url.trim() !== '') {
+                window.location.href = url;
+            }
+        };
+
+        // 상품 클릭 처리 함수
+        window.handleProductClick = function(element) {
+            const productId = element.getAttribute('data-product-id');
+            if (productId && typeof addModal === 'function') {
+                addModal('/product/' + productId);
+            }
+        };
+
+        // 서브메뉴 배너 캐러셀 초기화
+        (function() {
+            const track = document.getElementById('europeBannerCarouselTrack');
+            if (!track) return;
+            
+            const carousel = track.closest('.europe-banner-carousel');
+            if (!carousel) return;
+            
+            const slides = track.querySelectorAll('.banner-carousel-slide');
+            const dots = carousel.querySelectorAll('.banner-dot');
+            const indicator = document.getElementById('europeBannerIndicator');
+            if (!slides.length || !indicator) return;
+            
+            const totalSlides = slides.length;
+            let currentIndex = 0;
+            let autoSlideInterval;
+
+            function goToSlide(index) {
+                if (index < 0) index = totalSlides - 1;
+                if (index >= totalSlides) index = 0;
+                
+                currentIndex = index;
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                
+                if (indicator) {
+                    indicator.textContent = `${currentIndex + 1}/${totalSlides}`;
+                }
+                
+                if (dots) {
+                    dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === currentIndex);
+                    });
+                }
+            }
+
+            window.goToEuropeBannerSlideFromDot = function(element) {
+                const index = parseInt(element.getAttribute('data-slide-index'));
+                goToSlide(index);
+                resetAutoSlide();
+            };
+
+            function startAutoSlide() {
+                if (totalSlides <= 1) return;
+                autoSlideInterval = setInterval(() => {
+                    goToSlide(currentIndex + 1);
+                }, 4000);
+            }
+
+            function resetAutoSlide() {
+                clearInterval(autoSlideInterval);
+                startAutoSlide();
+            }
+
+            if (totalSlides > 1) {
+                startAutoSlide();
+            }
+        })();
     </script>
 </div>
 
