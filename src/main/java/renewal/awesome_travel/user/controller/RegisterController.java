@@ -243,6 +243,12 @@ public class RegisterController {
         }
     }
 
+    @GetMapping("/emailVerification")
+    public String emailVerificationForm(@RequestParam(required = false) String email, Model model) {
+        model.addAttribute("email", email);
+        return "fragments/register/emailVerification";
+    }
+
     @GetMapping("/done")
     public String registerDone() {
         return "fragments/register/registerDone";
