@@ -64,6 +64,7 @@ import renewal.common.entity.PurchaseBase.PurchaseStatus;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.Schedule;
 import renewal.common.entity.TimeDeal;
+import renewal.common.entity.Tour;
 import renewal.common.entity.User;
 import renewal.common.entity.User.MemberGrade;
 import renewal.common.entity.User.RecentViewedItem;
@@ -134,13 +135,32 @@ public class ProductController {
         List<Product> calcedResult = new ArrayList<>();
         if (result != null) {
             for (Product product : result) {
+                if (product == null || product.getCutoffDays() == null) {
+                    continue;
+                }
+                Hibernate.initialize(product.getTour());
+                Tour tour = product.getTour();
+                if (tour == null) {
+                    continue;
+                }
 
                 Product calcedProduct = null;
                 int plusDays = product.getCutoffDays().intValue();
                 int maxPlusDays = product.getCutoffDays().intValue() + 100;
 
                 while (calcedProduct == null && plusDays < maxPlusDays) {
-                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                    LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                    
+                    // Tour의 startDate와 endDate 범위 체크
+                    if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                        plusDays++;
+                        continue;
+                    }
+                    if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                        break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                    }
+                    
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
                     plusDays++;
                 }
 
@@ -187,8 +207,21 @@ public class ProductController {
                 ? target.getTour().getPriceInfant()
                 : 0L;
 
+        Hibernate.initialize(target.getTour());
+        Tour tour = target.getTour();
+        LocalDate tourStartDate = tour != null ? tour.getStartDate() : null;
+        LocalDate tourEndDate = tour != null ? tour.getEndDate() : null;
+
         for (int i = 0; i < 180; i++) {
             LocalDate targetDate = minDepartDate.plusDays(i);
+            
+            // Tour의 startDate와 endDate 범위 체크
+            if (tourStartDate != null && targetDate.isBefore(tourStartDate)) {
+                continue;
+            }
+            if (tourEndDate != null && targetDate.isAfter(tourEndDate)) {
+                break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+            }
 
             // 같은 날짜의 모든 항공편 찾기
             List<Product> calcProducts = findMultipleProductsForDate(target, targetDate, seatClassRepo);
@@ -248,7 +281,11 @@ public class ProductController {
             // 항공편이 없는 날짜는 달력에 표시하지 않음 (fallback 로직 완전 제거)
         }
 
+        // 6개월치를 돌았는데도 항공권이 없는 경우
+        boolean hasNoProducts = result.isEmpty();
         model.addAttribute("products", result);
+        model.addAttribute("hasNoProducts", hasNoProducts);
+        model.addAttribute("productTitle", target.getTitle());
 
         return "fragments/product/productCalander";
     }

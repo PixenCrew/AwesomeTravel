@@ -518,6 +518,34 @@ function openModal(endPoint, payload = null) {
         // 모달 내용 로드 후 스크롤 리스너 추가
         setTimeout(() => {
             addScrollListeners();
+            // productResult 페이지인 경우 모든 기능 초기화
+            if (endPoint && endPoint.includes('/product/search')) {
+                let retryCount = 0;
+                const maxRetries = 15;
+                const initAll = function() {
+                    const listBtn = newModal.querySelector('#listViewBtn');
+                    const gridBtn = newModal.querySelector('#gridViewBtn');
+                    const sortSelect = newModal.querySelector('#sortSelect');
+                    const listView = newModal.querySelector('#productListView');
+                    const gridView = newModal.querySelector('#productGridView');
+                    
+                    if ((listBtn && gridBtn && sortSelect && listView && gridView) || retryCount >= maxRetries) {
+                        if (typeof window.initProductResultView === 'function') {
+                            window.initProductResultView();
+                        }
+                        if (typeof window.initProductResultViewType === 'function') {
+                            window.initProductResultViewType();
+                        }
+                        if (typeof window.initProductResultSortAndFilter === 'function') {
+                            window.initProductResultSortAndFilter();
+                        }
+                    } else {
+                        retryCount++;
+                        setTimeout(initAll, 100);
+                    }
+                };
+                setTimeout(initAll, 200);
+            }
         }, 100);
     }); // 모달 내용물 fetch
     modalBody.appendChild(newModal);
@@ -583,6 +611,35 @@ function addModal(endPoint, flush = false, payload = null) {
                 // 모달 내용 로드 후 스크롤 리스너 추가
                 setTimeout(() => {
                     addScrollListeners();
+                    // productResult 페이지인 경우 모든 기능 초기화
+                    if (endPoint && endPoint.includes('/product/search')) {
+                        let retryCount = 0;
+                        const maxRetries = 20;
+                        const initAll = function() {
+                            const listBtn = newModal.querySelector('#listViewBtn');
+                            const gridBtn = newModal.querySelector('#gridViewBtn');
+                            const sortSelect = newModal.querySelector('#sortSelect');
+                            const listView = newModal.querySelector('#productListView');
+                            const gridView = newModal.querySelector('#productGridView');
+                            
+                            if ((listBtn && gridBtn && sortSelect && listView && gridView) || retryCount >= maxRetries) {
+                                console.log('Initializing product result functions, retry:', retryCount);
+                                if (typeof window.initProductResultView === 'function') {
+                                    window.initProductResultView();
+                                }
+                                if (typeof window.initProductResultViewType === 'function') {
+                                    window.initProductResultViewType();
+                                }
+                                if (typeof window.initProductResultSortAndFilter === 'function') {
+                                    window.initProductResultSortAndFilter();
+                                }
+                            } else {
+                                retryCount++;
+                                setTimeout(initAll, 100);
+                            }
+                        };
+                        setTimeout(initAll, 300);
+                    }
                 }, 100);
             }, 0);
 
@@ -1048,6 +1105,46 @@ function executeScripts(container) {
         document.body.appendChild(s);
         document.body.removeChild(s);
     });
+    
+    // productResult 페이지의 경우 모든 기능 초기화 함수 호출
+    // container에 productResult 관련 요소가 있는지 확인
+    const isProductResult = container.querySelector && (
+        container.querySelector('#productListView') || 
+        container.querySelector('#productGridView') ||
+        container.querySelector('#listViewBtn') ||
+        container.querySelector('#gridViewBtn') ||
+        container.querySelector('#sortSelect') ||
+        container.classList.contains('product-search-result-container')
+    );
+    
+    if (isProductResult) {
+        // DOM이 완전히 준비될 때까지 여러 번 시도
+        let retryCount = 0;
+        const maxRetries = 15;
+        const initAll = function() {
+            const listBtn = container.querySelector('#listViewBtn');
+            const gridBtn = container.querySelector('#gridViewBtn');
+            const sortSelect = container.querySelector('#sortSelect');
+            const listView = container.querySelector('#productListView');
+            const gridView = container.querySelector('#productGridView');
+            
+            if ((listBtn && gridBtn && sortSelect && listView && gridView) || retryCount >= maxRetries) {
+                if (typeof window.initProductResultView === 'function') {
+                    window.initProductResultView();
+                }
+                if (typeof window.initProductResultViewType === 'function') {
+                    window.initProductResultViewType();
+                }
+                if (typeof window.initProductResultSortAndFilter === 'function') {
+                    window.initProductResultSortAndFilter();
+                }
+            } else {
+                retryCount++;
+                setTimeout(initAll, 100);
+            }
+        };
+        setTimeout(initAll, 200);
+    }
 }
 
 // URL 해시(#...) 감지 → 해당 섹션 표시

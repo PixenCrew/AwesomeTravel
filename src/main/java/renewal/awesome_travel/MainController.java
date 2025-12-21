@@ -29,6 +29,7 @@ import renewal.common.entity.Banner;
 import renewal.common.entity.MenuCode;
 import renewal.common.entity.Product;
 import renewal.common.entity.Promotion;
+import renewal.common.entity.Tour;
 import renewal.common.entity.User;
 import renewal.common.repository.MenuCodeRepository;
 import renewal.common.repository.ProductRepository;
@@ -55,10 +56,10 @@ public class MainController {
     @GetMapping
     public String main(Principal principal, HttpServletRequest request, Model model) {
 
-        // 배너 목록 가져오기 (현재 날짜 기준 활성화된 배너)
+        // 배너 목록 가져오기 (현재 날짜 기준 활성화된 홈페이지 배너)
         LocalDate today = LocalDate.now();
-        List<Banner> banners = bannerRepo.findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
-                today, today);
+        List<Banner> banners = bannerRepo.findByLocationTypeAndActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
+                Banner.BannerLocationType.HOME, today, today);
         model.addAttribute("banners", banners);
 
         // 팝업 목록 가져오기 (현재 날짜 기준 활성화된 팝업)
@@ -78,7 +79,49 @@ public class MainController {
             // 로그인 상태 → User의 element collections 사용
             model.addAttribute("currentUser", user);
 
-            model.addAttribute("recentProducts", actualRecentProducts);
+            // 추천상품 100일치 항공권 필터링 적용
+            List<Product> filteredRecentProducts = new ArrayList<>();
+            for (Product product : actualRecentProducts) {
+                if (product == null || product.getCutoffDays() == null) {
+                    continue;
+                }
+                Hibernate.initialize(product.getTour());
+                Tour tour = product.getTour();
+                if (tour == null) {
+                    continue;
+                }
+                
+                Product calcedProduct = null;
+                int plusDays = product.getCutoffDays().intValue();
+                int maxPlusDays = plusDays + 100;
+                
+                while (calcedProduct == null && plusDays < maxPlusDays) {
+                    LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                    
+                    // Tour의 startDate와 endDate 범위 체크
+                    if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                        plusDays++;
+                        continue;
+                    }
+                    if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                        break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                    }
+                    
+                    try {
+                        Product productCopy = (Product) product.clone();
+                        calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                    } catch (CloneNotSupportedException e) {
+                        calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                    }
+                    plusDays++;
+                }
+                
+                if (calcedProduct != null) {
+                    filteredRecentProducts.add(calcedProduct);
+                }
+            }
+            
+            model.addAttribute("recentProducts", filteredRecentProducts);
             model.addAttribute("likedProducts", actualLikedProducts);
             // ElementCollection의 개수 사용 (UserLikedProduct 엔티티가 아님)
             model.addAttribute("likedProductsCount", user.getLikedProducts() != null ? user.getLikedProducts().size() : 0);
@@ -89,7 +132,49 @@ public class MainController {
             Pageable pageable = PageRequest.of(0, 5);
             List<Product> recentProducts = productRepo.findRecentProducts(pageable);
 
-            model.addAttribute("recentProducts", recentProducts);
+            // 추천상품 100일치 항공권 필터링 적용
+            List<Product> filteredRecentProducts = new ArrayList<>();
+            for (Product product : recentProducts) {
+                if (product == null || product.getCutoffDays() == null) {
+                    continue;
+                }
+                Hibernate.initialize(product.getTour());
+                Tour tour = product.getTour();
+                if (tour == null) {
+                    continue;
+                }
+                
+                Product calcedProduct = null;
+                int plusDays = product.getCutoffDays().intValue();
+                int maxPlusDays = plusDays + 100;
+                
+                while (calcedProduct == null && plusDays < maxPlusDays) {
+                    LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                    
+                    // Tour의 startDate와 endDate 범위 체크
+                    if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                        plusDays++;
+                        continue;
+                    }
+                    if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                        break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                    }
+                    
+                    try {
+                        Product productCopy = (Product) product.clone();
+                        calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                    } catch (CloneNotSupportedException e) {
+                        calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                    }
+                    plusDays++;
+                }
+                
+                if (calcedProduct != null) {
+                    filteredRecentProducts.add(calcedProduct);
+                }
+            }
+            
+            model.addAttribute("recentProducts", filteredRecentProducts);
             model.addAttribute("likedProducts", Collections.emptyList());
         }
 
@@ -98,33 +183,43 @@ public class MainController {
         List<Product> timeDealProducts = productRepo.findActiveTimeDealProducts();
 
         for (Product product : timeDealProducts) {
+            if (product == null || product.getCutoffDays() == null) {
+                continue;
+            }
+            Hibernate.initialize(product.getTour());
+            Tour tour = product.getTour();
+            if (tour == null) {
+                continue;
+            }
 
             Product calcedProduct = null;
             int plusDays = product.getCutoffDays().intValue();
-            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+            int maxPlusDays = product.getCutoffDays().intValue() + 60;
 
             while (calcedProduct == null && plusDays < maxPlusDays) {
+                LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                
+                // Tour의 startDate와 endDate 범위 체크
+                if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                    plusDays++;
+                    continue;
+                }
+                if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                    break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                }
+                
                 try {
                     Product productCopy = (Product) product.clone();
-                    calcedProduct = productServiceCommon.calcSingleProduct(productCopy, LocalDate.now().plusDays(plusDays));
+                    calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                 } catch (CloneNotSupportedException e) {
                     // Clone 실패 시 원본 사용
-                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
                 }
                 plusDays++;
             }
 
-            // calcSingleProduct가 null을 반환한 경우 fallback 처리
-            if (calcedProduct == null) {
-                try {
-                    Product fallbackProduct = (Product) product.clone();
-                    // 타임딜 정보는 유지되므로 fallback 상품도 추가
-                    resulProducts.add(fallbackProduct);
-                } catch (CloneNotSupportedException e) {
-                    // Clone 실패 시 원본 상품 추가
-                    resulProducts.add(product);
-                }
-            } else {
+            // 항공권이 있는 상품만 추가 (fallback 제거)
+            if (calcedProduct != null) {
                 resulProducts.add(calcedProduct);
             }
 
@@ -193,7 +288,67 @@ public class MainController {
 
         List<MenuCode> menuCodes = menuCodeRepo.findAllByCodeStartingWith(menuCode); // 앞 3자리로 시작하는 MenuCode들
 
+        // 각 menuCode에 해당하는 첫 번째 상품을 찾아서 Map으로 저장 (100일치 항공권 필터링 적용)
+        java.util.Map<String, Product> menuCodeProductMap = new java.util.HashMap<>();
+        for (MenuCode code : menuCodes) {
+            List<Product> products = productService.findProductsByMenuCode(code);
+            if (!products.isEmpty()) {
+                // 100일치 항공권 필터링을 통해 항공권이 있는 첫 번째 상품 찾기
+                Product foundProduct = null;
+                for (Product product : products) {
+                    if (product == null || product.getCutoffDays() == null) {
+                        continue;
+                    }
+                    Hibernate.initialize(product.getTour());
+                    Tour tour = product.getTour();
+                    if (tour == null) {
+                        continue;
+                    }
+                    
+                    Product calcedProduct = null;
+                    int plusDays = product.getCutoffDays().intValue();
+                    int maxPlusDays = plusDays + 100;
+                    
+                    while (calcedProduct == null && plusDays < maxPlusDays) {
+                        LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                        
+                        // Tour의 startDate와 endDate 범위 체크
+                        if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                            plusDays++;
+                            continue;
+                        }
+                        if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                            break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                        }
+                        
+                        try {
+                            Product productCopy = (Product) product.clone();
+                            calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                        } catch (CloneNotSupportedException e) {
+                            calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                        }
+                        plusDays++;
+                    }
+                    
+                    if (calcedProduct != null) {
+                        foundProduct = calcedProduct;
+                        break;
+                    }
+                }
+                if (foundProduct != null) {
+                    menuCodeProductMap.put(code.getCode(), foundProduct);
+                }
+            }
+        }
+
+        // 서브메뉴 배너 조회
+        LocalDate today = LocalDate.now();
+        List<Banner> subMenuBanners = bannerRepo.findByLocationTypeAndLocationIdentifierAndActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByDisplayOrderAsc(
+                Banner.BannerLocationType.SUB_MENU, menuCode, today, today);
+
         model.addAttribute("menuCodes", menuCodes);
+        model.addAttribute("menuCodeProductMap", menuCodeProductMap);
+        model.addAttribute("banners", subMenuBanners);
 
         return "fragments/subMain/" + menuCode;
     }
@@ -224,13 +379,34 @@ public class MainController {
                 if (product == null || product.getCutoffDays() == null) {
                     continue;
                 }
+                Hibernate.initialize(product.getTour());
+                Tour tour = product.getTour();
+                if (tour == null) {
+                    continue;
+                }
 
                 Product calcedProduct = null;
                 int plusDays = product.getCutoffDays().intValue();
-                int maxPlusDays = plusDays + 30;
+                int maxPlusDays = plusDays + 100;
 
                 while (calcedProduct == null && plusDays < maxPlusDays) {
-                    calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                    LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                    
+                    // Tour의 startDate와 endDate 범위 체크
+                    if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                        plusDays++;
+                        continue;
+                    }
+                    if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                        break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                    }
+                    
+                    try {
+                        Product productCopy = (Product) product.clone();
+                        calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                    } catch (CloneNotSupportedException e) {
+                        calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                    }
                     plusDays++;
                 }
 
@@ -324,13 +500,37 @@ public class MainController {
         List<Product> timeDealProducts = productRepo.findActiveTimeDealProducts();
 
         for (Product product : timeDealProducts) {
+            if (product == null || product.getCutoffDays() == null) {
+                continue;
+            }
+            Hibernate.initialize(product.getTour());
+            Tour tour = product.getTour();
+            if (tour == null) {
+                continue;
+            }
 
             Product calcedProduct = null;
             int plusDays = product.getCutoffDays().intValue();
-            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+            int maxPlusDays = product.getCutoffDays().intValue() + 60;
 
             while (calcedProduct == null && plusDays < maxPlusDays) {
-                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                
+                // Tour의 startDate와 endDate 범위 체크
+                if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                    plusDays++;
+                    continue;
+                }
+                if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                    break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                }
+                
+                try {
+                    Product productCopy = (Product) product.clone();
+                    calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                } catch (CloneNotSupportedException e) {
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                }
                 plusDays++;
             }
 
@@ -364,20 +564,43 @@ public class MainController {
         List<Product> resulProducts = new ArrayList<>();
 
         for (Product product : codeProducts) {
+            if (product == null || product.getCutoffDays() == null) {
+                continue;
+            }
+            Hibernate.initialize(product.getTour());
+            Tour tour = product.getTour();
+            if (tour == null) {
+                continue;
+            }
 
             Product calcedProduct = null;
             int plusDays = product.getCutoffDays().intValue();
-            int maxPlusDays = product.getCutoffDays().intValue() + 30;
+            int maxPlusDays = plusDays + 100;
 
             while (calcedProduct == null && plusDays < maxPlusDays) {
-                calcedProduct = productServiceCommon.calcSingleProduct(product, LocalDate.now().plusDays(plusDays));
+                LocalDate targetDate = LocalDate.now().plusDays(plusDays);
+                
+                // Tour의 startDate와 endDate 범위 체크
+                if (tour.getStartDate() != null && targetDate.isBefore(tour.getStartDate())) {
+                    plusDays++;
+                    continue;
+                }
+                if (tour.getEndDate() != null && targetDate.isAfter(tour.getEndDate())) {
+                    break; // endDate를 넘어가면 더 이상 체크할 필요 없음
+                }
+                
+                try {
+                    Product productCopy = (Product) product.clone();
+                    calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
+                } catch (CloneNotSupportedException e) {
+                    calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
+                }
                 plusDays++;
             }
 
             if (calcedProduct != null) {
                 resulProducts.add(calcedProduct);
             }
-
         }
 
         model.addAttribute("promotion", promotion);

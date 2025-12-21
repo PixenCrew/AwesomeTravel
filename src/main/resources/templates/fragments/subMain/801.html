@@ -31,7 +31,19 @@
         </div>
 
         <!-- 배너 섹션 -->
-        <div class="europe-banner-section">
+        <div class="europe-banner-section" th:if="${banners != null and !banners.empty}">
+            <div class="europe-banner-content" 
+                 th:each="banner : ${banners}"
+                 th:style="|background-image: url('${banner.file}');|"
+                 th:onclick="|if('${banner.url}' != '') { window.location.href='${banner.url}'; }|"
+                 style="cursor: pointer;">
+                <p class="europe-banner-title" th:text="${banner.title}">배너 이미지입니다.</p>
+                <p class="europe-banner-text">어디로 떠날지 고민이시라면?</p>
+                <p class="europe-banner-text">여기서 추천받으세요!</p>
+            </div>
+        </div>
+        <!-- 배너가 없을 때 기본 배너 -->
+        <div class="europe-banner-section" th:unless="${banners != null and !banners.empty}">
             <div class="europe-banner-content">
                 <p class="europe-banner-title">배너 이미지입니다.</p>
                 <p class="europe-banner-text">어디로 떠날지 고민이시라면?</p>
@@ -45,7 +57,11 @@
             <p class="europe-recommended-subtitle">딱좋은여행의 전문가가 자신있게 추천해드립니다!</p>
             
             <div class="europe-recommended-list">
-                <div class="europe-product-item" th:each="menuCode : ${menuCodes}" th:if="${menuCode.code2 >= 801001 && menuCode.code2 <= 802001}">
+                <div class="europe-product-item" 
+                     th:each="menuCode : ${menuCodes}" 
+                     th:if="${menuCode.code2 >= 801001 && menuCode.code2 <= 802001 && menuCodeProductMap.containsKey(menuCode.code)}"
+                     th:onclick="|addModal('/product/' + ${menuCodeProductMap.get(menuCode.code).id})|"
+                     style="cursor: pointer;">
                     <div class="europe-product-image">
                         <img src="/images/placeholder.png" alt="상품 이미지" />
                     </div>
@@ -53,10 +69,6 @@
                         <div class="europe-product-title" th:text="${menuCode.name} + ' 1박 2일'">중동·아프리카 1박 2일</div>
                         <div class="europe-product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</div>
                         <div class="europe-product-price">990,000원</div>
-                        <div class="europe-product-compare">
-                            <input type="checkbox" th:id="'compare-' + ${menuCode.code2}">
-                            <label th:for="'compare-' + ${menuCode.code2}">비교하기</label>
-                        </div>
                     </div>
                 </div>
             </div>
