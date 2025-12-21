@@ -279,11 +279,11 @@ function handleScroll(event) {
 }
 
 function fetchSection(endPoint, payload = null) {
-    fetchContent(endPoint, payload).then(html => {
+    return fetchContent(endPoint, payload).then(html => {
         const container = document.getElementById('dynamicSection');
         if (!container) {
             console.error('dynamicSection not found');
-            return;
+            throw new Error('dynamicSection not found');
         }
         
         const sectionBody = container.querySelector('.section-body > div');

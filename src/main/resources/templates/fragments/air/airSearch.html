@@ -327,19 +327,33 @@
             background: #555;
         }
 
-        .air-search-promo-banner {
-            background: #333;
-            border-radius: 12px;
-            margin: 16px;
-            padding: 20px;
-            color: white;
+        .air-search-banner-carousel {
             position: relative;
+            width: calc(100% - 32px);
+            height: 200px;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .air-search-banner-carousel .banner-indicator {
+            position: absolute;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            z-index: 10;
         }
 
         .air-search-promo-text {
             font-size: 15px;
             line-height: 1.6;
             margin: 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .air-search-promo-dots {
@@ -582,18 +596,25 @@
                 </div>
             </div>
 
-            <!-- 프로모션 배너 -->
-            <div class="air-search-promo-banner" th:if="${banners != null and !banners.empty}">
-                <div th:each="banner, iterStat : ${banners}" 
-                     th:style="|background-image: url('${banner.file}');|"
-                     th:onclick="|if('${banner.url}' != '') { window.location.href='${banner.url}'; }|"
-                     style="cursor: pointer; padding: 20px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 10px;">
-                    <p class="air-search-promo-text" th:text="${banner.title}">신용카드 결제 시 5% 추가 할인</p>
+            <!-- 프로모션 배너 캐러셀 -->
+            <div class="air-search-banner-carousel" th:if="${banners != null and !banners.empty}">
+                <div class="banner-carousel-container">
+                    <div class="banner-carousel-track" id="airSearchBannerCarouselTrack">
+                        <div class="banner-carousel-slide" th:each="banner, iterStat : ${banners}" 
+                             th:style="|background-image: url('${banner.file}');|"
+                             th:attr="data-url=${banner.url != null and !banner.url.isEmpty() ? banner.url : ''}"
+                             onclick="handleBannerClick(this)">
+                        </div>
+                    </div>
                 </div>
-                <div class="air-search-promo-dots" th:if="${#lists.size(banners) > 1}">
-                    <div class="air-search-promo-dot" 
-                         th:each="banner, iterStat : ${banners}"
-                         th:classappend="${iterStat.first} ? 'active' : ''"></div>
+                <div class="banner-indicator">
+                    <span id="airSearchBannerIndicator" th:text="|1/${#lists.size(banners)}|">1/1</span>
+                </div>
+                <div class="banner-dots" th:if="${#lists.size(banners) > 1}">
+                    <span class="banner-dot" th:each="banner, iterStat : ${banners}" 
+                          th:classappend="${iterStat.first} ? 'active' : ''"
+                          th:data-slide-index="${iterStat.index}"
+                          onclick="goToAirSearchBannerSlideFromDot(this)"></span>
                 </div>
             </div>
             <!-- 배너가 없을 때 기본 배너 -->
@@ -1972,6 +1993,78 @@
                 // 서버 전송
                 fetchSection('/air/search', payload);
             };
+
+            // 배너 클릭 처리 함수
+            window.handleBannerClick = function(element) {
+                const url = element.getAttribute('data-url');
+                if (url && url.trim() !== '') {
+                    window.location.href = url;
+                }
+            };
+
+            // 항공 검색 배너 캐러셀 초기화
+            (function() {
+                const track = document.getElementById('airSearchBannerCarouselTrack');
+                if (!track) return;
+                
+                const carousel = track.closest('.air-search-banner-carousel');
+                if (!carousel) return;
+                
+                const slides = track.querySelectorAll('.banner-carousel-slide');
+                const dots = carousel.querySelectorAll('.banner-dot');
+                const indicator = document.getElementById('airSearchBannerIndicator');
+                if (!slides.length || !indicator) return;
+                
+                const totalSlides = slides.length;
+                let currentIndex = 0;
+                let autoSlideInterval;
+
+                // 슬라이드 이동 함수
+                function goToSlide(index) {
+                    if (index < 0) index = totalSlides - 1;
+                    if (index >= totalSlides) index = 0;
+                    
+                    currentIndex = index;
+                    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    
+                    // 인디케이터 업데이트
+                    if (indicator) {
+                        indicator.textContent = `${currentIndex + 1}/${totalSlides}`;
+                    }
+                    
+                    // 도트 업데이트
+                    if (dots) {
+                        dots.forEach((dot, i) => {
+                            dot.classList.toggle('active', i === currentIndex);
+                        });
+                    }
+                }
+
+                // 도트 클릭 핸들러
+                window.goToAirSearchBannerSlideFromDot = function(element) {
+                    const index = parseInt(element.getAttribute('data-slide-index'));
+                    goToSlide(index);
+                    resetAutoSlide();
+                };
+
+                // 자동 슬라이드 함수
+                function startAutoSlide() {
+                    if (totalSlides <= 1) return;
+                    autoSlideInterval = setInterval(() => {
+                        goToSlide(currentIndex + 1);
+                    }, 4000); // 4초마다 자동 전환
+                }
+
+                function resetAutoSlide() {
+                    clearInterval(autoSlideInterval);
+                    startAutoSlide();
+                }
+
+                // 초기화
+                if (totalSlides > 1) {
+                    startAutoSlide();
+                }
+            })();
 
             // 오늘 확인 함수
             window.isTodayDate = function (dateObj) {
