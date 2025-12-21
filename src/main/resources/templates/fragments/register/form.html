@@ -11,28 +11,38 @@
         <!-- 이메일 -->
         <div class="form-group">
             <label class="form-label">아이디(이메일)</label>
-            <input type="email" id="email" class="form-input" placeholder="이메일을 입력해주세요." />
+            <input type="email" id="email" class="form-input" placeholder="이메일을 입력해주세요." onblur="checkEmailFormatAndDuplicate()" />
             <p class="field-error" id="emailError"></p>
         </div>
 
         <!-- 비밀번호 -->
         <div class="form-group">
             <label class="form-label">비밀번호</label>
-            <input type="password" id="password" class="form-input" placeholder="비밀번호를 입력해주세요" />
+            <input type="password" id="password" class="form-input" placeholder="비밀번호를 입력해주세요" onblur="checkPasswordFormat(); checkPasswordMatch();" />
+            <div class="password-guide" style="font-size: 12px; color: #666; margin-top: 6px; line-height: 1.5;">
+                <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                    <span>•</span>
+                    <span>8자 이상 32자 이하</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                    <span>•</span>
+                    <span>영문 소문자, 숫자, 특수문자 중 2가지 이상 조합</span>
+                </div>
+            </div>
             <p class="field-error" id="passwordError"></p>
         </div>
 
         <!-- 비밀번호 재확인 -->
         <div class="form-group">
             <label class="form-label">비밀번호 재확인</label>
-            <input type="password" id="password2" class="form-input" placeholder="비밀번호를 다시한번 입력해주세요" />
+            <input type="password" id="password2" class="form-input" placeholder="비밀번호를 다시한번 입력해주세요" onblur="checkPasswordMatch()" />
             <p class="field-error" id="password2Error"></p>
         </div>
 
         <!-- 이름 -->
         <div class="form-group">
             <label class="form-label">이름</label>
-            <input type="text" id="name" class="form-input" placeholder="이름을 입력하세요." />
+            <input type="text" id="name" class="form-input" placeholder="이름을 입력하세요." onblur="checkNameDuplicate()" />
             <p class="field-error" id="nameError"></p>
         </div>
 
@@ -53,6 +63,10 @@
             <div class="verify-input-group">
                 <input type="text" id="verifyCode" class="form-input verify-input" placeholder="인증번호를 입력하세요." />
                 <button id="checkBtn" class="verify-check-btn" onclick="checkCode()">확인하기</button>
+            </div>
+            <!-- 개발용: 인증번호 임시 표시 -->
+            <div id="verifyCodeDisplay" style="display: none; margin-top: 8px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 14px; color: #856404;">
+                <strong>개발용 인증번호:</strong> <span id="verifyCodeValue"></span>
             </div>
             <p class="field-error" id="verifyCodeError"></p>
         </div>
@@ -97,6 +111,114 @@
                 if (!el) return;
                 el.textContent = message;
                 el.style.display = "block";
+            };
+
+            // 이메일 형식 및 중복 체크
+            window.checkEmailFormatAndDuplicate = async function () {
+                const email = document.getElementById("email").value.trim();
+                
+                if (!email) {
+                    clearSpecificError("email");
+                    return;
+                }
+
+                // 이메일 형식 검증
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showFieldError("email", "올바른 이메일 형식을 입력해주세요.");
+                    return; // 형식이 맞지 않으면 중복 체크하지 않음
+                }
+
+                // 형식이 맞으면 중복 체크
+                try {
+                    const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+                    const result = await response.json();
+
+                    if (result.exists) {
+                        showFieldError("email", result.message || "이미 사용 중인 이메일입니다.");
+                    } else {
+                        clearSpecificError("email");
+                    }
+                } catch (err) {
+                    console.error("이메일 중복 체크 오류:", err);
+                    // 에러 발생 시 에러 메시지 표시하지 않음 (서버 오류일 수 있음)
+                }
+            };
+
+            // 이름(닉네임) 중복 체크
+            window.checkNameDuplicate = async function () {
+                const name = document.getElementById("name").value.trim();
+                
+                if (!name) {
+                    clearSpecificError("name");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/auth/check-name?name=${encodeURIComponent(name)}`);
+                    const result = await response.json();
+
+                    if (result.exists) {
+                        showFieldError("name", result.message || "이미 사용 중인 이름입니다.");
+                    } else {
+                        clearSpecificError("name");
+                    }
+                } catch (err) {
+                    console.error("이름 중복 체크 오류:", err);
+                    // 에러 발생 시 에러 메시지 표시하지 않음 (서버 오류일 수 있음)
+                }
+            };
+
+            // 비밀번호 형식 검증
+            window.checkPasswordFormat = function () {
+                const password = document.getElementById("password").value.trim();
+                
+                if (!password) {
+                    clearSpecificError("password");
+                    return;
+                }
+
+                // 비밀번호 길이 검증
+                if (password.length < 8 || password.length > 32) {
+                    showFieldError("password", "올바른 비밀번호 형식을 입력해주세요. (8자 이상 32자 이하)");
+                    return;
+                }
+
+                // 비밀번호 복잡도 검증 (영문 소문자, 숫자, 특수문자 중 2가지 이상)
+                const hasLower = /[a-z]/.test(password);
+                const hasDigit = /[0-9]/.test(password);
+                const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+                const typeCount = [hasLower, hasDigit, hasSpecial].filter(v => v).length;
+
+                if (typeCount < 2) {
+                    showFieldError("password", "올바른 비밀번호 형식을 입력해주세요. (영문 소문자, 숫자, 특수문자 중 2가지 이상 조합)");
+                    return;
+                }
+
+                // 형식이 맞으면 에러 메시지 제거
+                clearSpecificError("password");
+            };
+
+            // 비밀번호 일치 검증
+            window.checkPasswordMatch = function () {
+                const password = document.getElementById("password").value.trim();
+                const password2 = document.getElementById("password2").value.trim();
+                
+                if (!password2) {
+                    clearSpecificError("password2");
+                    return;
+                }
+
+                if (!password) {
+                    clearSpecificError("password2");
+                    return; // 비밀번호가 입력되지 않았으면 재확인 체크하지 않음
+                }
+
+                if (password !== password2) {
+                    showFieldError("password2", "비밀번호가 일치하지 않습니다.");
+                } else {
+                    clearSpecificError("password2");
+                }
             };
 
             window.submitRegister = async function () {
@@ -156,8 +278,19 @@
                 }
 
                 // 비밀번호 길이 검증
-                if (password.length < 8) {
-                    showFieldError("password", "비밀번호는 8자 이상 입력해주세요.");
+                if (password.length < 8 || password.length > 32) {
+                    showFieldError("password", "비밀번호는 8자 이상 32자 이하로 설정해야 합니다.");
+                    return;
+                }
+
+                // 비밀번호 복잡도 검증 (영문 소문자, 숫자, 특수문자 중 2가지 이상)
+                const hasLower = /[a-z]/.test(password);
+                const hasDigit = /[0-9]/.test(password);
+                const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+                const typeCount = [hasLower, hasDigit, hasSpecial].filter(v => v).length;
+
+                if (typeCount < 2) {
+                    showFieldError("password", "영문 소문자, 숫자, 특수문자 중 2가지 이상 조합해야 합니다.");
                     return;
                 }
 
@@ -238,23 +371,36 @@
                         body: JSON.stringify({ number })
                     });
 
-                    if (!response.ok) throw new Error("인증 요청 실패");
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        throw new Error("서버 응답을 읽을 수 없습니다.");
+                    }
 
-                    const result = await response.json();
-
-                    if (result.success) {
+                    if (response.ok && result.success) {
                         resendBtn.disabled = false;
                         isRequested = true;
                         clearSpecificError("number");
                         clearSpecificError("global");
+                        
+                        // 개발용: 인증번호 화면에 표시 (임시)
+                        if (result.verifyCode) {
+                            const verifyCodeDisplay = document.getElementById("verifyCodeDisplay");
+                            const verifyCodeValue = document.getElementById("verifyCodeValue");
+                            if (verifyCodeDisplay && verifyCodeValue) {
+                                verifyCodeValue.textContent = result.verifyCode;
+                                verifyCodeDisplay.style.display = "block";
+                            }
+                        }
 
                     } else {
-                        showFieldError("global", result.message || "인증 요청 실패");
+                        showFieldError("number", result.message || "인증 요청 실패");
                     }
 
                 } catch (err) {
                     console.error(err);
-                    showFieldError("global", "인증 요청 중 오류가 발생했습니다.");
+                    showFieldError("number", err.message || "인증 요청 중 오류가 발생했습니다.");
 
                 } finally {
                     targetBtn.dataset.loading = "false";

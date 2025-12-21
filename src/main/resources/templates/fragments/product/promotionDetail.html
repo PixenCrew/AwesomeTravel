@@ -259,13 +259,6 @@
                         <span class="promotion-product-price">
                             <span th:text="${#numbers.formatInteger(product.finalPriceAdult != null ? product.finalPriceAdult : (product.price != null ? product.price : 0), 3, 'COMMA')}"></span>원
                         </span>
-                        <label class="promotion-product-compare" th:onclick="|event.stopPropagation();|">
-                            <input type="checkbox" 
-                                   th:id="'promotion-compare-' + ${product.id}"
-                                   th:data-product-id="${product.id}"
-                                   onchange="event.stopPropagation(); if(typeof toggleCompare === 'function') toggleCompare(this);">
-                            <span>비교하기</span>
-                        </label>
                     </div>
                 </div>
             </div>

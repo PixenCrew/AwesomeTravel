@@ -22,6 +22,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +90,9 @@ public class MyPageController {
     private final NotificationService notificationService;
     private final RefundRepository refundRepo;
     private final ReviewService reviewService;
+
+    @Value("${profileImageLocation}")
+    private String profileImageLocation;
 
     @GetMapping("/reservation")
     public String mypageReservationFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
@@ -160,6 +171,127 @@ public class MyPageController {
         session.setAttribute("tempUser", tempUser);
 
         return "fragments/mypage/accountSetting";
+    }
+
+    @PostMapping("/accountSetting/profileImage")
+    public ResponseEntity<?> uploadProfileImage(
+            Principal principal,
+            @RequestParam("file") MultipartFile file) {
+        
+        try {
+            User user = userRepo.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            // 파일 유효성 검사
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "파일이 비어있습니다."));
+            }
+
+            // 이미지 파일만 허용
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "이미지 파일만 업로드 가능합니다."));
+            }
+
+            // 파일 크기 제한 (5MB)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "파일 크기는 5MB 이하여야 합니다."));
+            }
+
+            // 저장 디렉토리 생성
+            Path uploadPath = Paths.get(profileImageLocation);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // 기존 프로필 이미지 삭제
+            if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                String oldImagePath = user.getProfileImage();
+                // /images/profile/로 시작하는 경우에만 삭제
+                if (oldImagePath.startsWith("/images/profile/")) {
+                    String oldFileName = oldImagePath.replace("/images/profile/", "");
+                    Path oldFilePath = uploadPath.resolve(oldFileName);
+                    if (Files.exists(oldFilePath)) {
+                        Files.delete(oldFilePath);
+                    }
+                }
+            }
+
+            // 새 파일명 생성 (UUID + 원본 확장자)
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFileName = UUID.randomUUID().toString() + extension;
+            Path filePath = uploadPath.resolve(newFileName);
+
+            // 파일 저장
+            Files.copy(file.getInputStream(), filePath);
+
+            // DB에 경로 저장
+            String imageUrl = "/images/profile/" + newFileName;
+            user.setProfileImage(imageUrl);
+            userRepo.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "프로필 이미지가 업로드되었습니다.",
+                    "imageUrl", imageUrl
+            ));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "파일 저장 중 오류가 발생했습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "프로필 이미지 업로드 중 오류가 발생했습니다."));
+        }
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/accountSetting/profileImage")
+    public ResponseEntity<?> removeProfileImage(Principal principal) {
+        try {
+            User user = userRepo.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            // 기존 프로필 이미지 삭제
+            if (user.getProfileImage() != null && !user.getProfileImage().isEmpty()) {
+                String oldImagePath = user.getProfileImage();
+                // /images/profile/로 시작하는 경우에만 삭제
+                if (oldImagePath.startsWith("/images/profile/")) {
+                    Path uploadPath = Paths.get(profileImageLocation);
+                    String oldFileName = oldImagePath.replace("/images/profile/", "");
+                    Path oldFilePath = uploadPath.resolve(oldFileName);
+                    if (Files.exists(oldFilePath)) {
+                        Files.delete(oldFilePath);
+                    }
+                }
+            }
+
+            // DB에서 제거
+            user.setProfileImage(null);
+            userRepo.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "프로필 이미지가 제거되었습니다."
+            ));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "파일 삭제 중 오류가 발생했습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "프로필 이미지 제거 중 오류가 발생했습니다."));
+        }
     }
 
     @GetMapping("/myPassport")
@@ -473,7 +605,25 @@ public class MyPageController {
     }
 
     @PostMapping("/userInfo/phone")
-    public ResponseEntity<?> verifyNumber(@RequestBody Map<String, String> payload, HttpSession session) {
+    public ResponseEntity<?> verifyNumber(@RequestBody Map<String, String> payload, HttpSession session, Principal principal) {
+
+        String phoneNumber = payload.get("number");
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "휴대폰 번호를 입력해주세요."));
+        }
+
+        // 현재 사용자 정보 가져오기
+        User currentUser = userRepo.findByEmail(principal.getName()).orElseThrow();
+        
+        // 휴대폰 번호 중복 체크 (현재 사용자의 번호가 아닌 경우에만)
+        if (!phoneNumber.trim().equals(currentUser.getPhone())) {
+            User existingUser = userRepo.findByPhone(phoneNumber.trim());
+            if (existingUser != null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "이미 사용 중인 휴대폰 번호입니다."));
+            }
+        }
 
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
         
@@ -484,7 +634,7 @@ public class MyPageController {
         }
         
         String randomCode = String.format("%06d", new Random().nextInt(1000000));
-        tempUser.setNumber(payload.get("number"));
+        tempUser.setNumber(phoneNumber.trim());
         tempUser.setVerifyCode(randomCode);
 
         // =============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================
@@ -493,7 +643,8 @@ public class MyPageController {
         System.out.println("인증번호 : " + tempUser.getVerifyCode());
         System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
 
-        return ResponseEntity.ok(Map.of("success", true));
+        // 개발 편의를 위해 인증번호를 응답에 포함 (임시)
+        return ResponseEntity.ok(Map.of("success", true, "verifyCode", randomCode));
     }
 
     @PostMapping("/userInfo/phone/check")
@@ -544,7 +695,17 @@ public class MyPageController {
         // 회원정보 수정 진행
         String name = principal.getName();
         User user = userRepo.findByEmail(name).orElseThrow();
-        user.setName(payload.get("name"));
+        
+        // 이름(닉네임) 중복 체크 (현재 사용자의 이름이 아닌 경우에만)
+        String newName = payload.get("name");
+        if (newName != null && !newName.trim().equals(user.getName())) {
+            if (userRepo.existsByName(newName.trim())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "이미 사용 중인 이름입니다."));
+            }
+        }
+        
+        user.setName(newName);
         user.setPhone(payload.get("number"));
         userRepo.save(user);
 

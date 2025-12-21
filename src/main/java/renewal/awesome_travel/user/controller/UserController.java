@@ -1,5 +1,7 @@
 package renewal.awesome_travel.user.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -48,6 +50,16 @@ public class UserController {
     @GetMapping("/check-email")
     public ResponseEntity<EmailCheckResponseDto> checkEmail(@RequestParam String email) {
         return ResponseEntity.ok(userService.checkEmail(email));
+    }
+
+    // 이름(닉네임) 중복 확인
+    @GetMapping("/check-name")
+    public ResponseEntity<Map<String, Object>> checkName(@RequestParam String name) {
+        boolean exists = userService.checkName(name);
+        return ResponseEntity.ok(Map.of(
+            "exists", exists,
+            "message", exists ? "이미 사용 중인 이름입니다." : "사용 가능한 이름입니다."
+        ));
     }
 
     // 유저상세정보 마이페이지

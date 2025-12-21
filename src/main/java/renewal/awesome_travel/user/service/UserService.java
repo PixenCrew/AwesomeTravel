@@ -183,6 +183,11 @@ public class UserService {
                 .build();
     }
 
+    // 이름(닉네임) 중복 확인
+    public boolean checkName(String name) {
+        return userRepository.existsByName(name);
+    }
+
     @Transactional(readOnly = true)
     public UserResponseDto getMyInfo(Long userId) {
         User user = userRepository.findById(userId)

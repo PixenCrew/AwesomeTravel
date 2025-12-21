@@ -9,25 +9,36 @@
     </header>
 
     <div class="calendar-body">
-        <!-- 캘린더 -->
-        <div id='calendar'></div>
-
-        <!-- 필터 및 정렬 -->
-        <div class="calendar-filters">
-            <label class="filter-checkbox">
-                <input type="checkbox" id="availableOnly" onchange="filterAvailableOnly()">
-                <span>예약가능 상품만 보기</span>
-            </label>
-            <select class="sort-select" id="sortSelect" onchange="sortProducts()">
-                <option value="departure">출발일순</option>
-                <option value="price">가격순</option>
-            </select>
+        <!-- 판매하지 않는 상품 메시지 -->
+        <div class="no-product-message" th:if="${hasNoProducts == true}">
+            <div class="no-product-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2 class="no-product-title">판매하지 않는 상품입니다</h2>
+            <p class="no-product-description" th:text="|'${productTitle}' 상품은 현재 판매 가능한 항공권이 없습니다.|">상품은 현재 판매 가능한 항공권이 없습니다.</p>
         </div>
 
-        <!-- 선택한 날짜의 상품 목록 -->
-        <div id='specificDateProduct' class="product-list-container" style="display:none;">
-            <div id="productList" class="product-list">
-                <!-- 상품 아이템들이 여기에 동적으로 추가됨 -->
+        <!-- 캘린더 (항공권이 있는 경우만 표시) -->
+        <div th:if="${hasNoProducts != true}">
+            <div id='calendar'></div>
+
+            <!-- 필터 및 정렬 -->
+            <div class="calendar-filters">
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="availableOnly" onchange="filterAvailableOnly()">
+                    <span>예약가능 상품만 보기</span>
+                </label>
+                <select class="sort-select" id="sortSelect" onchange="sortProducts()">
+                    <option value="departure">출발일순</option>
+                    <option value="price">가격순</option>
+                </select>
+            </div>
+
+            <!-- 선택한 날짜의 상품 목록 -->
+            <div id='specificDateProduct' class="product-list-container" style="display:none;">
+                <div id="productList" class="product-list">
+                    <!-- 상품 아이템들이 여기에 동적으로 추가됨 -->
+                </div>
             </div>
         </div>
     </div>
@@ -78,6 +89,37 @@
             flex: 1;
             padding: 16px;
             padding-bottom: 100px;
+        }
+
+        /* 판매하지 않는 상품 메시지 */
+        .no-product-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .no-product-icon {
+            font-size: 64px;
+            color: #999;
+            margin-bottom: 24px;
+        }
+
+        .no-product-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+
+        .no-product-description {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+            line-height: 1.6;
         }
 
         /* FullCalendar 커스터마이징 - 깔끔한 미니멀 디자인 */

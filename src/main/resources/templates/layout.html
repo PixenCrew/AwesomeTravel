@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="format-detection" content="telephone=no">
-    <title>Layout</title>
+    <title>딱좋은여행</title>
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/main.min.css" rel="stylesheet">
@@ -62,9 +62,6 @@
                         <button type="button" class="menu-category-btn" onclick="fetchSection('/promotion')">기획전</button>
                     </div>
                     <div class="menu-category">
-                        <button type="button" class="menu-category-btn">이벤트</button>
-                    </div>
-                    <div class="menu-category">
                         <button type="button" class="menu-category-btn" onclick="fetchSection('/timedeal')">타임딜</button>
                     </div>
                 </div>
@@ -73,9 +70,9 @@
                 <div id="menu-support" class="menu-content">
                     <ul class="menu-support-list">
                         <li><button type="button" class="menu-support-item" onclick="showSection(5)">마이페이지</button></li>
+                        <li><button type="button" class="menu-support-item" onclick="fetchSection('/faq')">자주묻는질문</button></li>
                         <li><button type="button" class="menu-support-item" onclick="fetchSection('/inquiry/all')">고객문의</button></li>
                         <li><button type="button" class="menu-support-item" onclick="fetchSection('/notice')">공지사항</button></li>
-                        <li><button type="button" class="menu-support-item" onclick="fetchSection('/mypage/setting')">설정</button></li>
                     </ul>
                 </div>
             </div>

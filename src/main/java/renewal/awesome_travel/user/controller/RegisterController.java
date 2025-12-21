@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
+import renewal.awesome_travel.user.repository.UserRepository;
 import renewal.awesome_travel.user.service.UserService;
+import renewal.common.entity.User;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ import renewal.awesome_travel.user.service.UserService;
 public class RegisterController {
 
     private final UserService userService;
+    private final UserRepository userRepo;
 
     @GetMapping("/terms")
     public String termForm() {
@@ -44,9 +47,22 @@ public class RegisterController {
     @PostMapping("/phone")
     public ResponseEntity<?> verifyNumber(@RequestBody Map<String, String> payload, HttpSession session) {
 
+        String phoneNumber = payload.get("number");
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "휴대폰 번호를 입력해주세요."));
+        }
+
+        // 휴대폰 번호 중복 체크
+        User existingUser = userRepo.findByPhone(phoneNumber.trim());
+        if (existingUser != null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "이미 사용 중인 휴대폰 번호입니다."));
+        }
+
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
         String randomCode = String.format("%06d", new Random().nextInt(1000000));
-        tempUser.setNumber(payload.get("number"));
+        tempUser.setNumber(phoneNumber.trim());
         tempUser.setVerifyCode(randomCode);
 
         // =============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================
@@ -55,7 +71,8 @@ public class RegisterController {
         System.out.println("인증번호 : " + tempUser.getVerifyCode());
         System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
 
-        return ResponseEntity.ok(Map.of("success", true));
+        // 개발 편의를 위해 인증번호를 응답에 포함 (임시)
+        return ResponseEntity.ok(Map.of("success", true, "verifyCode", randomCode));
     }
 
     @GetMapping("/resend")
@@ -117,6 +134,13 @@ public class RegisterController {
                     .badRequest()
                     .body(Map.of("success", false, "message", "이름을 입력해주세요."));
         }
+
+        // 이름(닉네임) 중복 체크
+        if (userRepo.existsByName(name)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "이미 사용 중인 이름입니다."));
+        }
         if (number == null || (number = number.trim()).isEmpty()) {
             return ResponseEntity
                     .badRequest()
@@ -136,10 +160,26 @@ public class RegisterController {
         }
 
         // 비밀번호 길이 검증
-        if (password.length() < 8) {
+        if (password.length() < 8 || password.length() > 32) {
             return ResponseEntity
                     .badRequest()
-                    .body(Map.of("success", false, "message", "비밀번호는 8자 이상 입력해주세요."));
+                    .body(Map.of("success", false, "message", "비밀번호는 8자 이상 32자 이하로 설정해야 합니다."));
+        }
+
+        // 비밀번호 복잡도 검증 (영문 소문자, 숫자, 특수문자 중 2가지 이상)
+        boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
+        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
+        boolean hasSpecial = password.chars().anyMatch(c -> !Character.isLetterOrDigit(c));
+
+        int typeCount = 0;
+        if (hasLower) typeCount++;
+        if (hasDigit) typeCount++;
+        if (hasSpecial) typeCount++;
+
+        if (typeCount < 2) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "영문 소문자, 숫자, 특수문자 중 2가지 이상 조합해야 합니다."));
         }
 
         // verifyCode 코드 맞는지 확인

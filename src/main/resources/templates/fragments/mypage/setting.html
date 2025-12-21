@@ -11,12 +11,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 0;
             border-bottom: 1px solid #e0e0e0;
             position: sticky;
             top: 0;
             background: white;
             z-index: 100;
+            min-height: 48px;
         }
 
         .setting-back {
@@ -59,6 +60,7 @@
             object-fit: cover;
             background: #f5f5f5;
             flex-shrink: 0;
+            border: 2px solid #e0e0e0;
         }
 
         .setting-profile-info {
@@ -83,7 +85,6 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #03c75a;
             color: white;
             display: flex;
             align-items: center;
@@ -158,12 +159,15 @@
     <div class="setting-body">
         <div class="setting-profile-section">
             <img class="setting-profile-image" 
-                 th:src="${currentUser?.profileImage != null ? currentUser.profileImage : '/images/profileDefault.png'}" 
-                 alt="프로필 이미지">
+                 th:src="${currentUser?.profileImage != null and !currentUser.profileImage.isEmpty() ? currentUser.profileImage : '/images/profileDefault.png'}" 
+                 alt="프로필 이미지"
+                 onerror="this.src='/images/profileDefault.png'">
             <div class="setting-profile-info">
                 <h2 class="setting-profile-name" th:text="${currentUser?.name}">신예은</h2>
                 <div class="setting-profile-email-wrapper">
-                    <span class="setting-email-icon" th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}">N</span>
+                    <span class="setting-email-icon" 
+                          th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}"
+                          th:style="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'background: #03c75a;' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'background: #4285F4;' : 'background: #666;')}">N</span>
                     <span class="setting-profile-email" th:text="${currentUser?.email}">shin@god.com</span>
                 </div>
                 <p class="setting-profile-grade" th:text="${currentUser?.grade ?: '일반등급'}">일반등급</p>
@@ -175,10 +179,6 @@
             <ul class="setting-menu-list">
                 <li class="setting-menu-item" onclick="addModal('/mypage/accountSetting', true)">
                     <span class="setting-menu-text">계정 설정</span>
-                    <i class="fas fa-chevron-right setting-menu-arrow"></i>
-                </li>
-                <li class="setting-menu-item" onclick="addModal('/mypage/noticeSetting', true)">
-                    <span class="setting-menu-text">알림 설정</span>
                     <i class="fas fa-chevron-right setting-menu-arrow"></i>
                 </li>
                 <li class="setting-menu-item" onclick="addModal('/mypage/myPassport', true)">

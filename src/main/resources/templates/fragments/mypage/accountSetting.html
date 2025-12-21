@@ -66,7 +66,6 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #03c75a;
             color: white;
             display: flex;
             align-items: center;
@@ -284,6 +283,99 @@
         .field-error.show {
             display: block;
         }
+
+        /* 프로필 이미지 섹션 */
+        .profile-image-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+        }
+
+        .profile-image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-image-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .profile-image-change-btn,
+        .profile-image-remove-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-image-change-btn {
+            background: #333;
+            color: white;
+            border: none;
+        }
+
+        .profile-image-change-btn:hover {
+            background: #555;
+        }
+
+        .profile-image-remove-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .profile-image-remove-btn:hover {
+            background: #e8e8e8;
+            color: #333;
+        }
+
+        .profile-image-change-btn i,
+        .profile-image-remove-btn i {
+            font-size: 14px;
+        }
+
+        /* 인증 완료 메시지 */
+        .verify-success-message {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background-color: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verify-success-message i {
+            color: #4caf50;
+            font-size: 16px;
+        }
     </style>
 
     <header class="account-setting-header">
@@ -297,7 +389,9 @@
         <div class="account-info-section">
             <h2 class="account-info-title">계정 정보</h2>
             <div class="account-connection-info">
-                <span class="account-provider-icon" th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}">N</span>
+                <span class="account-provider-icon" 
+                      th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}"
+                      th:style="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'background: #03c75a;' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'background: #4285F4;' : 'background: #666;')}">N</span>
                 <span th:text="${currentUser?.email} + ' 으로 연결됨'">abc@naver.com 으로 연결됨</span>
             </div>
 
@@ -340,7 +434,44 @@
                 <input type="text" id="accountVerifyCode" class="account-form-input verify-input" placeholder="인증번호를 입력하세요." />
                 <button id="verifyCheckBtn" class="verify-check-btn" onclick="checkPhoneCode()">확인하기</button>
             </div>
+            <!-- 개발용: 인증번호 임시 표시 -->
+            <div id="verifyCodeDisplay" style="display: none; margin-top: 8px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 14px; color: #856404;">
+                <strong>개발용 인증번호:</strong> <span id="verifyCodeValue"></span>
+            </div>
+            <!-- 인증 완료 메시지 -->
+            <div id="verifySuccessMessage" class="verify-success-message" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <span>인증이 완료되었습니다</span>
+            </div>
             <p class="field-error" id="verifyCodeError"></p>
+        </div>
+
+        <!-- 프로필 이미지 섹션 -->
+        <div class="account-form-group">
+            <label class="account-form-label">프로필 이미지</label>
+            <div class="profile-image-section">
+                <div class="profile-image-wrapper">
+                    <img id="profileImagePreview" 
+                         th:src="${currentUser?.profileImage != null and !currentUser.profileImage.isEmpty() ? currentUser.profileImage : '/images/profileDefault.png'}" 
+                         alt="프로필 이미지"
+                         class="profile-image-preview" />
+                </div>
+                <input type="file" 
+                       id="profileImageInput" 
+                       accept="image/*" 
+                       style="display: none;" />
+                <div class="profile-image-buttons">
+                    <button type="button" class="profile-image-change-btn" onclick="document.getElementById('profileImageInput').click()">
+                        <i class="fas fa-camera"></i>
+                        이미지 변경
+                    </button>
+                    <button type="button" class="profile-image-remove-btn" onclick="removeProfileImage()" th:if="${currentUser?.profileImage != null and !currentUser.profileImage.isEmpty()}">
+                        <i class="fas fa-trash-alt"></i>
+                        이미지 제거
+                    </button>
+                </div>
+            </div>
+            <p class="field-error" id="profileImageError"></p>
         </div>
 
         <!-- 액션 버튼 -->
@@ -381,21 +512,34 @@
                         body: JSON.stringify({ number: phone })
                     });
 
-                    if (!response.ok) throw new Error("인증 요청 실패");
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        throw new Error("서버 응답을 읽을 수 없습니다.");
+                    }
 
-                    const result = await response.json();
-
-                    if (result.success) {
+                    if (response.ok && result.success) {
                         resendBtn.disabled = false;
                         isRequested = true;
                         clearError("phoneError");
+                        
+                        // 개발용: 인증번호 화면에 표시 (임시)
+                        if (result.verifyCode) {
+                            const verifyCodeDisplay = document.getElementById("verifyCodeDisplay");
+                            const verifyCodeValue = document.getElementById("verifyCodeValue");
+                            if (verifyCodeDisplay && verifyCodeValue) {
+                                verifyCodeValue.textContent = result.verifyCode;
+                                verifyCodeDisplay.style.display = "block";
+                            }
+                        }
                     } else {
                         showError("phoneError", result.message || "인증 요청 실패");
                     }
 
                 } catch (err) {
                     console.error(err);
-                    showError("phoneError", "인증 요청 중 오류가 발생했습니다.");
+                    showError("phoneError", err.message || "인증 요청 중 오류가 발생했습니다.");
                 } finally {
                     targetBtn.dataset.loading = "false";
                     targetBtn.textContent = originalText;
@@ -438,8 +582,20 @@
                         document.getElementById("phoneRequestBtn").disabled = true;
                         document.getElementById("phoneResendBtn").disabled = true;
                         document.getElementById("verifyCheckBtn").disabled = true;
+                        
+                        // 인증 완료 메시지 표시
+                        const successMessage = document.getElementById("verifySuccessMessage");
+                        if (successMessage) {
+                            successMessage.style.display = "flex";
+                        }
                     } else {
                         showError("verifyCodeError", result.message || "인증번호가 올바르지 않습니다.");
+                        
+                        // 인증 실패 시 메시지 숨김
+                        const successMessage = document.getElementById("verifySuccessMessage");
+                        if (successMessage) {
+                            successMessage.style.display = "none";
+                        }
                     }
 
                 } catch (err) {
@@ -514,7 +670,124 @@
                 clearError("nameError");
                 clearError("phoneError");
                 clearError("verifyCodeError");
+                clearError("profileImageError");
             }
+
+            // 프로필 이미지 업로드
+            (function() {
+                const profileImageInput = document.getElementById('profileImageInput');
+                const profileImagePreview = document.getElementById('profileImagePreview');
+                const profileImageChangeBtn = document.querySelector('.profile-image-change-btn');
+
+                if (profileImageChangeBtn && profileImageInput) {
+                    profileImageChangeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        profileImageInput.click();
+                    });
+                }
+
+                if (profileImageInput) {
+                    profileImageInput.addEventListener('change', async function(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        // 파일 크기 체크 (5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            showError('profileImageError', '파일 크기는 5MB 이하여야 합니다.');
+                            return;
+                        }
+
+                        // 미리보기
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            profileImagePreview.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+
+                        // 서버에 업로드
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        try {
+                            const response = await fetch('/mypage/accountSetting/profileImage', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            const result = await response.json();
+
+                            if (response.ok && result.success) {
+                                clearError('profileImageError');
+                                profileImagePreview.src = result.imageUrl;
+                                // 제거 버튼 표시
+                                const removeBtn = document.querySelector('.profile-image-remove-btn');
+                                if (removeBtn) {
+                                    removeBtn.style.display = 'flex';
+                                } else {
+                                    // 제거 버튼이 없으면 생성
+                                    const buttonsContainer = document.querySelector('.profile-image-buttons');
+                                    if (buttonsContainer) {
+                                        const btn = document.createElement('button');
+                                        btn.type = 'button';
+                                        btn.className = 'profile-image-remove-btn';
+                                        btn.innerHTML = '<i class="fas fa-trash-alt"></i> 이미지 제거';
+                                        btn.onclick = removeProfileImage;
+                                        buttonsContainer.appendChild(btn);
+                                    }
+                                }
+                                if (typeof showSuccessToast === 'function') {
+                                    showSuccessToast('프로필 이미지가 업로드되었습니다.');
+                                }
+                            } else {
+                                showError('profileImageError', result.message || '이미지 업로드에 실패했습니다.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            showError('profileImageError', '이미지 업로드 중 오류가 발생했습니다.');
+                        }
+                    });
+                }
+            })();
+
+            // 프로필 이미지 제거
+            window.removeProfileImage = async function() {
+                if (!confirm('프로필 이미지를 제거하시겠습니까?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/mypage/accountSetting/profileImage', {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        const profileImagePreview = document.getElementById('profileImagePreview');
+                        if (profileImagePreview) {
+                            profileImagePreview.src = '/images/profileDefault.png';
+                        }
+                        const removeBtn = document.querySelector('.profile-image-remove-btn');
+                        if (removeBtn) {
+                            removeBtn.style.display = 'none';
+                        }
+                        // 파일 입력 초기화
+                        const profileImageInput = document.getElementById('profileImageInput');
+                        if (profileImageInput) {
+                            profileImageInput.value = '';
+                        }
+                        clearError('profileImageError');
+                        if (typeof showSuccessToast === 'function') {
+                            showSuccessToast('프로필 이미지가 제거되었습니다.');
+                        }
+                    } else {
+                        showError('profileImageError', result.message || '이미지 제거에 실패했습니다.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showError('profileImageError', '이미지 제거 중 오류가 발생했습니다.');
+                }
+            };
         })();
     </script>
 </div>

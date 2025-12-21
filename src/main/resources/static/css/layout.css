@@ -72,8 +72,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    min-height: 48px;
+    padding: 0;
+    min-height: 0;
     box-sizing: border-box;
 }
 
@@ -1160,13 +1160,14 @@
 .email-icon {
     width: 20px;
     height: 20px;
-    background: #ddd;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    color: #666;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
 }
 
 .profile-grade {
@@ -2393,12 +2394,27 @@
 
 .header-logo {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
 }
 
 .logo-text {
     font-size: 24px;
     font-weight: bold;
     color: #333;
+}
+
+/* 로고 이미지로 교체할 경우 사용할 스타일 */
+.logo-image {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.logo-image:hover {
+    opacity: 0.8;
 }
 
 .header-search {
@@ -2583,9 +2599,39 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 24px;
     color: #666;
-    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Font Awesome 아이콘 스타일 */
+.category-icon i {
+    color: #666;
+    transition: color 0.2s;
+}
+
+/* 이미지로 교체할 경우 사용할 스타일 */
+.category-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+    transition: transform 0.2s;
+}
+
+.category-item:hover .category-icon {
+    background: #e8e8e8;
+    transform: translateY(-2px);
+}
+
+.category-item:hover .category-icon i {
+    color: #333;
+}
+
+.category-item:hover .category-icon img {
+    transform: scale(1.1);
 }
 
 .category-label {
@@ -3175,23 +3221,58 @@
     display: flex;
     gap: 8px;
     align-items: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .phone-input {
     flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .phone-verify-btn,
 .phone-resend-btn {
-    padding: 12px 20px;
+    padding: 12px 14px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     background: white;
-    font-size: 14px;
+    font-size: 13px;
     color: #666;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* 모바일 화면에서 버튼 크기 조정 */
+@media (max-width: 600px) {
+    .phone-input-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .phone-input {
+        width: 100%;
+        flex: none;
+    }
+    
+    .phone-verify-btn,
+    .phone-resend-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* 작은 모바일 화면 */
+@media (max-width: 360px) {
+    .phone-verify-btn,
+    .phone-resend-btn {
+        font-size: 12px;
+        padding: 10px;
+    }
 }
 
 .phone-verify-btn:hover:not(:disabled),
