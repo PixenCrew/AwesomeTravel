@@ -24,7 +24,9 @@
                 <div class="profile-info">
                     <h2 class="profile-name" th:text="${currentUser?.name}">신예은</h2>
                     <div class="profile-email">
-                        <span class="email-icon">N</span>
+                        <span class="email-icon" 
+                              th:text="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'N' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'G' : 'L')}"
+                              th:style="${currentUser?.provider == T(renewal.common.entity.User.UserProvider).NAVER ? 'background: #03c75a;' : (currentUser?.provider == T(renewal.common.entity.User.UserProvider).GOOGLE ? 'background: #4285F4;' : 'background: #666;')}">N</span>
                         <span class="email-text" th:text="${currentUser?.email}">shin@god.com</span>
                     </div>
                     <p class="profile-grade" th:text="${currentUser?.grade}" onclick="addModal('/mypage/grade', true)">일반등급</p>
@@ -85,7 +87,7 @@
                     <i class="fas fa-chevron-right menu-arrow"></i>
                 </div>
                 <div class="menu-item" onclick="fetchSection('/faq')">
-                    <span class="menu-text">FAQ</span>
+                    <span class="menu-text">자주묻는질문</span>
                     <i class="fas fa-chevron-right menu-arrow"></i>
                 </div>
                 <div class="menu-item" onclick="fetchSection('/mypage/setting')">
