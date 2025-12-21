@@ -15,20 +15,12 @@
                     <div class="tooltip-text" id="recent-tooltip">최근 사용한 방식이에요</div>
                 </div>
             </div>
-            
+
             <div class="social-buttons">
                 <!-- Google 로그인 -->
                 <button type="button" id="btn-google" class="social-btn" onclick="saveRecentLogin('google')">
                     <div class="social-icon google-icon">G</div>
                     <span class="social-text">Google 아이디로 로그인</span>
-                </button>
-
-                <!-- Kakao 로그인 -->
-                <button type="button" id="btn-kakao" class="social-btn" onclick="saveRecentLogin('kakao')">
-                    <div class="social-icon kakao-icon">
-                        <span class="kakao-talk">TALK</span>
-                    </div>
-                    <span class="social-text">카카오 아이디로 로그인</span>
                 </button>
 
                 <!-- Naver 로그인 -->
@@ -88,7 +80,7 @@
 
             const tooltip = document.getElementById('recent-tooltip');
             const btn = document.getElementById(`btn-${recent}`);
-            
+
             if (btn) {
                 tooltip.style.display = 'block';
                 btn.classList.add('recent-login');
@@ -116,7 +108,7 @@
             if (usernameInput && usernameValue) {
                 usernameInput.value = usernameValue;
             }
-            
+
             // OAuth 로그인 후 돌아왔을 때 처리
             if (loginParams.get('loginSuccess') === 'true') {
                 window.isLoggedIn = true;
@@ -133,7 +125,7 @@
             // 로그인 폼 제출 성공 시 isLoggedIn 업데이트
             const loginForm = document.getElementById('loginForm');
             if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
+                loginForm.addEventListener('submit', function (e) {
                     // 폼 제출은 정상적으로 진행되지만, 성공 시 isLoggedIn을 업데이트하기 위해
                     // 페이지가 리다이렉트되면 자동으로 업데이트됨
                     // 하지만 AJAX로 처리하지 않으므로, 리다이렉트 후에 처리됨
@@ -144,331 +136,332 @@
 </div>
 
 <style>
-/* 로그인 페이지 스타일 */
-.login-container {
-    width: 100%;
-    min-height: 100%;
-    background: white;
-    display: flex;
-    flex-direction: column;
-}
+    /* 로그인 페이지 스타일 */
+    .login-container {
+        width: 100%;
+        min-height: 100%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+    }
 
-.login-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    border-bottom: 1px solid #e0e0e0;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 10;
-}
+    .login-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
 
-.back-btn {
-    font-size: 18px;
-    color: #333;
-    cursor: pointer;
-    padding: 4px;
-    flex-shrink: 0;
-}
+    .back-btn {
+        font-size: 18px;
+        color: #333;
+        cursor: pointer;
+        padding: 4px;
+        flex-shrink: 0;
+    }
 
-.login-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    margin: 0;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
+    .login-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 
-.header-spacer {
-    width: 26px; /* back-btn 너비와 동일하게 */
-}
+    .header-spacer {
+        width: 26px;
+        /* back-btn 너비와 동일하게 */
+    }
 
-.login-body {
-    flex: 1;
-    padding: 24px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-}
+    .login-body {
+        flex: 1;
+        padding: 24px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
 
-/* 소셜 로그인 섹션 */
-.social-login-section {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
+    /* 소셜 로그인 섹션 */
+    .social-login-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
 
-.social-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: relative;
-}
+    .social-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
 
-.social-title {
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-}
+    .social-title {
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+    }
 
-.tooltip-wrapper {
-    position: relative;
-    display: inline-block;
-}
+    .tooltip-wrapper {
+        position: relative;
+        display: inline-block;
+    }
 
-.tooltip-icon {
-    font-size: 14px;
-    cursor: pointer;
-}
+    .tooltip-icon {
+        font-size: 14px;
+        cursor: pointer;
+    }
 
-.tooltip-text {
-    display: none;
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    white-space: nowrap;
-    z-index: 20;
-}
+    .tooltip-text {
+        display: none;
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        white-space: nowrap;
+        z-index: 20;
+    }
 
-.tooltip-text::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 4px solid #333;
-}
+    .tooltip-text::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid #333;
+    }
 
-.social-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+    .social-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
 
-.social-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-    text-align: left;
-    font-size: 14px;
-    color: #333;
-    position: relative;
-}
+    .social-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: left;
+        font-size: 14px;
+        color: #333;
+        position: relative;
+    }
 
-.social-btn:hover {
-    background: #f5f5f5;
-    border-color: #ccc;
-}
+    .social-btn:hover {
+        background: #f5f5f5;
+        border-color: #ccc;
+    }
 
-.social-btn.recent-login {
-    border-color: #007bff;
-    background: #f0f8ff;
-}
+    .social-btn.recent-login {
+        border-color: #007bff;
+        background: #f0f8ff;
+    }
 
-.social-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    flex-shrink: 0;
-}
+    .social-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
 
-.google-icon {
-    background: #4285F4;
-    color: white;
-}
+    .google-icon {
+        background: #4285F4;
+        color: white;
+    }
 
-.kakao-icon {
-    background: #FEE500;
-    color: #000;
-    font-size: 10px;
-}
+    .kakao-icon {
+        background: #FEE500;
+        color: #000;
+        font-size: 10px;
+    }
 
-.kakao-talk {
-    font-weight: bold;
-    font-size: 10px;
-    letter-spacing: -0.5px;
-}
+    .kakao-talk {
+        font-weight: bold;
+        font-size: 10px;
+        letter-spacing: -0.5px;
+    }
 
-.naver-icon {
-    background: #03C75A;
-    color: white;
-}
+    .naver-icon {
+        background: #03C75A;
+        color: white;
+    }
 
-.social-text {
-    flex: 1;
-    font-size: 14px;
-    color: #333;
-}
+    .social-text {
+        flex: 1;
+        font-size: 14px;
+        color: #333;
+    }
 
-/* 로그인 폼 */
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+    /* 로그인 폼 */
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-.form-label {
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-}
+    .form-label {
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+    }
 
-.form-input {
-    padding: 12px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #333;
-    background: white;
-    transition: border-color 0.2s;
-}
+    .form-input {
+        padding: 12px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #333;
+        background: white;
+        transition: border-color 0.2s;
+    }
 
-.form-input:focus {
-    outline: none;
-    border-color: #007bff;
-}
+    .form-input:focus {
+        outline: none;
+        border-color: #007bff;
+    }
 
-.form-input::placeholder {
-    color: #999;
-}
+    .form-input::placeholder {
+        color: #999;
+    }
 
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-}
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
 
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    color: #666;
-}
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        color: #666;
+    }
 
-.checkbox-input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
+    .checkbox-input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
 
-.find-links {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #666;
-}
+    .find-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #666;
+    }
 
-.find-links a {
-    color: #666;
-    text-decoration: none;
-    cursor: pointer;
-}
+    .find-links a {
+        color: #666;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
-.find-links a:hover {
-    color: #007bff;
-    text-decoration: underline;
-}
+    .find-links a:hover {
+        color: #007bff;
+        text-decoration: underline;
+    }
 
-.find-links span {
-    color: #ccc;
-}
+    .find-links span {
+        color: #ccc;
+    }
 
-.login-submit-btn {
-    width: 100%;
-    padding: 16px;
-    background: #000;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 8px;
-}
+    .login-submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: #000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+    }
 
-.login-submit-btn:hover {
-    background: #333;
-}
+    .login-submit-btn:hover {
+        background: #333;
+    }
 
-.login-submit-btn:active {
-    background: #000;
-}
+    .login-submit-btn:active {
+        background: #000;
+    }
 
-/* 회원가입 링크 */
-.signup-link {
-    text-align: center;
-    padding: 20px 0;
-    font-size: 14px;
-    color: #666;
-}
+    /* 회원가입 링크 */
+    .signup-link {
+        text-align: center;
+        padding: 20px 0;
+        font-size: 14px;
+        color: #666;
+    }
 
-.signup-btn {
-    color: #000;
-    font-weight: bold;
-    text-decoration: none;
-    margin-left: 4px;
-    cursor: pointer;
-}
+    .signup-btn {
+        color: #000;
+        font-weight: bold;
+        text-decoration: none;
+        margin-left: 4px;
+        cursor: pointer;
+    }
 
-.signup-btn:hover {
-    text-decoration: underline;
-}
+    .signup-btn:hover {
+        text-decoration: underline;
+    }
 
-.resend-email-link {
-    text-align: center;
-    font-size: 13px;
-    color: #666;
-    margin-top: -12px;
-}
+    .resend-email-link {
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        margin-top: -12px;
+    }
 
-.resend-email-link span {
-    display: block;
-    margin-bottom: 6px;
-}
+    .resend-email-link span {
+        display: block;
+        margin-bottom: 6px;
+    }
 
-.resend-email-btn {
-    color: #007bff;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-}
+    .resend-email-btn {
+        color: #007bff;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
-.resend-email-btn:hover {
-    text-decoration: underline;
-}
+    .resend-email-btn:hover {
+        text-decoration: underline;
+    }
 </style>
