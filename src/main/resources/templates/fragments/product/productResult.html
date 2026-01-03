@@ -383,9 +383,14 @@
                     </div>
                     <!-- 남은 시간 -->
                     <div class="time-left"
-                        th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
-                                    ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
-                                    : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                        th:with="
+                            duration=${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime)},
+                            days=${duration.toDays()},
+                            totalHours=${duration.toHours()},
+                            hours=${totalHours % 24},
+                            totalMinutes=${duration.toMinutes()},
+                            minutes=${totalMinutes % 60}">
+                        <span th:text="|${days}일 ${hours}시간 ${minutes}분 남음|"></span>
                     </div>
                 </div>
                 
@@ -440,9 +445,14 @@
                     </div>
                     <!-- 남은 시간 -->
                     <div class="time-left"
-                        th:text="${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() >= 1 
-                                    ? T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toHours() + '시간 남음' 
-                                    : T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime).toMinutes() + '분 남음'}">
+                        th:with="
+                            duration=${T(java.time.Duration).between(T(java.time.LocalDateTime).now(), product.timeDeal.endTime)},
+                            days=${duration.toDays()},
+                            totalHours=${duration.toHours()},
+                            hours=${totalHours % 24},
+                            totalMinutes=${duration.toMinutes()},
+                            minutes=${totalMinutes % 60}">
+                        <span th:text="|${days}일 ${hours}시간 ${minutes}분 남음|"></span>
                     </div>
                 </div>
                 
