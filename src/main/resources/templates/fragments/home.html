@@ -129,7 +129,7 @@
                           data-depart-date=${#temporals.format(departDate, 'yyyy-MM-dd')}"
                  onclick="handleRecentProductClick(this)">
                 <div class="product-image">
-                    <img th:src="${product.thumbnail != null and !product.thumbnail.isEmpty() ? product.thumbnail : (product.image != null and !product.image.isEmpty() ? product.image : '/images/placeholder.png')}" alt="상품 이미지" onerror="this.src='/images/placeholder.png'">
+                    <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : ((product.image != null and !product.image.isEmpty() and (product.image.startsWith('/') or product.image.startsWith('http'))) ? product.image : '/images/placeholder.png')}" alt="상품 이미지" onerror="this.src='/images/placeholder.png'">
                 </div>
                 <div class="product-info">
                     <h3 class="product-title" th:text="${product.title}">동유럽 1박 2일</h3>
@@ -206,7 +206,7 @@
                  th:data-product-id="${product.id}"
                  onclick="handleTimeDealProductClick(this)">
                 <div class="product-image">
-                    <img th:src="${product.thumbnail != null and !product.thumbnail.isEmpty() ? product.thumbnail : (product.image != null and !product.image.isEmpty() ? product.image : '/images/placeholder.png')}"
+                    <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : ((product.image != null and !product.image.isEmpty() and (product.image.startsWith('/') or product.image.startsWith('http'))) ? product.image : '/images/placeholder.png')}"
                          alt="상품 이미지"
                          onerror="this.src='/images/placeholder.png'">
                 </div>
