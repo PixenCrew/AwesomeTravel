@@ -49,7 +49,7 @@ public class InquiryController {
 
             boolean isOwner = currentUser
                     .map(User::getId)
-                    .map(idVal -> idVal.equals(inquiry.getUser().getId()))
+                    .map(idVal -> inquiry.getUser() != null && idVal.equals(inquiry.getUser().getId()))
                     .orElse(false);
 
             boolean isAdmin = currentUser
@@ -58,7 +58,7 @@ public class InquiryController {
                     .isPresent();
 
             if (!isOwner && !isAdmin) {
-                return "error/error";
+                return "fragments/error/dataUnavailable";
             }
         }
 

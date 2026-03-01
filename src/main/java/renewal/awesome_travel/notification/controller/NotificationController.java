@@ -62,7 +62,7 @@ public class NotificationController {
     }
 }
 
-// REST API용 컨트롤러 (기존 기능 유지)
+// REST API용 컨트롤러 (현재 로그인 사용자 기준)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
@@ -70,16 +70,24 @@ class NotificationApiController {
 
     private final NotificationService notificationService;
 
-    // 안 읽은 알림 조회
+    // 안 읽은 알림 조회 (현재 로그인 사용자)
     @GetMapping
-    public ResponseEntity<List<Notification>> getUnreadNotifications(@RequestParam Long userId) {
-        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
+    public ResponseEntity<List<Notification>> getUnreadNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userDetails.getUser().getId()));
     }
 
-    // 알림 모두 읽음 처리
+    // 알림 모두 읽음 처리 (현재 로그인 사용자)
     @PatchMapping("/read")
-    public ResponseEntity<Void> markAllAsRead(@RequestParam Long userId) {
-        notificationService.markAllAsRead(userId);
+    public ResponseEntity<Void> markAllAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        notificationService.markAllAsRead(userDetails.getUser().getId());
         return ResponseEntity.ok().build();
     }
 }

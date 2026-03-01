@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,7 +42,6 @@ import renewal.common.entity.Passport;
 import renewal.awesome_travel.passport.entity.PassportAccessConsent;
 import renewal.awesome_travel.passport.repository.PassportAccessConsentRepository;
 import renewal.awesome_travel.passport.repository.PassportRepository;
-import renewal.awesome_travel.payment.repository.PaymentRepository;
 import renewal.awesome_travel.user.dto.MemberGradeStatsDto;
 import renewal.awesome_travel.user.dto.request.MatePassportRequestDto;
 import renewal.awesome_travel.user.dto.request.PassportRequestDto;
@@ -51,7 +53,6 @@ import renewal.awesome_travel.user.service.UserService;
 import renewal.common.entity.CountryCode;
 import renewal.common.entity.Inquiry;
 import renewal.common.entity.Passenger.Sex;
-import renewal.common.entity.Passport;
 import renewal.common.entity.PurchaseAir;
 import renewal.common.entity.PurchaseProduct;
 import renewal.common.entity.User;
@@ -75,11 +76,12 @@ import org.springframework.data.domain.Pageable;
 @RequestMapping("/mypage")
 public class MyPageController {
 
+    private static final Logger log = LoggerFactory.getLogger(MyPageController.class);
+
     private final UserRepository userRepo;
     private final UserService userService;
     private final PurchaseProductRepository purchaseProductRepo;
     private final PurchaseAirRepository purchaseAirRepo;
-    private final PaymentRepository paymentRepo;
     private final CountryCodeRepository countryCodeRepo;
     private final InquiryRepository inquiryRepo;
     private final PassportRepository passportRepo;
@@ -129,9 +131,7 @@ public class MyPageController {
             // 로그인 되어 있으면 mypage fragment 반환
             return "fragments/purchase/purchaseList";
         } catch (Exception e) {
-            // 예외 발생 시 로그 출력 및 빈 리스트 반환
-            System.err.println("예약내역 조회 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("예약내역 조회 중 오류 발생: {}", e.getMessage(), e);
             model.addAttribute("purchaseProducts", java.util.Collections.emptyList());
             model.addAttribute("purchaseAirs", java.util.Collections.emptyList());
             model.addAttribute("refundMap", new HashMap<>());
@@ -142,6 +142,9 @@ public class MyPageController {
     @GetMapping("/inquiry")
     public String mypageInquiryFragment(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
 
+        if (principal == null || principal.getUser() == null) {
+            return "fragments/login";
+        }
         User user = principal.getUser(); // detached 상태
         List<Inquiry> inquiries = inquiryRepo.findByUserId(user.getId());
 
@@ -154,7 +157,7 @@ public class MyPageController {
     @GetMapping("/setting")
     public String mypageSettingFragment(Principal principal, Model model) {
 
-        User user = userRepo.findByEmail(principal.getName()).get();
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         model.addAttribute("currentUser", user);
 
         return "fragments/mypage/setting";
@@ -163,7 +166,7 @@ public class MyPageController {
     @GetMapping("/accountSetting")
     public String mypageAccountSettingFragment(Principal principal, Model model, HttpSession session) {
 
-        User user = userRepo.findByEmail(principal.getName()).get();
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         model.addAttribute("currentUser", user);
 
         // 휴대폰 인증을 위한 세션 초기화
@@ -254,7 +257,7 @@ public class MyPageController {
         }
     }
 
-    @org.springframework.web.bind.annotation.DeleteMapping("/accountSetting/profileImage")
+    @DeleteMapping("/accountSetting/profileImage")
     public ResponseEntity<?> removeProfileImage(Principal principal) {
         try {
             User user = userRepo.findByEmail(principal.getName())
@@ -274,7 +277,6 @@ public class MyPageController {
                 }
             }
 
-            // DB에서 제거
             user.setProfileImage(null);
             userRepo.save(user);
 
@@ -284,20 +286,20 @@ public class MyPageController {
             ));
 
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("프로필 이미지 삭제 중 오류", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "message", "파일 삭제 중 오류가 발생했습니다."));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "프로필 이미지 제거 중 오류가 발생했습니다."));
+            log.warn("프로필 이미지 제거 중 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("success", false, "message", "프로필 이미지 제거 중 오류가 발생했습니다."));
         }
     }
 
     @GetMapping("/myPassport")
     public String myPassportFragment(Principal principal, Model model) {
 
-        User user = userRepo.findByEmail(principal.getName()).get();
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Passport myPassport = passportRepo.findByUser(user).orElseGet(Passport::new);
 
         model.addAttribute("myPassport", myPassport);
@@ -309,7 +311,7 @@ public class MyPageController {
     @PostMapping("/myPassport")
     public ResponseEntity<?> myPassportPost(@RequestBody PassportRequestDto myPassport, Principal principal) {
 
-        User user = userRepo.findByEmail(principal.getName()).get();
+        User user = userRepo.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Passport passport = passportRepo.findByUser(user)
                 .orElse(new Passport());
@@ -426,9 +428,19 @@ public class MyPageController {
 
     // 여권입력시 특정 여행메이트 정보 API
     @GetMapping("/api/matePassport/{id}")
-    public ResponseEntity<?> getMateInfo(@PathVariable Long id) {
+    public ResponseEntity<?> getMateInfo(@PathVariable Long id, Principal principal) {
 
-        PassportAccessConsent mate = passportAccessConsentRepo.findById(id).orElseThrow();
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User currentUser = userRepo.findByEmail(principal.getName()).orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        PassportAccessConsent mate = passportAccessConsentRepo.findById(id).orElse(null);
+        if (mate == null || !currentUser.getId().equals(mate.getUser().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         Passport p = mate.getPassport();
         if (p == null) {
@@ -469,9 +481,18 @@ public class MyPageController {
     @GetMapping("/matePassport/{id}")
     public String getMateFragment(@PathVariable Long id, Principal principal, Model model) {
 
-        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).orElseThrow();
+        if (principal == null) {
+            return "fragments/login";
+        }
+        User currentUser = userRepo.findByEmail(principal.getName()).orElse(null);
+        if (currentUser == null) {
+            return "fragments/login";
+        }
+        PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).orElse(null);
+        if (matePassport == null || !currentUser.getId().equals(matePassport.getUser().getId())) {
+            return "fragments/error/dataUnavailable";
+        }
         model.addAttribute("matePassport", matePassport);
-
         return "fragments/mypage/matePassport";
     }
 
@@ -569,10 +590,20 @@ public class MyPageController {
     // 특정 메이트 삭제
     @PostMapping("/matePassport/{id}/delete")
     @Transactional
-    public ResponseEntity<?> deleteMate(@PathVariable @NonNull Long id) {
+    public ResponseEntity<?> deleteMate(@PathVariable @NonNull Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User currentUser = userRepo.findByEmail(principal.getName()).orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         PassportAccessConsent matePassport = passportAccessConsentRepo.findById(id).orElse(null);
         if (matePassport == null) {
             return ResponseEntity.ok(Map.of("success", false, "message", "여행메이트를 찾을 수 없습니다."));
+        }
+        if (!currentUser.getId().equals(matePassport.getUser().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "권한이 없습니다."));
         }
 
         // token 있으면 삭제
@@ -638,10 +669,9 @@ public class MyPageController {
         tempUser.setVerifyCode(randomCode);
 
         // =============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================
-        System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
-        System.out.println("전화번호 : " + tempUser.getNumber());
-        System.out.println("인증번호 : " + tempUser.getVerifyCode());
-        System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
+        if (log.isDebugEnabled()) {
+            log.debug("휴대폰 인증 요청(마이페이지): number={}", tempUser.getNumber());
+        }
 
         // 개발 편의를 위해 인증번호를 응답에 포함 (임시)
         return ResponseEntity.ok(Map.of("success", true, "verifyCode", randomCode));
