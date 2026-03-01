@@ -869,12 +869,6 @@ public class ProductController {
                                 productForCombination.setTour(tourCopy);
                             }
 
-                            // 🔧 좌석등급별 대표 SeatClass 설정
-                            productForCombination.setEconomySeatClass(departSeatClassMap.get(SeatClass.SeatClassType.ECONOMY));
-                            productForCombination.setPremiumEconomySeatClass(departSeatClassMap.get(SeatClass.SeatClassType.PREMIUMECONOMY));
-                            productForCombination.setBusinessSeatClass(departSeatClassMap.get(SeatClass.SeatClassType.BUSINESS));
-                            productForCombination.setFirstSeatClass(departSeatClassMap.get(SeatClass.SeatClassType.FIRST));
-                            
                             // 🔧 모든 AIR Location에 해당 좌석등급의 SeatClass를 설정 (출국편/귀국편/중간 경유편 모두)
                             // 출국편과 귀국편의 출발/도착 공항 정보를 미리 저장 (LAZY 로딩 해제)
                             String departDepartAirport = null;
