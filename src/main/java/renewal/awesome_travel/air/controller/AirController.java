@@ -160,7 +160,7 @@ public class AirController {
             HttpSession session) {
 
         PurchaseAir purchaseAir = (PurchaseAir) session.getAttribute("purchaseAir");
-        User buyer = userRepo.findByEmail(principal.getName()).get();
+        User buyer = userRepo.findByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 빈 PassengerAir들 생성
         List<PassengerAir> blankPassengers = passengerServiceCommon.createBlankPassengersAir(
@@ -197,17 +197,17 @@ public class AirController {
 
         PurchaseAir purchaseAir = purchaseAirRepo.findById(id).orElse(null);
         if (purchaseAir == null) {
-            return "error/error";
+            return "fragments/error/dataUnavailable";
         }
 
         // 본인의 예약인지 확인
         if (principal != null) {
             User user = userRepo.findByEmail(principal.getName()).orElse(null);
             if (user != null && !purchaseAir.getUser().getId().equals(user.getId())) {
-                return "error/error"; // 다른 사용자의 예약 접근 시 에러
+                return "fragments/error/dataUnavailable"; // 다른 사용자의 예약 접근 시 에러
             }
         } else {
-            return "error/error"; // 로그인하지 않은 사용자 접근 시 에러
+            return "fragments/error/dataUnavailable"; // 로그인하지 않은 사용자 접근 시 에러
         }
 
         // finalSeatClasses의 airId를 사용해서 Air 엔티티를 조회하고 airline 정보를 Map으로 제공

@@ -130,7 +130,7 @@ public class UserService {
             return true;
 
         } catch (Exception e) {
-            System.out.println("[verifyEmail] error: " + e.getMessage());
+            log.warn("[verifyEmail] error: {}", e.getMessage());
             return false;
         }
     }

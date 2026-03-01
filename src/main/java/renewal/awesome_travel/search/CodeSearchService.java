@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import renewal.awesome_travel.search.dto.CodeSearchResponse;
 import renewal.awesome_travel.search.repository.CodeSearchRepository;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CodeSearchService {
 
         private final CodeSearchRepository codeSearchRepo;
@@ -22,9 +24,9 @@ public class CodeSearchService {
 
         @PostConstruct
         public void init() {
-                System.out.println(">>> 공항/도시 목록 캐싱 시작...");
+                log.info(">>> 공항/도시 목록 캐싱 시작...");
                 cachedList = codeSearchRepo.loadAllCodeSearchItems();
-                System.out.println(">>> 캐싱 완료. 총 " + cachedList.size() + " 건");
+                log.info(">>> 캐싱 완료. 총 {} 건", cachedList.size());
         }
 
         public List<CodeSearchResponse> searchFromCache(String keyword) {

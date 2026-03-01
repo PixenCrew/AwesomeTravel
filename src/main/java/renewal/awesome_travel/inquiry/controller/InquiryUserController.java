@@ -32,32 +32,42 @@ public class InquiryUserController {
         return ResponseEntity.ok(inquiryService.createInquiry(user.getId(), dto));
     }
 
-    // 내 문의 목록 조회
+    // 내 문의 목록 조회 (현재 로그인 사용자)
     @GetMapping
     public ResponseEntity<Page<InquiryResponseDto>> getMyInquiries(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(inquiryService.getMyInquiries(userId, pageable));
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(inquiryService.getMyInquiries(userDetails.getUser().getId(), pageable));
     }
 
-    // 내 문의 상세 조회
+    // 내 문의 상세 조회 (현재 로그인 사용자)
     @GetMapping("/{id}")
     public ResponseEntity<InquiryDetailResponseDto> getInquiryDetail(
             @PathVariable Long id,
-            @RequestParam Long userId
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(inquiryService.getInquiryDetail(id, userId));
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(inquiryService.getInquiryDetail(id, userDetails.getUser().getId()));
     }
 
     @GetMapping("/search")
     public ResponseEntity<Page<InquiryResponseDto>> searchMyInquiries(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean isAnswered,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(inquiryService.searchMyInquiries(userId, keyword, isAnswered, pageable));
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(inquiryService.searchMyInquiries(
+                userDetails.getUser().getId(), keyword, isAnswered, pageable));
     }
 
 }

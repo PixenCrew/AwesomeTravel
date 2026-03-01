@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import renewal.awesome_travel.user.dto.request.UserRegisterRequestDto;
@@ -24,6 +27,8 @@ import renewal.common.entity.User;
 @RequiredArgsConstructor
 @RequestMapping("/register")
 public class RegisterController {
+
+    private static final Logger log = LoggerFactory.getLogger(RegisterController.class);
 
     private final UserService userService;
     private final UserRepository userRepo;
@@ -65,11 +70,9 @@ public class RegisterController {
         tempUser.setNumber(phoneNumber.trim());
         tempUser.setVerifyCode(randomCode);
 
-        // =============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================
-        System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
-        System.out.println("전화번호 : " + tempUser.getNumber());
-        System.out.println("인증번호 : " + tempUser.getVerifyCode());
-        System.out.println("=============== [TEST] 랜덤코드 문자로 보내는 기능 대체 ===================");
+        if (log.isDebugEnabled()) {
+            log.debug("휴대폰 인증 요청: number={}, verifyCode=(생략)", tempUser.getNumber());
+        }
 
         // 개발 편의를 위해 인증번호를 응답에 포함 (임시)
         return ResponseEntity.ok(Map.of("success", true, "verifyCode", randomCode));
@@ -84,6 +87,10 @@ public class RegisterController {
     public ResponseEntity<?> verifyNumberCheck(@RequestBody Map<String, String> payload, HttpSession session) {
 
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
+        if (tempUser == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "세션이 만료되었습니다. 다시 진행해주세요."));
+        }
         String tempUserNumber = tempUser.getNumber();
         String tempUserVerifyCode = tempUser.getVerifyCode();
 
@@ -243,6 +250,12 @@ public class RegisterController {
         }
     }
 
+    @GetMapping("/emailVerification")
+    public String emailVerificationForm(@RequestParam(required = false) String email, Model model) {
+        model.addAttribute("email", email);
+        return "fragments/register/emailVerification";
+    }
+
     @GetMapping("/done")
     public String registerDone() {
         return "fragments/register/registerDone";
@@ -268,6 +281,6 @@ public class RegisterController {
         model.addAttribute("success", success);
         model.addAttribute("message", message);
 
-        return "verifyResult";
+        return "register/emailVerifyResultPage";
     }
 }

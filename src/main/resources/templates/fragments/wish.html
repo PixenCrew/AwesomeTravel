@@ -53,8 +53,8 @@
                         onclick="addModal(this.dataset.url)">
                    
                         <div class="wish-image">
-                            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="thumbnail" />
-                            <div th:if="${product.thumbnail == null}" class="wish-image-placeholder">img</div>
+                            <img th:if="${product.thumbnail != null and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))}" th:src="${product.thumbnail}" alt="thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                            <div th:if="${product.thumbnail == null or !(product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))}" class="wish-image-placeholder">img</div>
                         </div>
 
                         <div class="wish-info">
@@ -91,8 +91,8 @@
                 <div th:each="product : ${likedProducts}">
                     <div class="wish-card" th:onclick="|addModal('/product/${product.id}')|">
                         <div class="wish-image">
-                            <img th:if="${product.thumbnail != null}" th:src="${product.thumbnail}" alt="thumbnail" />
-                            <div th:if="${product.thumbnail == null}" class="wish-image-placeholder">img</div>
+                            <img th:if="${product.thumbnail != null and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))}" th:src="${product.thumbnail}" alt="thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                            <div th:if="${product.thumbnail == null or !(product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))}" class="wish-image-placeholder">img</div>
                         </div>
 
                         <div class="wish-info">

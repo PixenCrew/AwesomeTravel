@@ -20,9 +20,8 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("currentUser")
     public UserResponseDto currentUser(@AuthenticationPrincipal CustomUserDetails principal) {
-        if (principal != null) {
+        if (principal != null && principal.getUser() != null) {
             User user = principal.getUser(); // 엔티티 가져오기
-            // UserResponseDTO로 변환
             return new UserResponseDto(user);
         }
         return null; // 로그인 안 된 경우
@@ -39,7 +38,7 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("userCouponsCount")
     public Integer userCouponsCount(@AuthenticationPrincipal CustomUserDetails principal) {
-        if (principal != null) {
+        if (principal != null && principal.getUser() != null) {
             User user = principal.getUser();
             return userService.getAvailableCoupons(user).size();
         }

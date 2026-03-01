@@ -45,8 +45,60 @@ public class ProductCalanderDto {
         this.id = product.getId();
         this.title = product.getTitle();
         this.departDateTimeType = product.getDepartTimeType();
+        
+        // 실제 항공편의 출발/도착 시간을 가져오기 (Product의 departDateTime/returnDateTime보다 정확함)
+        // day 0의 첫 번째 AIR Location에서 출국편 시간 가져오기
+        if (product.getTour() != null && product.getTour().getSchedules() != null) {
+            for (renewal.common.entity.Schedule schedule : product.getTour().getSchedules()) {
+                if (schedule != null && schedule.getDay() != null && schedule.getDay() == 0L
+                    && schedule.getLocations() != null) {
+                    for (renewal.common.entity.Location location : schedule.getLocations()) {
+                        if (location != null && location.getLocationType() == renewal.common.entity.Location.LocationType.AIR
+                            && location.getSeatClass() != null
+                            && location.getSeatClass().getAir() != null) {
+                            this.departDateTime = location.getSeatClass().getAir().getDepartDateTime();
+                            break;
+                        }
+                    }
+                    if (this.departDateTime != null) {
+                        break;
+                    }
+                }
+            }
+            
+            // 마지막 day의 첫 번째 AIR Location에서 귀국편 도착 시간 가져오기
+            Long lastDay = product.getTour().getSchedules().stream()
+                .filter(s -> s != null && s.getDay() != null)
+                .mapToLong(s -> s.getDay())
+                .max()
+                .orElse(0L);
+            
+            for (renewal.common.entity.Schedule schedule : product.getTour().getSchedules()) {
+                if (schedule != null && schedule.getDay() != null && schedule.getDay().equals(lastDay)
+                    && schedule.getLocations() != null) {
+                    for (renewal.common.entity.Location location : schedule.getLocations()) {
+                        if (location != null && location.getLocationType() == renewal.common.entity.Location.LocationType.AIR
+                            && location.getSeatClass() != null
+                            && location.getSeatClass().getAir() != null) {
+                            this.returnDateTime = location.getSeatClass().getAir().getArriveDateTime();
+                            break;
+                        }
+                    }
+                    if (this.returnDateTime != null) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 실제 항공편 시간을 찾지 못한 경우 fallback
+        if (this.departDateTime == null) {
         this.departDateTime = product.getDepartDateTime();
+        }
+        if (this.returnDateTime == null) {
         this.returnDateTime = product.getReturnDateTime();
+        }
+        
         this.finalPriceAdult = product.getFinalPriceAdult();
         this.finalPriceYouth = product.getFinalPriceYouth();
         this.finalPriceInfant = product.getFinalPriceInfant();
@@ -109,8 +161,8 @@ public class ProductCalanderDto {
                 }
             }
             
-            // 모든 항공편이 같은 등급이면 한국어로 변환하여 표시
-            if (allSameClass && firstClassType != null) {
+            // 첫 번째 유효한 좌석 등급으로라도 설정 (필터/표시용; 모두 동일한 경우가 정상이나 fallback 보강)
+            if (firstClassType != null) {
                 switch (firstClassType) {
                     case ECONOMY:
                         this.seatClassType = "이코노미";
@@ -131,12 +183,21 @@ public class ProductCalanderDto {
         }
 
         // 타임딜 해당 상품인경우 할인가격
+        // 주의: 달력에서는 좌석등급별로 다른 가격이므로, 공유되는 TimeDeal.originalPriceAdult는
+        // 마지막 계산된 등급으로 덮어써져 잘못 표시될 수 있음. 이 행의 finalPriceAdult에서 원가 역산.
         if (product.getTimeDeal() != null && product.getTimeDeal().isActive()) {
-            this.originalPrice = product.getTimeDeal().getOriginalPriceAdult();
             this.discountType = product.getTimeDeal().getDiscountType();
             this.discountValue = product.getTimeDeal().getValue();
             this.startTime = product.getTimeDeal().getStartTime();
             this.endTime = product.getTimeDeal().getEndTime();
+            Long finalAdult = product.getFinalPriceAdult();
+            if (this.discountType == DiscountType.ABSOLUTE && this.discountValue != null && finalAdult != null) {
+                this.originalPrice = finalAdult + this.discountValue;
+            } else if (this.discountType == DiscountType.PERCENT && this.discountValue != null && finalAdult != null && this.discountValue < 100) {
+                this.originalPrice = finalAdult * 100 / (100 - this.discountValue);
+            } else {
+                this.originalPrice = product.getTimeDeal().getOriginalPriceAdult();
+            }
         }
     }
 
