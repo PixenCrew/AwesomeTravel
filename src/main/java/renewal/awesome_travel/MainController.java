@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,6 +45,8 @@ import renewal.awesome_travel.popup.repository.PopupRepository;
 @Controller(value = "/")
 public class MainController {
 
+    private static final Logger log = LoggerFactory.getLogger(MainController.class);
+
     private final ProductServiceCommon productServiceCommon;
     private final UserService userService;
     private final UserRepository userRepo;
@@ -69,15 +73,16 @@ public class MainController {
 
         // ============로그인 한 경우=================
         if (principal != null) {
-            User user = userRepo.findByEmail(principal.getName()).get();
-            Hibernate.initialize(user.getRecentProducts());
-            Hibernate.initialize(user.getLikedProducts());
+            User user = userRepo.findByEmail(principal.getName()).orElse(null);
+            if (user != null) {
+                Hibernate.initialize(user.getRecentProducts());
+                Hibernate.initialize(user.getLikedProducts());
 
-            List<Product> actualRecentProducts = productService.convertToProducts(user.getRecentProducts());
-            List<Product> actualLikedProducts = productService.convertToProducts(user.getLikedProducts());
+                List<Product> actualRecentProducts = productService.convertToProducts(user.getRecentProducts());
+                List<Product> actualLikedProducts = productService.convertToProducts(user.getLikedProducts());
 
-            // 로그인 상태 → User의 element collections 사용
-            model.addAttribute("currentUser", user);
+                // 로그인 상태 → User의 element collections 사용
+                model.addAttribute("currentUser", user);
 
             // 추천상품 100일치 항공권 필터링 적용
             List<Product> filteredRecentProducts = new ArrayList<>();
@@ -109,6 +114,8 @@ public class MainController {
                     
                     try {
                         Product productCopy = (Product) product.clone();
+                        Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                        if (tourCopy != null) productCopy.setTour(tourCopy);
                         calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                     } catch (CloneNotSupportedException e) {
                         calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
@@ -121,13 +128,14 @@ public class MainController {
                 }
             }
             
-            model.addAttribute("recentProducts", filteredRecentProducts);
-            model.addAttribute("likedProducts", actualLikedProducts);
-            // ElementCollection의 개수 사용 (UserLikedProduct 엔티티가 아님)
-            model.addAttribute("likedProductsCount", user.getLikedProducts() != null ? user.getLikedProducts().size() : 0);
-            model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
-
-        } else {
+                model.addAttribute("recentProducts", filteredRecentProducts);
+                model.addAttribute("likedProducts", actualLikedProducts);
+                // ElementCollection의 개수 사용 (UserLikedProduct 엔티티가 아님)
+                model.addAttribute("likedProductsCount", user.getLikedProducts() != null ? user.getLikedProducts().size() : 0);
+                model.addAttribute("userCouponsCount", userService.getAvailableCoupons(user).size());
+            }
+        }
+        if (principal == null) {
             // 비로그인 상태 → 최근 등록된 상품 5개 (인덱스 사용으로 빠름)
             Pageable pageable = PageRequest.of(0, 5);
             List<Product> recentProducts = productRepo.findRecentProducts(pageable);
@@ -162,6 +170,8 @@ public class MainController {
                     
                     try {
                         Product productCopy = (Product) product.clone();
+                        Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                        if (tourCopy != null) productCopy.setTour(tourCopy);
                         calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                     } catch (CloneNotSupportedException e) {
                         calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
@@ -181,14 +191,23 @@ public class MainController {
         // 타임딜 5개
         List<Product> resulProducts = new ArrayList<>();
         List<Product> timeDealProducts = productRepo.findActiveTimeDealProducts();
-
+        
+        if (log.isDebugEnabled()) {
+            log.debug("타임딜 상품 조회: {} 건", timeDealProducts.size());
+        }
         for (Product product : timeDealProducts) {
             if (product == null || product.getCutoffDays() == null) {
+                if (log.isDebugEnabled()) log.debug("타임딜 상품 스킵: product가 null이거나 cutoffDays가 null");
+                continue;
+            }
+            if (product.getIsActive() == null || !product.getIsActive()) {
+                if (log.isDebugEnabled()) log.debug("타임딜 상품 스킵: isActive가 false - productId={}, title={}", product.getId(), product.getTitle());
                 continue;
             }
             Hibernate.initialize(product.getTour());
             Tour tour = product.getTour();
             if (tour == null) {
+                if (log.isDebugEnabled()) log.debug("타임딜 상품 스킵: Tour가 null - productId={}", product.getId());
                 continue;
             }
 
@@ -210,6 +229,8 @@ public class MainController {
                 
                 try {
                     Product productCopy = (Product) product.clone();
+                    Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                    if (tourCopy != null) productCopy.setTour(tourCopy);
                     calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                 } catch (CloneNotSupportedException e) {
                     // Clone 실패 시 원본 사용
@@ -218,9 +239,11 @@ public class MainController {
                 plusDays++;
             }
 
-            // 항공권이 있는 상품만 추가 (fallback 제거)
             if (calcedProduct != null) {
+                if (log.isDebugEnabled()) log.debug("타임딜 상품 추가: productId={}, title={}", product.getId(), product.getTitle());
                 resulProducts.add(calcedProduct);
+            } else {
+                if (log.isDebugEnabled()) log.debug("타임딜 상품 스킵: calcSingleProduct null - productId={}, title={}", product.getId(), product.getTitle());
             }
 
             if (resulProducts.size() >= 5) {
@@ -228,17 +251,25 @@ public class MainController {
             }
 
         }
+        if (log.isDebugEnabled()) {
+            log.debug("최종 타임딜 상품 수: {}", resulProducts.size());
+        }
         model.addAttribute("timeDealProducts", resulProducts);
 
         // 기획전 5개
         List<Promotion> promotions = promotionRepo.findActivePromotions();
         List<Promotion> resultPromotions = new ArrayList<>();
-
+        if (log.isDebugEnabled()) {
+            log.debug("기획전 조회: {} 건", promotions.size());
+        }
         for (Promotion promotion : promotions) {
             resultPromotions.add(promotion);
             if (resultPromotions.size() >= 5) {
                 break;
             }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("최종 기획전 수: {}", resultPromotions.size());
         }
         model.addAttribute("promotions", resultPromotions);
 
@@ -249,7 +280,8 @@ public class MainController {
     public String wish(Principal principal, Model model) {
         // ============로그인 한 경우=================
         if (principal != null) {
-            User user = userRepo.findByEmail(principal.getName()).get();
+            User user = userRepo.findByEmail(principal.getName()).orElse(null);
+            if (user != null) {
             Hibernate.initialize(user.getRecentProducts());
             Hibernate.initialize(user.getLikedProducts());
 
@@ -260,8 +292,9 @@ public class MainController {
             model.addAttribute("currentUser", user);
             model.addAttribute("recentProducts", actualRecentProducts);
             model.addAttribute("likedProducts", actualLikedProducts);
-        } else {
-            // 비로그인 상태
+            }
+        }
+        if (principal == null || model.getAttribute("currentUser") == null) {
             model.addAttribute("currentUser", null);
             model.addAttribute("recentProducts", Collections.emptyList());
             model.addAttribute("likedProducts", Collections.emptyList());
@@ -284,7 +317,7 @@ public class MainController {
     @GetMapping("subMain/{menuCode}")
     public String getSubmain(@PathVariable String menuCode, Model model) {
         if (String.valueOf(menuCode).length() != 3)
-            return "error/error";
+            return "fragments/error/dataUnavailable";
 
         List<MenuCode> menuCodes = menuCodeRepo.findAllByCodeStartingWith(menuCode); // 앞 3자리로 시작하는 MenuCode들
 
@@ -323,6 +356,8 @@ public class MainController {
                         
                         try {
                             Product productCopy = (Product) product.clone();
+                            Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                            if (tourCopy != null) productCopy.setTour(tourCopy);
                             calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                         } catch (CloneNotSupportedException e) {
                             calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
@@ -403,6 +438,8 @@ public class MainController {
                     
                     try {
                         Product productCopy = (Product) product.clone();
+                        Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                        if (tourCopy != null) productCopy.setTour(tourCopy);
                         calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                     } catch (CloneNotSupportedException e) {
                         calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
@@ -412,10 +449,14 @@ public class MainController {
 
                 if (calcedProduct != null) {
                     resulProducts.add(calcedProduct);
+                } else {
+                    // 조건 안 맞아도 상품 노출 (대표 가격 없이 원본 상품 추가)
+                    resulProducts.add(product);
                 }
             }
 
-            if (resulProducts.isEmpty()) {
+            // 메뉴에 속한 상품이 하나도 없을 때만 에러 페이지
+            if (codeProducts.isEmpty()) {
                 return renderDataError(model, "상품 정보를 불러올 수 없습니다.", "현재 준비 중인 상품이거나 데이터가 아직 등록되지 않았습니다.");
             }
 
@@ -527,6 +568,8 @@ public class MainController {
                 
                 try {
                     Product productCopy = (Product) product.clone();
+                    Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                    if (tourCopy != null) productCopy.setTour(tourCopy);
                     calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                 } catch (CloneNotSupportedException e) {
                     calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);
@@ -591,6 +634,8 @@ public class MainController {
                 
                 try {
                     Product productCopy = (Product) product.clone();
+                    Tour tourCopy = productServiceCommon.copyTourForOption(product.getTour());
+                    if (tourCopy != null) productCopy.setTour(tourCopy);
                     calcedProduct = productServiceCommon.calcSingleProduct(productCopy, targetDate);
                 } catch (CloneNotSupportedException e) {
                     calcedProduct = productServiceCommon.calcSingleProduct(product, targetDate);

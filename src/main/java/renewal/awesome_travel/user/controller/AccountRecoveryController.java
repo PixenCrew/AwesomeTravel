@@ -77,7 +77,7 @@ public class AccountRecoveryController {
 
         UserRegisterRequestDto tempUser = (UserRegisterRequestDto) session.getAttribute("tempUser");
         if (tempUser == null)
-            return "error/error";
+            return "fragments/error/dataUnavailable";
 
         String emailResult = tempUser.getEmail();
 
@@ -134,7 +134,7 @@ public class AccountRecoveryController {
 
         session.setAttribute("tempUser", tempUser);
 
-        return "fragments/recovery/recoverPasswordNew";
+        return "recovery/passwordVerifiedPage";
     }
 
     @PostMapping("/password/verified")
@@ -148,7 +148,7 @@ public class AccountRecoveryController {
                     .body(Map.of("success", false, "message", "만료된 세션입니다."));
         }
 
-        User user = userRepo.findByEmail(tempUser.getEmail()).get();
+        User user = userRepo.findByEmail(tempUser.getEmail()).orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
         String newPassword = payload.get("newPassword");
         String newPassword2 = payload.get("newPassword2");
 

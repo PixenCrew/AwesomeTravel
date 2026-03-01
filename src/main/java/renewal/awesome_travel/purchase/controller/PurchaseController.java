@@ -40,13 +40,19 @@ public class PurchaseController {
             Model model) {
 
         if (type.equals("air")) {
-            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).get();
+            PurchaseAir purchaseAir = purchaseAirRepo.findById(id).orElse(null);
+            if (purchaseAir == null) {
+                return "fragments/error/dataUnavailable";
+            }
             model.addAttribute("passengers", purchaseAir.getPassengers());
         } else if (type.equals("product")) {
-            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).get();
+            PurchaseProduct purchaseProduct = purchaseProductRepo.findById(id).orElse(null);
+            if (purchaseProduct == null) {
+                return "fragments/error/dataUnavailable";
+            }
             model.addAttribute("passengers", purchaseProduct.getPassengers());
         } else {
-            return "error";
+            return "fragments/error/dataUnavailable";
         }
         model.addAttribute("type", type);
         model.addAttribute("purchaseBaseId", id);
@@ -103,7 +109,7 @@ public class PurchaseController {
 
             return "fragments/purchase/purchaseProductDetail";
         } else {
-            return "error";
+            return "fragments/error/dataUnavailable";
         }
     }
 

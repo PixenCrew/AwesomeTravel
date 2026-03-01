@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>이메일 인증 - 딱좋은여행</title>
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css" />
+</head>
+<body>
+    <div th:replace="~{fragments/register/verifyResult}"></div>
+    <script>
+        if (typeof window.addModal !== 'function') {
+            window.addModal = function(path) { window.location.href = '/?open=' + encodeURIComponent(path && path.charAt(0) === '/' ? path : '/' + (path || '')); };
+        }
+    </script>
+    <script src="/js/layout.js" defer></script>
+</body>
+</html>
