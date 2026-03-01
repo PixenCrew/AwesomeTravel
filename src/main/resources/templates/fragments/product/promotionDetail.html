@@ -248,7 +248,7 @@
                  th:each="product : ${products}"
                  th:data-product-id="${product.id}"
                  onclick="openProductModal(this.dataset.productId)">
-                <img th:src="${product.thumbnail != null and !product.thumbnail.isEmpty() ? product.thumbnail : '/images/placeholder.png'}"
+                <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : '/images/placeholder.png'}"
                      alt="상품 이미지"
                      class="promotion-product-image"
                      onerror="this.src='/images/placeholder.png'">

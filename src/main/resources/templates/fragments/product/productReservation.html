@@ -11,7 +11,7 @@
             <h2 class="section-title">상품정보</h2>
             <div class="product-info-card">
                 <div class="product-image-wrapper">
-                    <img th:src="${product.image}" alt="상품 이미지" class="product-image" />
+                    <img th:src="${(product.image != null and (product.image.startsWith('/') or product.image.startsWith('http'))) ? product.image : '/images/placeholder.png'}" alt="상품 이미지" class="product-image" onerror="this.src='/images/placeholder.png'" />
                 </div>
                 <div class="product-details">
                     <p class="product-name" th:text="${product.title}">부산출발/ALL 포함 나트랑/달랏 풀패키지 마사지 60분 or 머드온천 선택 or 전신 마사지 120분</p>

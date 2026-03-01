@@ -352,7 +352,7 @@
             class="product-item-list"
             th:attr="data-status=${product.productStatus != null ? product.productStatus.name() : 'AVAILABLE'}">
             <div class="product-image-wrapper">
-                <img th:src="${product.thumbnail != null && !product.thumbnail.isEmpty() ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
+                <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
                      alt="썸네일"
                      class="product-thumb"
                      th:data-id="${product.id}"
@@ -394,9 +394,12 @@
                     </div>
                 </div>
                 
-                <!-- 타임딜이 없을 경우 일반 가격 -->
+                <!-- 타임딜이 없을 경우 일반 가격 (가격 없으면 일정 선택 시 확인 안내) -->
                 <div th:if="${product.timeDeal == null or !product.timeDeal.isActive()}" class="product-price">
-                    <span th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                    <span th:if="${(product.price != null and product.price > 0) or (product.finalPriceAdult != null and product.finalPriceAdult > 0)}"
+                          th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                    <span th:if="${(product.price == null or product.price == 0) and (product.finalPriceAdult == null or product.finalPriceAdult == 0)}"
+                          class="price-inquiry">일정 선택 시 가격 확인</span>
                 </div>
             </div>
             <div class="compare-box">
@@ -418,7 +421,7 @@
              th:data-id="${product.id}"
              onclick="openProductModal(this.dataset.id)">
             <div class="product-image-placeholder">
-                <img th:src="${product.thumbnail != null && !product.thumbnail.isEmpty() ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
+                <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : 'https://via.placeholder.com/360x240?text=Image'}"
                      alt="썸네일"
                      class="product-grid-image" />
             </div>
@@ -456,9 +459,12 @@
                     </div>
                 </div>
                 
-                <!-- 타임딜이 없을 경우 일반 가격 -->
+                <!-- 타임딜이 없을 경우 일반 가격 (가격 없으면 일정 선택 시 확인 안내) -->
                 <div th:if="${product.timeDeal == null or !product.timeDeal.isActive()}" class="product-grid-price">
-                    <span th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                    <span th:if="${(product.price != null and product.price > 0) or (product.finalPriceAdult != null and product.finalPriceAdult > 0)}"
+                          th:text="${#numbers.formatInteger(product.price != null ? product.price : (product.finalPriceAdult != null ? product.finalPriceAdult : 0), 3, 'COMMA') + '원'}"></span>
+                    <span th:if="${(product.price == null or product.price == 0) and (product.finalPriceAdult == null or product.finalPriceAdult == 0)}"
+                          class="price-inquiry">일정 선택 시 가격 확인</span>
                 </div>
             </div>
             <div class="product-grid-compare" onclick="event.stopPropagation();">

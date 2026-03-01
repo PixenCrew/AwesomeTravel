@@ -13,13 +13,14 @@
     </header>
 
     <div class="product-detail-body">
-        <!-- 메인 이미지 -->
-        <section class="product-main-image-section" 
-                 th:if="${product.image != null && !product.image.isEmpty()}">
+        <!-- 메인 이미지 (경로가 / 또는 http로 시작할 때만 사용, 파일명만 있으면 플레이스홀더) -->
+        <section class="product-main-image-section">
+            <!-- 🔧 디버깅: 이미지 경로 표시 (개발 중에만) -->
+            <!-- <div style="background: yellow; padding: 5px; font-size: 10px;" th:text="'Image: ' + ${product.image}"></div> -->
             <img class="product-main-image"
-                 th:src="${product.image}"
+                 th:src="${(product.image != null and !product.image.isEmpty() and (product.image.startsWith('/') or product.image.startsWith('http'))) ? product.image : '/images/placeholder.png'}"
                  alt="상품 메인 이미지"
-                 onerror="this.src='/images/placeholder.png'" />
+                 onerror="console.error('이미지 로드 실패:', this.src); this.src='/images/placeholder.png';" />
         </section>
 
             <div class="product-info">
@@ -29,6 +30,14 @@
                 </p>
                 
                 <div class="price">
+                    <!-- 가격 구성 요소 표시 (디버깅용) - 주석 처리 -->
+                    <!--
+                    <div style="background-color: #f5f5f5; padding: 10px; margin-bottom: 10px; border-radius: 5px; font-size: 12px;">
+                        <b>💰 가격 구성:</b><br/>
+                        <span th:text="${product.priceBreakdown}">투어 기본가: 0원 + 항공(ICN→NRT): 0원 = 총액: 0원</span>
+                    </div>
+                    -->
+                    
                     <div>
                         <b>성인</b>:
                         <span th:if="${product.originalPriceAdult != null}">
@@ -139,9 +148,17 @@
                             <span class="flight-label">출국편</span>
                         </div>
                         <div class="flight-card-body">
-                            <div class="flight-date-time">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span th:text="${#temporals.format(product.departFlightDateTime, 'yyyy년 M월 d일(E) HH:mm')}">2024년 12월 22일(일) 08:40</span>
+                            <div class="flight-date-time-airport">
+                                <div th:if="${product.departFlightDateTime != null and product.departFlightDepartAirport != null}">
+                                    <span th:text="${#temporals.format(product.departFlightDateTime, 'yyyy.MM.dd (E) HH:mm')} + ' ' + ${product.departFlightDepartAirport} + ' 출발'">
+                                        2026.03.27 (금) 15:05 인천 출발
+                                    </span>
+                                </div>
+                                <div th:if="${product.departFlightArriveDateTime != null and product.departFlightArriveAirport != null}">
+                                    <span th:text="${#temporals.format(product.departFlightArriveDateTime, 'yyyy.MM.dd (E) HH:mm')} + ' ' + ${product.departFlightArriveAirport} + ' 도착'">
+                                        2026.03.27 (금) 17:00 오사카 도착
+                                    </span>
+                                </div>
                             </div>
                             <div class="flight-details">
                                 <div class="flight-airline" th:if="${product.departFlightAirline != null}">
@@ -152,11 +169,6 @@
                                     <span th:text="${product.departFlightNumber}">KE123</span>
                                 </div>
                             </div>
-                            <div class="flight-route" th:if="${product.departFlightDepartAirport != null and product.departFlightArriveAirport != null}">
-                                <span th:text="${product.departFlightDepartAirport}">인천</span>
-                                <i class="fas fa-arrow-right"></i>
-                                <span th:text="${product.departFlightArriveAirport}">방콕</span>
-                            </div>
                         </div>
                     </div>
                     
@@ -166,9 +178,17 @@
                             <span class="flight-label">귀국편</span>
                         </div>
                         <div class="flight-card-body">
-                            <div class="flight-date-time">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span th:text="${#temporals.format(product.returnFlightDateTime, 'yyyy년 M월 d일(E) HH:mm')}">2024년 12월 25일(수) 10:00</span>
+                            <div class="flight-date-time-airport">
+                                <div th:if="${product.returnFlightDateTime != null and product.returnFlightDepartAirport != null}">
+                                    <span th:text="${#temporals.format(product.returnFlightDateTime, 'yyyy.MM.dd (E) HH:mm')} + ' ' + ${product.returnFlightDepartAirport} + ' 출발'">
+                                        2026.03.27 (금) 15:05 인천 출발
+                                    </span>
+                                </div>
+                                <div th:if="${product.returnFlightArriveDateTime != null and product.returnFlightArriveAirport != null}">
+                                    <span th:text="${#temporals.format(product.returnFlightArriveDateTime, 'yyyy.MM.dd (E) HH:mm')} + ' ' + ${product.returnFlightArriveAirport} + ' 도착'">
+                                        2026.03.27 (금) 17:00 오사카 도착
+                                    </span>
+                                </div>
                             </div>
                             <div class="flight-details">
                                 <div class="flight-airline" th:if="${product.returnFlightAirline != null}">
@@ -178,11 +198,6 @@
                                 <div class="flight-number" th:if="${product.returnFlightNumber != null}">
                                     <span th:text="${product.returnFlightNumber}">KE124</span>
                                 </div>
-                            </div>
-                            <div class="flight-route" th:if="${product.returnFlightDepartAirport != null and product.returnFlightArriveAirport != null}">
-                                <span th:text="${product.returnFlightDepartAirport}">방콕</span>
-                                <i class="fas fa-arrow-right"></i>
-                                <span th:text="${product.returnFlightArriveAirport}">인천</span>
                             </div>
                         </div>
                     </div>
@@ -679,6 +694,9 @@
 
     <input type="hidden" id="departDateHidden" th:value="${departDate}">
     <input type="hidden" id="productIdHidden" th:value="${product.id}">
+    <input type="hidden" id="departTimeHidden" th:value="${departTime}">
+    <input type="hidden" id="returnTimeHidden" th:value="${returnTime}">
+    <input type="hidden" id="seatClassTypeHidden" th:value="${seatClassType}">
     <input type="hidden" id="editingReviewId" value="">
 
     <style>
@@ -1900,6 +1918,9 @@
 
                 const productId = document.getElementById('productIdHidden')?.value;
                 const departDate = document.getElementById('departDateHidden')?.value;
+                const departTime = document.getElementById('departTimeHidden')?.value || null;
+                const returnTime = document.getElementById('returnTimeHidden')?.value || null;
+                const seatClassType = document.getElementById('seatClassTypeHidden')?.value || null;
 
                 if (!productId || !departDate) {
                     alert('상품 또는 출발일 정보가 없습니다.');
@@ -1913,6 +1934,9 @@
                     youth,
                     infant
                 };
+                if (departTime) payloadData.departTime = departTime;
+                if (returnTime) payloadData.returnTime = returnTime;
+                if (seatClassType) payloadData.seatClassType = seatClassType;
 
                 if (!isLoggedIn) {
                     // 로그인이 안 되어 있으면 예약 정보를 세션에 저장하고 로그인 페이지로 이동
