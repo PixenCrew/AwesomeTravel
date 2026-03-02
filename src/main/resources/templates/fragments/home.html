@@ -2,9 +2,7 @@
     <!-- 상단 헤더 (로고 + 검색바) -->
     <div class="home-header">
         <div class="header-logo">
-            <span class="logo-text">딱</span>
-            <!-- 나중에 로고 이미지로 교체하려면 위의 <span> 태그를 제거하고 아래 주석을 해제하세요 -->
-            <!-- <img src="/images/logo.png" alt="딱좋은여행" class="logo-image" /> -->
+            <img src="/LOGO.png" alt="딱좋은여행" class="logo-image" />
         </div>
         <div class="header-search" onclick="showSection(3)">
             <i class="fas fa-search"></i>
@@ -116,7 +114,6 @@
                 <h2 class="section-title">여행지를 추천해드릴게요!</h2>
                 <p class="section-description">최근 3개월 간 구매(검색)이력을 기반으로 맞춤 상품을 추천해드립니다.</p>
             </div>
-            <button class="view-all-btn">모두 보기</button>
         </div>
         
         <div class="product-list-vertical" th:if="${recentProducts != null and !recentProducts.empty}">
@@ -141,20 +138,9 @@
             </div>
         </div>
         
-        <!-- 추천 상품이 없을 때 더미 데이터 -->
-        <div class="product-list-vertical" th:unless="${recentProducts != null and !recentProducts.empty}">
-            <div class="product-item">
-                <div class="product-image">
-                    <div class="placeholder-img">img</div>
-                </div>
-                <div class="product-info">
-                    <h3 class="product-title">동유럽 1박 2일</h3>
-                    <p class="product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</p>
-                    <div class="product-footer">
-                        <span class="product-price">990,000원</span>
-                    </div>
-                </div>
-            </div>
+        <!-- 추천 상품이 없을 때 -->
+        <div class="recommended-empty" th:unless="${recentProducts != null and !recentProducts.empty}">
+            <p class="recommended-empty-text">등록된 상품이 없습니다.</p>
         </div>
     </div>
 
@@ -253,21 +239,9 @@
             </div>
         </div>
         
-        <!-- 타임딜 상품이 없을 때 더미 데이터 -->
-        <div class="product-list-horizontal" th:unless="${timeDealProducts != null and !timeDealProducts.empty}">
-            <div class="product-item-horizontal">
-                <div class="product-image">
-                    <div class="placeholder-img">img</div>
-                </div>
-                <div class="product-info">
-                    <h3 class="product-title">동유럽 1박 2일</h3>
-                    <p class="product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</p>
-                    <div class="product-footer">
-                        <span class="product-price">990,000원</span>
-                        <span class="timer">(00:32 남음)</span>
-                    </div>
-                </div>
-            </div>
+        <!-- 타임딜 상품이 없을 때 -->
+        <div class="recommended-empty" th:unless="${timeDealProducts != null and !timeDealProducts.empty}">
+            <p class="recommended-empty-text">등록된 타임딜 상품이 없습니다.</p>
         </div>
     </div>
 
@@ -294,16 +268,9 @@
             </div>
         </div>
         
-        <!-- 프로모션이 없을 때 더미 데이터 -->
-        <div class="promotion-list-horizontal" th:unless="${promotions != null and !promotions.empty}">
-            <div class="promotion-item-horizontal">
-                <div class="promotion-image" style="background-image: url('/images/placeholder.png');">
-                </div>
-                <div class="promotion-info">
-                    <h3 class="promotion-title">한 눈에 알아보는 월별 추천 여행지</h3>
-                    <p class="promotion-description">어디로 떠날지 고민이시라면? 여기서 추천받으세요!</p>
-                </div>
-            </div>
+        <!-- 기획전이 없을 때 -->
+        <div class="recommended-empty" th:unless="${promotions != null and !promotions.empty}">
+            <p class="recommended-empty-text">등록된 기획전이 없습니다.</p>
         </div>
     </div>
 
