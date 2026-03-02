@@ -64,16 +64,17 @@
                 <div class="europe-product-item" 
                      th:each="menuCode : ${menuCodes}" 
                      th:if="${menuCode.code2 >= 704001 && menuCode.code2 <= 705001 && menuCodeProductMap.containsKey(menuCode.code)}"
-                     th:attr="data-product-id=${menuCodeProductMap.get(menuCode.code).id}"
+                     th:with="product=${menuCodeProductMap.get(menuCode.code)}"
+                     th:attr="data-product-id=${product.id}"
                      onclick="handleProductClick(this)"
                      style="cursor: pointer;">
                     <div class="europe-product-image">
-                        <img src="/images/placeholder.png" alt="상품 이미지" />
+                        <img th:src="${(product.thumbnail != null and !product.thumbnail.isEmpty() and (product.thumbnail.startsWith('/') or product.thumbnail.startsWith('http'))) ? product.thumbnail : ((product.image != null and !product.image.isEmpty() and (product.image.startsWith('/') or product.image.startsWith('http'))) ? product.image : '/images/placeholder.png')}" alt="상품 이미지" onerror="this.src='/images/placeholder.png'" />
                     </div>
                     <div class="europe-product-info">
-                        <div class="europe-product-title" th:text="${menuCode.name} + ' 1박 2일'">미주 1박 2일</div>
-                        <div class="europe-product-description">럭셔리 여행 노옵션 노쇼핑 풀패키지</div>
-                        <div class="europe-product-price">990,000원</div>
+                        <div class="europe-product-title" th:text="${product.title}">상품명</div>
+                        <div class="europe-product-description" th:text="${product.noShopping and product.noOption ? '럭셔리 여행 노옵션 노쇼핑 풀패키지' : (product.noShopping ? '노쇼핑' : (product.noOption ? '노옵션' : product.title))}">설명</div>
+                        <div class="europe-product-price" th:text="${#numbers.formatInteger(product.finalPriceAdult != null ? product.finalPriceAdult : (product.price != null ? product.price : 0), 3, 'COMMA') + '원'}">0원</div>
                     </div>
                 </div>
             </div>
